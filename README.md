@@ -1,24 +1,26 @@
-Dental House Mobile
+🦷 Dental House Mobile
 
-Aplicacion Movil desarollada en Flutter para la gestion y servicios de la clinica Dental
+Aplicación móvil desarrollada en Flutter para la gestión y servicios de una clínica dental.
 
-Integrantes
+👥 Integrantes del proyecto
 Nombre	Usuario GitHub	Carné
-Alvaro Ivan Medrano Jiron- AIMJ13- 24903188
-Alex Humberto Obando Baltodano- Axel200514-	24902980 
-Katya Alexandra Arévalo Rodríguez- Katya202512- 24747483 
-Arellys Nicole Aguirre Ortega- aguirreortega09-cyber - 24902946
+Álvaro Iván Medrano Jirón	AIMJ13	24903188
+Alex Humberto Obando Baltodano	Axel200514	24902980
+Alejandro Rodríguez	Katya202512	24747483
+Arelys Nicole Aguirre Ortega	aguierreortega09-cyber	24902946
+🛠️ Tecnologías utilizadas
+Flutter
+Dart
+Git
+GitHub
+Visual Studio Code
+Android Studio
+📋 Requisitos
 
-Tecnologias
-#Flutter
-#Dart
-#GitHub
+Para ejecutar el proyecto necesitas tener instalado:
 
-Requisitos
-#Flutter SDK
-#Dart SDK
-#visual Studio Code 
-#Android Studio
-#Un dispositivo Android o emulador
-
-
+Flutter SDK
+Dart SDK
+Visual Studio Code o Android Studio
+Android SDK
+Un dispositivo Android físico o un emulador
