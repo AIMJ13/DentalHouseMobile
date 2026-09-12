@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.grey,
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Ingresa tu usuario';
                           }
                           return null;
