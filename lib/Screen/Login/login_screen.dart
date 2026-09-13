@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/custom_text_field.dart';
 import '../../Widget/dental_logo.dart';
+import '../../routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, Routes.home);
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../routes.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -55,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/');
+                  Navigator.pushReplacementNamed(context, Routes.login);
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text('Cerrar Sesión'),

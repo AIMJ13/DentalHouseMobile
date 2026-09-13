@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Screen/Home/home_screen.dart';
-import 'Screen/Login/login_screen.dart';
+import 'routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,11 +16,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Outfit',
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
-      },
+      initialRoute: Routes.login,
+      routes: Routes.routes,
     );
   }
 }
