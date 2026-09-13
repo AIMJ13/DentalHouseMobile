@@ -10,6 +10,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  void _onBottomNavTapped(int index) {
+    if (index == 0) {
+      setState(() {
+        _currentIndex = 0;
+      });
+      return;
+    }
+    if (index == 1) {
+      Navigator.pushNamed(context, Routes.servicios);
+      return;
+    }
+    if (index == 2) {
+      Navigator.pushNamed(context, Routes.ventas);
+      return;
+    }
+    if (index == 3) {
+      Navigator.pushNamed(context, Routes.citas);
+      return;
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,6 +132,38 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onBottomNavTapped,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: Colors.blue[700],
+        unselectedItemColor: Colors.grey[600],
+        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_outlined),
+            label: 'Resumen',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: 'Servicios',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            label: 'Ventas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month_outlined),
+            label: 'Citas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.more_horiz),
+            label: 'Más',
+          ),
+        ],
       ),
     );
   }
