@@ -14,6 +14,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DentalHouse',
+      theme: ThemeData(
+        fontFamily: 'Outfit',
+      ),
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
