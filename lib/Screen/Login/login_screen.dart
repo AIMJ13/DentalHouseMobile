@@ -69,10 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Ingresa tus credenciales para acceder al sistema.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 24),
                       CustomTextField(
