@@ -11,7 +11,17 @@ class ServiciosScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: const Center(
-        child: Text('Módulo de Servicios'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.construction, size: 50, color: Colors.orange),
+            SizedBox(height: 10),
+            Text(
+              'En construcción Servicios',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
