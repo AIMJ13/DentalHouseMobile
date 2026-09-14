@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await prefs.setBool('isLoggedIn', true);
     await prefs.setString('rol', 'Administrador');
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, Routes.home);
+    Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
   }
 
   @override

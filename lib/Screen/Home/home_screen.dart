@@ -136,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     await prefs.clear();
                     if (!context.mounted) return;
                     Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, Routes.login);
+                    Navigator.pushNamedAndRemoveUntil(context, Routes.login, (route) => false);
                   },
                 ),
                 const SizedBox(height: 8),
@@ -287,6 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 16,
         title: const DentalLogo(),
