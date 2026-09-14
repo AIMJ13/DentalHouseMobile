@@ -123,6 +123,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.pushNamed(context, Routes.especialidades);
                   },
                 ),
+                _buildModalItem(
+                  icon: Icons.logout,
+                  iconColor: Colors.red[700]!,
+                  iconBgColor: Colors.red[50]!,
+                  title: 'Cerrar Sesión',
+                  subtitle: 'Salir del sistema',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, Routes.login);
+                  },
+                ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -245,16 +256,6 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Bienvenido de nuevo, Administrador. Aquí puedes visualizar los indicadores clave.',
               style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, Routes.login);
-                },
-                icon: const Icon(Icons.logout, size: 18),
-                label: const Text('Cerrar Sesión'),
-              ),
             ),
           ],
         ),
