@@ -214,6 +214,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildBarraItem({
+    required String label,
+    required String valor,
+    required double porcentaje,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              Text(valor, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: porcentaje,
+              minHeight: 6,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeccionEstadistica({
+    required String titulo,
+    required String etiqueta,
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(titulo, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...children,
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -370,6 +432,54 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+            ),
+            _buildSeccionEstadistica(
+              titulo: 'INGRESOS POR DOCTOR',
+              etiqueta: 'Córdobas (C\$)',
+              children: [
+                for (var doc in doctoresTop)
+                  _buildBarraItem(
+                    label: doc['nombre'],
+                    valor: doc['monto'],
+                    porcentaje: doc['porcentaje'],
+                  ),
+              ],
+            ),
+            _buildSeccionEstadistica(
+              titulo: 'SERVICIOS MÁS VENDIDOS',
+              etiqueta: 'Cant. unidades',
+              children: [
+                for (var serv in serviciosTop)
+                  _buildBarraItem(
+                    label: serv['nombre'],
+                    valor: serv['monto'],
+                    porcentaje: serv['porcentaje'],
+                  ),
+              ],
+            ),
+            _buildSeccionEstadistica(
+              titulo: 'ESPECIALIDADES MÁS RENTABLES',
+              etiqueta: 'Facturación (C\$)',
+              children: [
+                for (var esp in especialidadesTop)
+                  _buildBarraItem(
+                    label: esp['nombre'],
+                    valor: esp['monto'],
+                    porcentaje: esp['porcentaje'],
+                  ),
+              ],
+            ),
+            _buildSeccionEstadistica(
+              titulo: 'INGRESOS MENSUALES',
+              etiqueta: 'Año actual (C\$)',
+              children: [
+                for (var mes in ingresosMensuales)
+                  _buildBarraItem(
+                    label: mes['mes'],
+                    valor: mes['monto'],
+                    porcentaje: mes['porcentaje'],
+                  ),
+              ],
             ),
           ],
         ),
