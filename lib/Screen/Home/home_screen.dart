@@ -172,10 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
         titleSpacing: 16,
         title: const DentalLogo(),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87),
-            onPressed: () {},
-          ),
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
