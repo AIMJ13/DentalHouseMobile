@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../Data/dashboard_data.dart';
 import '../../Widget/dental_logo.dart';
 import '../../routes.dart';
 
@@ -173,6 +174,46 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildMetricaCard({
+    required String titulo,
+    required String valor,
+    required String subtitulo,
+    bool esBadge = false,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(titulo, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+            const SizedBox(height: 6),
+            Text(valor, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            esBadge
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      subtitulo,
+                      style: TextStyle(fontSize: 10, color: Colors.green[700], fontWeight: FontWeight.w600),
+                    ),
+                  )
+                : Text(subtitulo, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -257,6 +298,78 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Bienvenido de nuevo, Administrador. Aquí puedes visualizar los indicadores clave.',
               style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Rendimiento', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                          Text('Indicadores clave de la clínica', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.green[200]!),
+                        ),
+                        child: Text(
+                          '• Publicado',
+                          style: TextStyle(fontSize: 11, color: Colors.green[700], fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _buildMetricaCard(
+                        titulo: 'Ingresos Totales',
+                        valor: metricasRendimiento['ingresos'],
+                        subtitulo: metricasRendimiento['ingresosMeta'],
+                        esBadge: true,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildMetricaCard(
+                        titulo: 'Total Ventas',
+                        valor: metricasRendimiento['ventas'],
+                        subtitulo: metricasRendimiento['ventasSub'],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildMetricaCard(
+                        titulo: 'Servicios Vendidos',
+                        valor: metricasRendimiento['servicios'],
+                        subtitulo: metricasRendimiento['serviciosSub'],
+                      ),
+                      const SizedBox(width: 12),
+                      _buildMetricaCard(
+                        titulo: 'Promedio / Venta',
+                        valor: metricasRendimiento['promedio'],
+                        subtitulo: metricasRendimiento['promedioSub'],
+                        esBadge: true,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
