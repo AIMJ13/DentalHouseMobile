@@ -13,7 +13,6 @@ class DentalLogo extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.blue[50],
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.blue[100]!),
           ),
           child: const Icon(
             Icons.health_and_safety_outlined,
