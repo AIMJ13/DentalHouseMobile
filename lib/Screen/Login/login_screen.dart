@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/custom_text_field.dart';
 import '../../Widget/dental_logo.dart';
@@ -24,10 +25,14 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _iniciarSesion() {
+  void _iniciarSesion() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    await prefs.setString('rol', 'Administrador');
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, Routes.home);
   }
 

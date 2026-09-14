@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Data/dashboard_data.dart';
 import '../../Widget/dental_logo.dart';
 import '../../routes.dart';
@@ -130,7 +131,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   iconBgColor: Colors.red[50]!,
                   title: 'Cerrar Sesión',
                   subtitle: 'Salir del sistema',
-                  onTap: () {
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.clear();
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     Navigator.pushReplacementNamed(context, Routes.login);
                   },
