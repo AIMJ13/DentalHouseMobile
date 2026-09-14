@@ -180,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         titleSpacing: 16,
         title: const DentalLogo(),
         actions: [
@@ -260,22 +261,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onBottomNavTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.blue[700],
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-        ],
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onBottomNavTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.blue[700],
+          unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontSize: 11),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+            BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+          ],
+        ),
       ),
     );
   }

@@ -15,6 +15,8 @@ class MyApp extends StatelessWidget {
       title: 'DentalHouse',
       theme: ThemeData(
         fontFamily: 'Outfit',
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
       ),
       initialRoute: Routes.login,
       routes: Routes.routes,
