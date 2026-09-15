@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
+import '../../routes.dart';
+import 'doctor_modal.dart';
 
 class DoctoresScreen extends StatefulWidget {
   const DoctoresScreen({super.key});
@@ -13,6 +16,26 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Especialidad'];
+  final int _currentIndex = 4;
+
+  void _onBottomNavTapped(int index) {
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, Routes.home);
+      return;
+    }
+    if (index == 1) {
+      Navigator.pushReplacementNamed(context, Routes.servicios);
+      return;
+    }
+    if (index == 2) {
+      Navigator.pushReplacementNamed(context, Routes.ventas);
+      return;
+    }
+    if (index == 3) {
+      Navigator.pushReplacementNamed(context, Routes.citas);
+      return;
+    }
+  }
 
   @override
   void dispose() {
@@ -225,6 +248,35 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _abrirModalDoctor(),
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onBottomNavTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.blue[700],
+          unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontSize: 11),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+            BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+          ],
+        ),
+      ),
     );
   }
 
@@ -406,7 +458,13 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               Expanded(
                 child: CustomButton(
                   text: 'Editar',
-                  onPressed: () {},
+                  onPressed: () => _abrirModalDoctor(
+                    id: id,
+                    nombre: nombre,
+                    especialidad: especialidad,
+                    telefono: telefono,
+                    activo: activo,
+                  ),
                   color: Colors.blue[700],
                 ),
               ),
@@ -414,7 +472,12 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               Expanded(
                 child: CustomButton(
                   text: activo ? 'Desactivar' : 'Activar',
-                  onPressed: () {},
+                  onPressed: () => _mostrarDialogoDesactivar(
+                    id: id,
+                    nombre: nombre,
+                    especialidad: especialidad,
+                    telefono: telefono,
+                  ),
                   color: activo ? Colors.red[500] : Colors.teal[700],
                 ),
               ),
@@ -422,6 +485,132 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _abrirModalDoctor({
+    String? id,
+    String? nombre,
+    String? especialidad,
+    String? telefono,
+    bool activo = true,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return DoctorModal(
+          id: id,
+          nombre: nombre,
+          especialidad: especialidad,
+          telefono: telefono,
+          activo: activo,
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoDesactivar({
+    required String id,
+    required String nombre,
+    required String especialidad,
+    required String telefono,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return ConfirmDialog(
+          titulo: '¿Desactivar Doctor?',
+          subtitulo: 'Confirmar cambio de estado médico',
+          advertencia:
+              'El doctor pasará a estado Inactivo. No podrá ser asignado a nuevas citas o consultas hasta que sea reactivado nuevamente.',
+          contenido: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.teal[50],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        id,
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.teal[700]),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: Colors.green[600],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Activo',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.green[700]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.blue[50],
+                      child: Icon(Icons.person_outline, size: 18, color: Colors.blue[700]),
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                        Row(
+                          children: [
+                            Text(especialidad, style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.w600)),
+                            const SizedBox(width: 8),
+                            Icon(Icons.phone_outlined, size: 11, color: Colors.grey[500]),
+                            const SizedBox(width: 2),
+                            Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          onConfirmar: () {},
+        );
+      },
     );
   }
 }
