@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
 
 class DoctoresScreen extends StatefulWidget {
@@ -206,6 +207,21 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            _buildDoctorCard(
+              id: 'DOC-001',
+              nombre: 'Dr. Fabio Reyes',
+              especialidad: 'Endodoncia',
+              telefono: '6745853',
+              activo: true,
+            ),
+            _buildDoctorCard(
+              id: 'DOC-004',
+              nombre: 'Dr. DoctorTest Prueba',
+              especialidad: 'Odontología',
+              telefono: '22223333',
+              activo: false,
+            ),
           ],
         ),
       ),
@@ -246,6 +262,166 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDoctorCard({
+    required String id,
+    required String nombre,
+    required String especialidad,
+    required String telefono,
+    required bool activo,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: activo ? Colors.teal[50] : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  id,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: activo ? Colors.teal[700] : Colors.grey[700],
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: activo ? Colors.green[50] : Colors.red[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: activo ? Colors.green[600] : Colors.red[600],
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      activo ? 'Activo' : 'Inactivo',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: activo ? Colors.green[700] : Colors.red[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: activo ? Colors.blue[50] : Colors.red[50],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.person_outline,
+                  color: activo ? Colors.blue[700] : Colors.red[700],
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nombre,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            especialidad,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Icon(
+                          Icons.phone_outlined,
+                          size: 13,
+                          color: Colors.grey[500],
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          telefono,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  text: 'Editar',
+                  onPressed: () {},
+                  color: Colors.blue[700],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: CustomButton(
+                  text: activo ? 'Desactivar' : 'Activar',
+                  onPressed: () {},
+                  color: activo ? Colors.red[500] : Colors.teal[700],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
