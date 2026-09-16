@@ -56,10 +56,6 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
         titleSpacing: 16,
         title: const DentalLogo(),
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.grey[700]),
-            onPressed: () {},
-          ),
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -539,99 +535,115 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           advertencia: activo
               ? 'El doctor pasará a estado Inactivo. No podrá ser asignado a nuevas citas o consultas hasta que sea reactivado nuevamente.'
               : 'El doctor pasará a estado Activo. Estará disponible para ser asignado a nuevas citas y consultas médicas.',
-          contenido: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.teal[50],
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        id,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.teal[700]),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: activo ? Colors.green[50] : Colors.red[50],
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: activo ? Colors.green[600] : Colors.red[600],
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            activo ? 'Activo' : 'Inactivo',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: activo ? Colors.green[700] : Colors.red[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: activo ? Colors.blue[50] : Colors.red[50],
-                      child: Icon(
-                        Icons.person_outline,
-                        size: 18,
-                        color: activo ? Colors.blue[700] : Colors.red[700],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
-                        Row(
-                          children: [
-                            Text(especialidad, style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.w600)),
-                            const SizedBox(width: 8),
-                            Icon(Icons.phone_outlined, size: 11, color: Colors.grey[500]),
-                            const SizedBox(width: 2),
-                            Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          contenido: _buildDoctorPreview(
+            id: id,
+            nombre: nombre,
+            especialidad: especialidad,
+            telefono: telefono,
+            activo: activo,
           ),
           onConfirmar: () {
             _cambiarEstadoDoctor(id, !activo);
           },
         );
       },
+    );
+  }
+
+  Widget _buildDoctorPreview({
+    required String id,
+    required String nombre,
+    required String especialidad,
+    required String telefono,
+    required bool activo,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.teal[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  id,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.teal[700]),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: activo ? Colors.green[50] : Colors.red[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: activo ? Colors.green[600] : Colors.red[600],
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      activo ? 'Activo' : 'Inactivo',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: activo ? Colors.green[700] : Colors.red[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: activo ? Colors.blue[50] : Colors.red[50],
+                child: Icon(
+                  Icons.person_outline,
+                  size: 18,
+                  color: activo ? Colors.blue[700] : Colors.red[700],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                  Row(
+                    children: [
+                      Text(especialidad, style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 8),
+                      Icon(Icons.phone_outlined, size: 11, color: Colors.grey[500]),
+                      const SizedBox(width: 2),
+                      Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
