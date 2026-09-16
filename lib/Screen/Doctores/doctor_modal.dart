@@ -36,6 +36,7 @@ class _DoctorModalState extends State<DoctorModal> {
   final List<String> _especialidades = [
     'Ortodoncia',
     'Endodoncia',
+    'Odontología',
     'Odontología General',
     'Periodoncia',
   ];
@@ -43,15 +44,24 @@ class _DoctorModalState extends State<DoctorModal> {
   @override
   void initState() {
     super.initState();
-    final partes = (widget.nombre ?? '').split(' ');
+    String nombreCompleto = widget.nombre ?? '';
+    if (nombreCompleto.startsWith('Dr. ')) {
+      nombreCompleto = nombreCompleto.substring(4);
+    } else if (nombreCompleto.startsWith('Dra. ')) {
+      nombreCompleto = nombreCompleto.substring(5);
+    }
+    final partes = nombreCompleto.trim().split(' ');
     _nombreController = TextEditingController(
-      text: partes.isNotEmpty ? partes.first.replaceAll('Dr. ', '') : '',
+      text: partes.isNotEmpty ? partes.first : '',
     );
     _apellidoController = TextEditingController(
       text: partes.length > 1 ? partes.sublist(1).join(' ') : '',
     );
     _telefonoController = TextEditingController(text: widget.telefono ?? '');
     _especialidadSeleccionada = widget.especialidad ?? 'Ortodoncia';
+    if (!_especialidades.contains(_especialidadSeleccionada)) {
+      _especialidades.add(_especialidadSeleccionada);
+    }
     _esActivo = widget.activo;
   }
 
