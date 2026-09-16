@@ -74,3 +74,25 @@ List<Map<String, dynamic>> listaDoctores = [
     'activo': false,
   },
 ];
+
+const Map<String, dynamic> metricasServicios = {
+  'total': '6',
+  'activos': '3',
+  'inactivos': '3',
+  'mostrados': '6 mostrados',
+};
+
+List<Map<String, dynamic>> listaServicios = [
+  {
+    'id': 'SRV-001',
+    'nombre': 'Limpieza Dental',
+    'costo': 'C\$ 400.00',
+    'activo': true,
+  },
+  {
+    'id': 'SRV-004',
+    'nombre': 'Blanqueamiento',
+    'costo': 'C\$ 100.00',
+    'activo': false,
+  },
+];
