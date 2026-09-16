@@ -58,7 +58,7 @@ const Map<String, dynamic> metricasDoctores = {
   'mostrados': '5 mostrados',
 };
 
-const List<Map<String, dynamic>> listaDoctores = [
+List<Map<String, dynamic>> listaDoctores = [
   {
     'id': 'DOC-001',
     'nombre': 'Dr. Fabio Reyes',

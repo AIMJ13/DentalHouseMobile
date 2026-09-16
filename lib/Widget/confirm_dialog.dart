@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'custom_button.dart';
 
 class ConfirmDialog extends StatelessWidget {
@@ -8,6 +8,12 @@ class ConfirmDialog extends StatelessWidget {
   final Widget contenido;
   final String textoConfirmar;
   final VoidCallback onConfirmar;
+  final IconData icono;
+  final Color? colorIcono;
+  final Color? colorFondoIcono;
+  final Color? colorAdvertencia;
+  final Color? colorFondoAdvertencia;
+  final Color? colorBotonConfirmar;
 
   const ConfirmDialog({
     super.key,
@@ -17,6 +23,12 @@ class ConfirmDialog extends StatelessWidget {
     required this.contenido,
     this.textoConfirmar = 'Sí, Desactivar',
     required this.onConfirmar,
+    this.icono = Icons.warning_amber_rounded,
+    this.colorIcono,
+    this.colorFondoIcono,
+    this.colorAdvertencia,
+    this.colorFondoAdvertencia,
+    this.colorBotonConfirmar,
   });
 
   @override
@@ -40,12 +52,12 @@ class ConfirmDialog extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.red[50],
+                        color: colorFondoIcono ?? Colors.red[50],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.red[600],
+                        icono,
+                        color: colorIcono ?? Colors.red[600],
                         size: 24,
                       ),
                     ),
@@ -88,20 +100,24 @@ class ConfirmDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red[50],
+                color: colorFondoAdvertencia ?? Colors.red[50],
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, size: 18, color: Colors.red[400]),
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: colorAdvertencia ?? Colors.red[400],
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       advertencia,
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.red[800],
+                        color: colorAdvertencia ?? Colors.red[800],
                         height: 1.3,
                       ),
                     ),
@@ -140,7 +156,7 @@ class ConfirmDialog extends StatelessWidget {
                       Navigator.pop(context);
                       onConfirmar();
                     },
-                    color: Colors.red[500],
+                    color: colorBotonConfirmar ?? Colors.red[500],
                   ),
                 ),
               ],

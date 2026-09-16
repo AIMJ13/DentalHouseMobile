@@ -467,11 +467,12 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               Expanded(
                 child: CustomButton(
                   text: activo ? 'Desactivar' : 'Activar',
-                  onPressed: () => _mostrarDialogoDesactivar(
+                  onPressed: () => _mostrarDialogoEstado(
                     id: id,
                     nombre: nombre,
                     especialidad: especialidad,
                     telefono: telefono,
+                    activo: activo,
                   ),
                   color: activo ? Colors.red[500] : Colors.teal[700],
                 ),
@@ -504,20 +505,40 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     );
   }
 
-  void _mostrarDialogoDesactivar({
+  void _cambiarEstadoDoctor(String id, bool nuevoEstado) {
+    setState(() {
+      for (var doc in listaDoctores) {
+        if (doc['id'] == id) {
+          doc['activo'] = nuevoEstado;
+          break;
+        }
+      }
+    });
+  }
+
+  void _mostrarDialogoEstado({
     required String id,
     required String nombre,
     required String especialidad,
     required String telefono,
+    required bool activo,
   }) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return ConfirmDialog(
-          titulo: '¿Desactivar Doctor?',
+          titulo: activo ? '¿Desactivar Doctor?' : '¿Activar Doctor?',
           subtitulo: 'Confirmar cambio de estado médico',
-          advertencia:
-              'El doctor pasará a estado Inactivo. No podrá ser asignado a nuevas citas o consultas hasta que sea reactivado nuevamente.',
+          icono: activo ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+          colorIcono: activo ? Colors.red[600] : Colors.teal[700],
+          colorFondoIcono: activo ? Colors.red[50] : Colors.teal[50],
+          colorAdvertencia: activo ? Colors.red[800] : Colors.teal[800],
+          colorFondoAdvertencia: activo ? Colors.red[50] : Colors.teal[50],
+          colorBotonConfirmar: activo ? Colors.red[500] : Colors.teal[700],
+          textoConfirmar: activo ? 'Sí, Desactivar' : 'Sí, Activar',
+          advertencia: activo
+              ? 'El doctor pasará a estado Inactivo. No podrá ser asignado a nuevas citas o consultas hasta que sea reactivado nuevamente.'
+              : 'El doctor pasará a estado Activo. Estará disponible para ser asignado a nuevas citas y consultas médicas.',
           contenido: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -545,7 +566,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.green[50],
+                        color: activo ? Colors.green[50] : Colors.red[50],
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
@@ -555,14 +576,18 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: Colors.green[600],
+                              color: activo ? Colors.green[600] : Colors.red[600],
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Activo',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.green[700]),
+                            activo ? 'Activo' : 'Inactivo',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: activo ? Colors.green[700] : Colors.red[700],
+                            ),
                           ),
                         ],
                       ),
@@ -574,8 +599,12 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: Colors.blue[50],
-                      child: Icon(Icons.person_outline, size: 18, color: Colors.blue[700]),
+                      backgroundColor: activo ? Colors.blue[50] : Colors.red[50],
+                      child: Icon(
+                        Icons.person_outline,
+                        size: 18,
+                        color: activo ? Colors.blue[700] : Colors.red[700],
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Column(
@@ -598,7 +627,9 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               ],
             ),
           ),
-          onConfirmar: () {},
+          onConfirmar: () {
+            _cambiarEstadoDoctor(id, !activo);
+          },
         );
       },
     );
