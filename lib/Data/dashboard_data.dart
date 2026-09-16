@@ -1,4 +1,4 @@
-﻿const Map<String, dynamic> metricasRendimiento = {
+const Map<String, dynamic> metricasRendimiento = {
   'ingresos': 'C\$ 874.00 mil',
   'ingresosMeta': 'Meta activa',
   'ventas': '53',
@@ -47,5 +47,30 @@ const List<Map<String, dynamic>> ultimasCitas = [
     'servicio': 'Limpieza Dental',
     'estado': 'Completada',
     'monto': 'C\$ 800.00',
+  },
+];
+
+const Map<String, dynamic> metricasDoctores = {
+  'total': '33',
+  'activos': '9',
+  'inactivos': '1',
+  'especialidades': '3',
+  'mostrados': '5 mostrados',
+};
+
+const List<Map<String, dynamic>> listaDoctores = [
+  {
+    'id': 'DOC-001',
+    'nombre': 'Dr. Fabio Reyes',
+    'especialidad': 'Endodoncia',
+    'telefono': '6745853',
+    'activo': true,
+  },
+  {
+    'id': 'DOC-004',
+    'nombre': 'Dr. DoctorTest Prueba',
+    'especialidad': 'Odontología',
+    'telefono': '22223333',
+    'activo': false,
   },
 ];

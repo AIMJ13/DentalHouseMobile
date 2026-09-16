@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../Data/dashboard_data.dart';
 import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
@@ -201,13 +202,13 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' 33'),
+                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' ${metricasDoctores['total']}'),
                   _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.green[600]!, 'Activos:', ' 9'),
+                  _buildMetricaItem(Colors.green[600]!, 'Activos:', ' ${metricasDoctores['activos']}'),
                   _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' 1'),
+                  _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' ${metricasDoctores['inactivos']}'),
                   _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.blue[600]!, 'Espec.:', ' 3'),
+                  _buildMetricaItem(Colors.blue[600]!, 'Espec.:', ' ${metricasDoctores['especialidades']}'),
                 ],
               ),
             ),
@@ -225,26 +226,20 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                   ),
                 ),
                 Text(
-                  '5 mostrados',
+                  metricasDoctores['mostrados'] as String,
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            _buildDoctorCard(
-              id: 'DOC-001',
-              nombre: 'Dr. Fabio Reyes',
-              especialidad: 'Endodoncia',
-              telefono: '6745853',
-              activo: true,
-            ),
-            _buildDoctorCard(
-              id: 'DOC-004',
-              nombre: 'Dr. DoctorTest Prueba',
-              especialidad: 'Odontología',
-              telefono: '22223333',
-              activo: false,
-            ),
+            for (var doc in listaDoctores)
+              _buildDoctorCard(
+                id: doc['id'] as String,
+                nombre: doc['nombre'] as String,
+                especialidad: doc['especialidad'] as String,
+                telefono: doc['telefono'] as String,
+                activo: doc['activo'] as bool,
+              ),
           ],
         ),
       ),
