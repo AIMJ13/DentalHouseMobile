@@ -490,14 +490,9 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     String? telefono,
     bool activo = true,
   }) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
+      builder: (dialogContext) {
         return DoctorModal(
           id: id,
           nombre: nombre,
