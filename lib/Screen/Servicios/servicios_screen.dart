@@ -41,6 +41,21 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     }
   }
 
+  List<Map<String, dynamic>> _obtenerServiciosFiltrados() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtrados = [];
+    for (var srv in listaServicios) {
+      final nombre = (srv['nombre'] as String).toLowerCase();
+      final id = (srv['id'] as String).toLowerCase();
+      final coincide = query.isEmpty || nombre.contains(query) || id.contains(query);
+      if (!coincide) continue;
+      if (_filtroSeleccionado == 'Activos' && srv['activo'] != true) continue;
+      if (_filtroSeleccionado == 'Inactivos' && srv['activo'] != false) continue;
+      filtrados.add(srv);
+    }
+    return filtrados;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -130,6 +145,9 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
               ),
               child: TextField(
                 controller: _searchController,
+                onChanged: (val) {
+                  setState(() {});
+                },
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                   hintText: 'Buscar servicio por nombre o código...',
@@ -241,13 +259,13 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                   ),
                 ),
                 Text(
-                  metricasServicios['mostrados'] as String,
+                  '${_obtenerServiciosFiltrados().length} mostrados',
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            for (var srv in listaServicios)
+            for (var srv in _obtenerServiciosFiltrados())
               _buildServicioCard(
                 id: srv['id'] as String,
                 nombre: srv['nombre'] as String,
