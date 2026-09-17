@@ -3,6 +3,7 @@ import '../../Data/dashboard_data.dart';
 import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
+import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
 import 'servicio_modal.dart';
 
@@ -36,7 +37,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
       return;
     }
     if (index == 4) {
-      Navigator.pushReplacementNamed(context, Routes.doctores);
+      mostrarMenuMas(context);
       return;
     }
   }
@@ -462,7 +463,28 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
           nombre: nombre,
           costo: costo,
           activo: activo,
-          onGuardar: () => setState(() {}),
+          onGuardar: (nuevoNombre, nuevoCosto, nuevoActivo) {
+            setState(() {
+              if (id != null) {
+                for (var srv in listaServicios) {
+                  if (srv['id'] == id) {
+                    srv['nombre'] = nuevoNombre;
+                    srv['costo'] = nuevoCosto;
+                    srv['activo'] = nuevoActivo;
+                    break;
+                  }
+                }
+              } else {
+                final nuevoId = 'SRV-00${listaServicios.length + 1}';
+                listaServicios.insert(0, {
+                  'id': nuevoId,
+                  'nombre': nuevoNombre,
+                  'costo': nuevoCosto,
+                  'activo': nuevoActivo,
+                });
+              }
+            });
+          },
         );
       },
     );

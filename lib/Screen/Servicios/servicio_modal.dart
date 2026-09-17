@@ -8,7 +8,7 @@ class ServicioModal extends StatefulWidget {
   final String? nombre;
   final String? costo;
   final bool activo;
-  final VoidCallback? onGuardar;
+  final void Function(String nombre, String costo, bool activo)? onGuardar;
 
   const ServicioModal({
     super.key,
@@ -56,9 +56,15 @@ class _ServicioModalState extends State<ServicioModal> {
           : 'Modifica la información y estado del servicio clínico.',
       textoConfirmar: 'Guardar',
       onConfirmar: () {
+        final nombre = _nombreController.text.trim();
+        var costo = _costoController.text.trim();
+        if (nombre.isEmpty || costo.isEmpty) return;
+        if (!costo.startsWith('C\$')) {
+          costo = 'C\$ $costo';
+        }
         Navigator.pop(context);
         if (widget.onGuardar != null) {
-          widget.onGuardar!();
+          widget.onGuardar!(nombre, costo, _esActivo);
         }
       },
       contenido: Column(
