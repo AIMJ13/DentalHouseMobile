@@ -208,42 +208,23 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildKpiCard(
-                    icono: Icons.folder_outlined,
-                    colorIcono: Colors.blue[600]!,
-                    fondoIcono: Colors.blue[50]!,
-                    etiqueta: 'Total',
-                    valor: metricasServicios['total'] as String,
-                    colorValor: Colors.black87,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildKpiCard(
-                    icono: Icons.check,
-                    colorIcono: Colors.green[600]!,
-                    fondoIcono: Colors.green[50]!,
-                    etiqueta: 'Activos',
-                    valor: metricasServicios['activos'] as String,
-                    colorValor: Colors.green[700]!,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildKpiCard(
-                    icono: Icons.block,
-                    colorIcono: Colors.red[600]!,
-                    fondoIcono: Colors.red[50]!,
-                    etiqueta: 'Inactivos',
-                    valor: metricasServicios['inactivos'] as String,
-                    colorValor: Colors.red[700]!,
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' ${metricasServicios['total']}'),
+                  _buildSeparadorVertical(),
+                  _buildMetricaItem(Colors.green[600]!, 'Activos:', ' ${metricasServicios['activos']}'),
+                  _buildSeparadorVertical(),
+                  _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' ${metricasServicios['inactivos']}'),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -307,34 +288,40 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     );
   }
 
-  Widget _buildKpiCard({
-    required IconData icono,
-    required Color colorIcono,
-    required Color fondoIcono,
-    required String etiqueta,
-    required String valor,
-    required Color colorValor,
-  }) {
+  Widget _buildSeparadorVertical() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: fondoIcono, shape: BoxShape.circle),
-            child: Icon(icono, color: colorIcono, size: 14),
+      height: 14,
+      width: 1,
+      color: Colors.grey[300],
+    );
+  }
+
+  Widget _buildMetricaItem(Color puntoColor, String etiqueta, String valor) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: puntoColor,
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 6),
-          Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-          const SizedBox(height: 2),
-          Text(valor, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: colorValor)),
-        ],
-      ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          etiqueta,
+          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+        ),
+        Text(
+          valor,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
