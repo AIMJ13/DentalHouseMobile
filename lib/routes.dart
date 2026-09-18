@@ -7,6 +7,7 @@ import 'Screen/Login/login_screen.dart';
 import 'Screen/Pacientes/pacientes_screen.dart';
 import 'Screen/Servicios/servicios_screen.dart';
 import 'Screen/Ventas/ventas_screen.dart';
+import 'Screen/DoctorHome/doctor_home_screen.dart';
 
 class Routes {
   Routes._();
@@ -19,6 +20,7 @@ class Routes {
   static const String pacientes = '/pacientes';
   static const String servicios = '/servicios';
   static const String ventas = '/ventas';
+  static const String doctorHome = '/doctor-home';
 
   static Map<String, WidgetBuilder> get routes => {
     login: (context) => const LoginScreen(),
@@ -29,5 +31,6 @@ class Routes {
     pacientes: (context) => const PacientesScreen(),
     servicios: (context) => const ServiciosScreen(),
     ventas: (context) => const VentasScreen(),
+    doctorHome: (context) => const DoctorHomeScreen(),
   };
 }
