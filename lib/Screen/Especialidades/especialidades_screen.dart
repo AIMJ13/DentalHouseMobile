@@ -38,6 +38,19 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
     }
   }
 
+  List<Map<String, dynamic>> _obtenerEspecialidadesFiltradas() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtradas = [];
+    for (var esp in listaEspecialidades) {
+      final nombre = (esp['nombre'] as String).toLowerCase();
+      final id = (esp['id'] as String).toLowerCase();
+      final coincide = query.isEmpty || nombre.contains(query) || id.contains(query);
+      if (!coincide) continue;
+      filtradas.add(esp);
+    }
+    return filtradas;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -56,6 +69,8 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
         inactivas++;
       }
     }
+
+    final especialidadesFiltradas = _obtenerEspecialidadesFiltradas();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -131,6 +146,27 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
             ),
             const SizedBox(height: 16),
             Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) {
+                  setState(() {});
+                },
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                  hintText: 'Buscar especialidad por nombre...',
+                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -148,8 +184,33 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Especialidades',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  '${especialidadesFiltradas.length} mostradas',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
