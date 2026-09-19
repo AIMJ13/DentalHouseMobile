@@ -3,6 +3,7 @@ import '../../Data/dashboard_data.dart';
 import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
+import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
 import 'doctor_modal.dart';
 
@@ -34,6 +35,10 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     }
     if (index == 3) {
       Navigator.pushReplacementNamed(context, Routes.citas);
+      return;
+    }
+    if (index == 4) {
+      mostrarMenuMas(context);
       return;
     }
   }

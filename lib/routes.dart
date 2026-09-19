@@ -4,6 +4,7 @@ import 'Screen/Doctores/doctores_screen.dart';
 import 'Screen/Especialidades/especialidades_screen.dart';
 import 'Screen/Home/home_screen.dart';
 import 'Screen/Login/login_screen.dart';
+import 'Screen/Logs/logs_screen.dart';
 import 'Screen/Pacientes/pacientes_screen.dart';
 import 'Screen/Servicios/servicios_screen.dart';
 import 'Screen/Ventas/ventas_screen.dart';
@@ -16,6 +17,7 @@ class Routes {
   static const String citas = '/citas';
   static const String doctores = '/doctores';
   static const String especialidades = '/especialidades';
+  static const String logs = '/logs';
   static const String pacientes = '/pacientes';
   static const String servicios = '/servicios';
   static const String ventas = '/ventas';
@@ -26,6 +28,7 @@ class Routes {
     citas: (context) => const CitasScreen(),
     doctores: (context) => const DoctoresScreen(),
     especialidades: (context) => const EspecialidadesScreen(),
+    logs: (context) => const LogsScreen(),
     pacientes: (context) => const PacientesScreen(),
     servicios: (context) => const ServiciosScreen(),
     ventas: (context) => const VentasScreen(),
