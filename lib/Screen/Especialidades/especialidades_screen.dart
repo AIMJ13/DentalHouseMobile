@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../Data/dashboard_data.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
@@ -45,6 +46,17 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    int total = listaEspecialidades.length;
+    int activas = 0;
+    int inactivas = 0;
+    for (var esp in listaEspecialidades) {
+      if (esp['activo'] == true) {
+        activas++;
+      } else {
+        inactivas++;
+      }
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -83,10 +95,60 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
           ),
         ],
       ),
-      body: const Center(
-        child: Text(
-          'Especialidades en configuración',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.bookmark_outline, color: Colors.blue[700], size: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Gestión de Especialidades',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Administra las especialidades médicas registradas en la clínica.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' $total'),
+                  _buildSeparadorVertical(),
+                  _buildMetricaItem(Colors.green[600]!, 'Activas:', ' $activas'),
+                  _buildSeparadorVertical(),
+                  _buildMetricaItem(Colors.red[600]!, 'Inactivas:', ' $inactivas'),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: Theme(
@@ -112,6 +174,43 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSeparadorVertical() {
+    return Container(
+      height: 14,
+      width: 1,
+      color: Colors.grey[300],
+    );
+  }
+
+  Widget _buildMetricaItem(Color puntoColor, String etiqueta, String valor) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: puntoColor,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          etiqueta,
+          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+        ),
+        Text(
+          valor,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 }
