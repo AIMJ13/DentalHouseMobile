@@ -3,6 +3,7 @@ import '../../Data/dashboard_data.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
+import 'log_detalle_modal.dart';
 
 class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
@@ -12,6 +13,7 @@ class LogsScreen extends StatefulWidget {
 }
 
 class _LogsScreenState extends State<LogsScreen> {
+  final TextEditingController _searchController = TextEditingController();
   final int _currentIndex = 4;
 
   void _onBottomNavTapped(int index) {
@@ -22,8 +24,55 @@ class _LogsScreenState extends State<LogsScreen> {
     if (index == 4) mostrarMenuMas(context);
   }
 
+  List<Map<String, dynamic>> _obtenerLogsFiltrados() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtrados = [];
+
+    for (var log in listaLogs) {
+      final desc = (log['descripcion'] as String).toLowerCase();
+      final usr = (log['usuario'] as String).toLowerCase();
+      final id = (log['id'] as String).toLowerCase();
+      final ip = (log['ip'] as String).toLowerCase();
+      final tipo = (log['tipo'] as String).toLowerCase();
+
+      final coincide = query.isEmpty ||
+          desc.contains(query) ||
+          usr.contains(query) ||
+          id.contains(query) ||
+          ip.contains(query) ||
+          tipo.contains(query);
+
+      if (!coincide) continue;
+      filtrados.add(log);
+    }
+    return filtrados;
+  }
+
+  void _abrirModalDetalle(Map<String, dynamic> log) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => LogDetalleModal(log: log),
+    );
+  }
+
+  MaterialColor _colorEtiqueta(String valor) {
+    if (valor == 'Modificación') return Colors.amber;
+    if (valor == 'Advertencia' || valor == 'Seguridad' || valor == 'SYS') return Colors.red;
+    if (valor == 'Auditoría' || valor == 'Doctores') return Colors.purple;
+    if (valor == 'Ventas' || valor == 'AT' || valor == 'Información') return Colors.teal;
+    return Colors.blue;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final logsFiltrados = _obtenerLogsFiltrados();
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -55,6 +104,25 @@ class _LogsScreenState extends State<LogsScreen> {
           children: [
             _buildEncabezado(),
             const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey[400]),
+                  hintText: 'Buscar en registro de actividad...',
+                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             _buildBarraMetricas(),
             const SizedBox(height: 16),
             Row(
@@ -64,18 +132,12 @@ class _LogsScreenState extends State<LogsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
-                  child: Text('${listaLogs.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+                  child: Text('${logsFiltrados.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            for (var log in listaLogs)
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-                child: Text(log['descripcion'] as String, style: const TextStyle(fontSize: 12)),
-              ),
+            for (var log in logsFiltrados) _buildLogCard(log),
           ],
         ),
       ),
@@ -132,6 +194,92 @@ class _LogsScreenState extends State<LogsScreen> {
         const SizedBox(width: 2),
         Text(valor, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
       ],
+    );
+  }
+
+  Widget _buildChip(String texto, Color fondo, Color textoColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(color: fondo, borderRadius: BorderRadius.circular(6)),
+      child: Text(texto, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textoColor)),
+    );
+  }
+
+  Widget _buildLogCard(Map<String, dynamic> log) {
+    final tipo = log['tipo'] as String;
+    final modulo = log['modulo'] as String;
+    final pTipo = _colorEtiqueta(tipo);
+    final pMod = _colorEtiqueta(modulo);
+    final pAva = _colorEtiqueta(log['iniciales'] as String);
+    final bool esAlerta = log['esAlerta'] == true;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildChip(log['id'] as String, Colors.grey[100]!, Colors.grey[800]!),
+              const SizedBox(width: 8),
+              _buildChip(tipo, pTipo[50]!, pTipo == Colors.amber ? Colors.amber[800]! : pTipo[700]!),
+              const Spacer(),
+              Text(log['fecha'] as String, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: pAva[50],
+                child: Text(log['iniciales'] as String, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: pAva[700])),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(log['usuario'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), overflow: TextOverflow.ellipsis),
+              ),
+              _buildChip('Módulo: $modulo', pMod[50]!, pMod[700]!),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (esAlerta)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.red[100]!)),
+              child: Text(log['descripcion'] as String, style: TextStyle(fontSize: 12, color: Colors.red[700], height: 1.3)),
+            )
+          else
+            Text(log['descripcion'] as String, style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.3)),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () => _abrirModalDetalle(log),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.visibility_outlined, size: 14, color: Colors.blue[700]),
+                    const SizedBox(width: 4),
+                    Text('Ver Detalle', style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
