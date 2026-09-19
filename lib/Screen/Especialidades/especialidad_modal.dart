@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../Widget/custom_bottom_modal.dart';
 import '../../Widget/custom_text_field.dart';
+import '../../Widget/estado_toggle.dart';
 
 class EspecialidadModal extends StatefulWidget {
   final String? id;
@@ -80,6 +81,30 @@ class _EspecialidadModalState extends State<EspecialidadModal> {
           CustomTextField(
             hintText: 'Ej. Odontopediatría',
             controller: _nombreController,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Descripción de la Especialidad',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
+          ),
+          const SizedBox(height: 6),
+          CustomTextField(
+            hintText: 'Ej. Atención odontológica integral infantil',
+            controller: _descripcionController,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Estado',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
+          ),
+          const SizedBox(height: 6),
+          EstadoToggle(
+            valor: _esActivo,
+            onChanged: (val) {
+              setState(() {
+                _esActivo = val;
+              });
+            },
           ),
         ],
       ),
