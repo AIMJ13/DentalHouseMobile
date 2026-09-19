@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
@@ -203,6 +204,14 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            for (var esp in especialidadesFiltradas)
+              _buildEspecialidadCard(
+                id: esp['id'] as String,
+                nombre: esp['nombre'] as String,
+                descripcion: (esp['descripcion'] as String?) ?? '',
+                activo: esp['activo'] as bool,
+              ),
           ],
         ),
       ),
@@ -272,6 +281,133 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEspecialidadCard({
+    required String id,
+    required String nombre,
+    required String descripcion,
+    required bool activo,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  id,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: activo ? Colors.green[50] : Colors.red[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: activo ? Colors.green[600] : Colors.red[600],
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      activo ? 'Activo' : 'Inactivo',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: activo ? Colors.green[700] : Colors.red[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: activo ? Colors.blue[50] : Colors.red[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: activo ? Colors.blue[100]! : Colors.red[100]!),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.medical_services,
+                    color: activo ? Colors.blue[700] : Colors.red[400],
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nombre,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    if (descripcion.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        descripcion,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  text: 'Editar',
+                  onPressed: () {},
+                  color: Colors.blue[700],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: CustomButton(
+                  text: activo ? 'Desactivar' : 'Activar',
+                  onPressed: () {},
+                  color: activo ? Colors.red[500] : Colors.teal[700],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
