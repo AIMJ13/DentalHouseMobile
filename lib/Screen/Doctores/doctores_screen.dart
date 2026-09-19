@@ -496,6 +496,30 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           especialidad: especialidad,
           telefono: telefono,
           activo: activo,
+          onGuardar: (nuevoNombre, nuevaEspecialidad, nuevoTelefono, nuevoActivo) {
+            setState(() {
+              if (id != null) {
+                for (var doc in listaDoctores) {
+                  if (doc['id'] == id) {
+                    doc['nombre'] = nuevoNombre;
+                    doc['especialidad'] = nuevaEspecialidad;
+                    doc['telefono'] = nuevoTelefono;
+                    doc['activo'] = nuevoActivo;
+                    break;
+                  }
+                }
+              } else {
+                final nuevoId = 'DOC-00${listaDoctores.length + 1}';
+                listaDoctores.insert(0, {
+                  'id': nuevoId,
+                  'nombre': nuevoNombre,
+                  'especialidad': nuevaEspecialidad,
+                  'telefono': nuevoTelefono,
+                  'activo': nuevoActivo,
+                });
+              }
+            });
+          },
         );
       },
     );

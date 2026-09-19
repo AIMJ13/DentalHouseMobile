@@ -10,7 +10,12 @@ class DoctorModal extends StatefulWidget {
   final String? especialidad;
   final String? telefono;
   final bool activo;
-  final VoidCallback? onGuardar;
+  final void Function(
+    String nombre,
+    String especialidad,
+    String telefono,
+    bool activo,
+  )? onGuardar;
 
   const DoctorModal({
     super.key,
@@ -84,9 +89,19 @@ class _DoctorModalState extends State<DoctorModal> {
           : 'Modifica la información y estado del médico',
       textoConfirmar: widget.id == null ? 'Guardar Doctor' : 'Guardar Cambios',
       onConfirmar: () {
+        final nom = _nombreController.text.trim();
+        final ape = _apellidoController.text.trim();
+        if (nom.isEmpty) return;
+
+        final nombreCompleto = ape.isNotEmpty ? 'Dr. $nom $ape' : 'Dr. $nom';
         Navigator.pop(context);
         if (widget.onGuardar != null) {
-          widget.onGuardar!();
+          widget.onGuardar!(
+            nombreCompleto,
+            _especialidadSeleccionada,
+            _telefonoController.text.trim(),
+            _esActivo,
+          );
         }
       },
       contenido: Column(
