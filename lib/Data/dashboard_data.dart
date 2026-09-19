@@ -96,3 +96,31 @@ List<Map<String, dynamic>> listaServicios = [
     'activo': false,
   },
 ];
+
+const Map<String, dynamic> metricasEspecialidades = {
+  'total': '3',
+  'activas': '2',
+  'inactivas': '1',
+  'mostradas': '3 mostradas',
+};
+
+List<Map<String, dynamic>> listaEspecialidades = [
+  {
+    'id': 'ESP-001',
+    'nombre': 'Endodoncia',
+    'descripcion': 'Tratamiento de conductos y pulpa dental',
+    'activo': true,
+  },
+  {
+    'id': 'ESP-002',
+    'nombre': 'Ortodoncia',
+    'descripcion': 'Corrección de mordida y alineación dental',
+    'activo': true,
+  },
+  {
+    'id': 'ESP-003',
+    'nombre': 'Periodoncia',
+    'descripcion': 'Tratamiento de encías y soporte óseo',
+    'activo': false,
+  },
+];
