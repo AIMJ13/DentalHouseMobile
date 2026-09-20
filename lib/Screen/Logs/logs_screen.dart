@@ -14,6 +14,9 @@ class LogsScreen extends StatefulWidget {
 
 class _LogsScreenState extends State<LogsScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  String _estadoFiltro = 'Todos';
+  bool _filtrosExpandidos = false;
   final int _currentIndex = 4;
 
   void _onBottomNavTapped(int index) {
@@ -43,6 +46,9 @@ class _LogsScreenState extends State<LogsScreen> {
           tipo.contains(query);
 
       if (!coincide) continue;
+      if (_estadoFiltro == 'Éxito' && log['estado'] != 'Éxito') continue;
+      if (_estadoFiltro == 'Error' && log['estado'] != 'Error') continue;
+
       filtrados.add(log);
     }
     return filtrados;
@@ -104,24 +110,7 @@ class _LogsScreenState extends State<LogsScreen> {
           children: [
             _buildEncabezado(),
             const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey[400]),
-                  hintText: 'Buscar en registro de actividad...',
-                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
+            _buildPanelFiltros(),
             const SizedBox(height: 16),
             _buildBarraMetricas(),
             const SizedBox(height: 16),
@@ -165,6 +154,86 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPanelFiltros() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _filtrosExpandidos = !_filtrosExpandidos),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.tune, size: 18, color: Colors.blue[700]),
+                    const SizedBox(width: 8),
+                    const Text('Filtros y Búsqueda', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(_filtrosExpandidos ? 'Ocultar' : 'Mostrar filtros', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.blue[700])),
+                    Icon(_filtrosExpandidos ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.blue[700], size: 20),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (_filtrosExpandidos) ...[
+            const SizedBox(height: 14),
+            _buildInputText(_searchController, 'Buscar por descripción, usuario, IP o acción...', Icons.search),
+            const SizedBox(height: 12),
+            Text('ESTADO (ISSUCCESS)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                children: [
+                  _buildEstadoPill('Todos', null),
+                  _buildEstadoPill('Éxito', Colors.green[600]),
+                  _buildEstadoPill('Error', Colors.red[600]),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildCampoFecha('DESDE (FECHA)', '06/22/2026')),
+                const SizedBox(width: 10),
+                Expanded(child: _buildCampoFecha('HASTA (FECHA)', '06/23/2026')),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputText(TextEditingController controller, String hint, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[300]!)),
+      child: TextField(
+        controller: controller,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, size: 18, color: Colors.grey[500]),
+          hintText: hint,
+          hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
     );
   }
 
@@ -280,6 +349,63 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEstadoPill(String label, Color? dotColor) {
+    final bool seleccionado = _estadoFiltro == label;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _estadoFiltro = label),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: seleccionado ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: seleccionado ? Border.all(color: Colors.grey[300]!) : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (dotColor != null) ...[
+                Container(width: 6, height: 6, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
+                  color: seleccionado ? (dotColor ?? Colors.blue[700]) : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCampoFecha(String titulo, String fecha) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(titulo, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[300]!)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(fecha, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+              Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[500]),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
