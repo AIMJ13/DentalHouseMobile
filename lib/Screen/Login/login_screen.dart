@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Data/dashboard_data.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/custom_text_field.dart';
 import '../../Widget/dental_logo.dart';
@@ -29,9 +30,65 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    final inputUsuario = _usuarioController.text.trim().toLowerCase();
+    final inputPassword = _passwordController.text.trim();
+
+    Map<String, dynamic>? usuarioValido;
+    for (var u in listaUsuarios) {
+      final usr = (u['usuario'] as String).toLowerCase();
+      final email = (u['email'] as String).toLowerCase();
+      if (usr == inputUsuario || email == inputUsuario) {
+        usuarioValido = u;
+        break;
+      }
+    }
+
+    if (usuarioValido == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Usuario o correo no registrado en el sistema'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final passwordGuardada = usuarioValido['password'] as String? ?? '123456';
+    if (passwordGuardada != inputPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Contraseña incorrecta'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final bool estaActivo = usuarioValido['activo'] as bool? ?? false;
+    if (!estaActivo) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Esta cuenta está inactiva. Contacta al administrador.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    perfilUsuarioActual['id'] = usuarioValido['id'];
+    perfilUsuarioActual['nombre'] = usuarioValido['nombre'];
+    perfilUsuarioActual['usuario'] = usuarioValido['usuario'];
+    perfilUsuarioActual['rol'] = usuarioValido['rol'];
+    perfilUsuarioActual['email'] = usuarioValido['email'];
+    perfilUsuarioActual['telefono'] = usuarioValido['telefono'];
+    perfilUsuarioActual['avatarLetra'] = (usuarioValido['nombre'] as String).substring(0, 1);
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', true);
-    await prefs.setString('rol', 'Administrador');
+    await prefs.setString('rol', usuarioValido['rol'] as String);
+    await prefs.setString('usuario', usuarioValido['usuario'] as String);
+
     if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
   }
@@ -80,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
                       CustomTextField(
                         label: 'Usuario',
-                        hintText: 'Ej. MiurellRaquel',
+                        hintText: 'admin, freyes o mizael.recepcion',
                         controller: _usuarioController,
                         prefixIcon: const Icon(
                           Icons.person_outline,
