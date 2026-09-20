@@ -7,6 +7,7 @@ import '../../Widget/cita_hoy_tile.dart';
 import '../../Widget/status_badge.dart';
 import '../../Widget/section_header.dart';
 import '../../Widget/dental_logo.dart';
+import '../../Widget/doctor_bottom_nav.dart';
 
 class DoctorHomeScreen extends StatelessWidget {
   const DoctorHomeScreen({super.key});
@@ -140,28 +141,12 @@ class DoctorHomeScreen extends StatelessWidget {
                 estadoTipo: _tipoDesde(c['estadoTipo']),
               ),
             ),
+           
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textGrey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            label: 'Citas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Pacientes',
-          ),
-        ],
-      ),
+       bottomNavigationBar: const DoctorBottomNav(currentIndex: 0),
+      
     );
   }
 }
