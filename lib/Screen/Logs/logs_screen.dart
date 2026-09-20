@@ -148,6 +148,8 @@ class _LogsScreenState extends State<LogsScreen> {
             ),
             const SizedBox(height: 12),
             for (var log in logsFiltrados) _buildLogCard(log),
+            const SizedBox(height: 12),
+            _buildPaginacion(),
           ],
         ),
       ),
@@ -485,6 +487,57 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPaginacion() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text('Por pág: ', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey[300]!)),
+                    child: const Text('10', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              Text('Página 1 de 15 (142 registros)', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey[300]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                  child: Text('< Anterior', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.blue[700]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                  child: Text('Siguiente >', style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
