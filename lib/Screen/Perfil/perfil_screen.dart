@@ -15,6 +15,14 @@ class PerfilScreen extends StatefulWidget {
 class _PerfilScreenState extends State<PerfilScreen> {
   late final TextEditingController _emailController;
   late final TextEditingController _telefonoController;
+  final TextEditingController _claveActualController = TextEditingController();
+  final TextEditingController _claveNuevaController = TextEditingController();
+  final TextEditingController _claveConfirmarController = TextEditingController();
+
+  bool _ocultarClaveActual = true;
+  bool _ocultarClaveNueva = true;
+  bool _ocultarClaveConfirmar = true;
+  bool _cambioClaveExpandido = false;
 
   @override
   void initState() {
@@ -27,6 +35,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
   void dispose() {
     _emailController.dispose();
     _telefonoController.dispose();
+    _claveActualController.dispose();
+    _claveNuevaController.dispose();
+    _claveConfirmarController.dispose();
     super.dispose();
   }
 
@@ -55,6 +66,39 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Datos de contacto actualizados correctamente'), backgroundColor: Colors.green),
+    );
+  }
+
+  void _cambiarClave() {
+    final actual = _claveActualController.text.trim();
+    final nueva = _claveNuevaController.text.trim();
+    final confirmar = _claveConfirmarController.text.trim();
+
+    if (actual.isEmpty || nueva.isEmpty || confirmar.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Completa todos los campos de contraseña'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    if (nueva != confirmar) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La nueva contraseña y la confirmación no coinciden'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    if (nueva.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La contraseña debe tener al menos 6 caracteres'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    _claveActualController.clear();
+    _claveNuevaController.clear();
+    _claveConfirmarController.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Contraseña actualizada con éxito'), backgroundColor: Colors.green),
     );
   }
 
@@ -161,7 +205,67 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => setState(() => _cambioClaveExpandido = !_cambioClaveExpandido),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.lock_outline, size: 18, color: Colors.blue[700]),
+                        const SizedBox(width: 8),
+                        const Text('Cambio de Contraseña', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(_cambioClaveExpandido ? 'Ocultar' : 'Cambiar contraseña', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.blue[700])),
+                        Icon(_cambioClaveExpandido ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.blue[700], size: 20),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (_cambioClaveExpandido) ...[
+                const SizedBox(height: 16),
+                _buildInputClave('Contraseña Actual', _claveActualController, _ocultarClaveActual, () => setState(() => _ocultarClaveActual = !_ocultarClaveActual)),
+                const SizedBox(height: 12),
+                _buildInputClave('Nueva Contraseña', _claveNuevaController, _ocultarClaveNueva, () => setState(() => _ocultarClaveNueva = !_ocultarClaveNueva)),
+                const SizedBox(height: 12),
+                _buildInputClave('Confirmar Nueva Contraseña', _claveConfirmarController, _ocultarClaveConfirmar, () => setState(() => _ocultarClaveConfirmar = !_ocultarClaveConfirmar)),
+                const SizedBox(height: 16),
+                CustomButton(text: 'Actualizar Contraseña', onPressed: _cambiarClave, color: Colors.blue[700]),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildInputClave(String label, TextEditingController controller, bool ocultar, VoidCallback onToggle) {
+    return CustomTextField(
+      label: label,
+      hintText: '••••••••',
+      controller: controller,
+      obscureText: ocultar,
+      prefixIcon: const Icon(Icons.lock_outline, size: 18, color: Colors.grey),
+      suffixIcon: IconButton(
+        icon: Icon(ocultar ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 18, color: Colors.grey),
+        onPressed: onToggle,
+      ),
     );
   }
 
