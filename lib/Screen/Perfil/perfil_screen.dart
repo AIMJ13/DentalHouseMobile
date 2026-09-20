@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/custom_button.dart';
+import '../../Widget/custom_text_field.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/user_badge.dart';
 
@@ -11,6 +13,51 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
+  late final TextEditingController _emailController;
+  late final TextEditingController _telefonoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(text: perfilUsuarioActual['email'] as String);
+    _telefonoController = TextEditingController(text: perfilUsuarioActual['telefono'] as String);
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _telefonoController.dispose();
+    super.dispose();
+  }
+
+  void _guardarContacto() {
+    final nuevoEmail = _emailController.text.trim();
+    final nuevoTelefono = _telefonoController.text.trim();
+
+    if (nuevoEmail.isEmpty || nuevoTelefono.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor completa todos los campos de contacto'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    setState(() {
+      perfilUsuarioActual['email'] = nuevoEmail;
+      perfilUsuarioActual['telefono'] = nuevoTelefono;
+      for (var u in listaUsuarios) {
+        if (u['id'] == perfilUsuarioActual['id']) {
+          u['email'] = nuevoEmail;
+          u['telefono'] = nuevoTelefono;
+          break;
+        }
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Datos de contacto actualizados correctamente'), backgroundColor: Colors.green),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +144,22 @@ class _PerfilScreenState extends State<PerfilScreen> {
             const SizedBox(width: 10),
             Expanded(child: _buildResumenCard('Estado', 'Activo', Colors.green[600]!)),
           ],
+        ),
+        const SizedBox(height: 20),
+        const Text('Actualizar Datos de Contacto', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
+          child: Column(
+            children: [
+              CustomTextField(label: 'Correo Electrónico', hintText: 'admin@dentalhouse.com', controller: _emailController, prefixIcon: const Icon(Icons.email_outlined, size: 18, color: Colors.grey)),
+              const SizedBox(height: 12),
+              CustomTextField(label: 'Teléfono Personal', hintText: '+505 8888-1111', controller: _telefonoController, prefixIcon: const Icon(Icons.phone_outlined, size: 18, color: Colors.grey)),
+              const SizedBox(height: 16),
+              CustomButton(text: 'Guardar Contacto', onPressed: _guardarContacto, color: Colors.blue[700]),
+            ],
+          ),
         ),
       ],
     );
