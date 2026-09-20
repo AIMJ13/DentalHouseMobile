@@ -14,10 +14,16 @@ class LogsScreen extends StatefulWidget {
 
 class _LogsScreenState extends State<LogsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _usuarioController = TextEditingController();
 
   String _estadoFiltro = 'Todos';
+  String _moduloFiltro = 'Todos los módulos';
+  String _accionFiltro = 'Todas las acciones';
   bool _filtrosExpandidos = false;
   final int _currentIndex = 4;
+
+  final List<String> _modulos = ['Todos los módulos', 'Citas', 'Servicios', 'Seguridad', 'Doctores', 'Ventas'];
+  final List<String> _acciones = ['Todas las acciones', 'Información', 'Modificación', 'Advertencia', 'Auditoría'];
 
   void _onBottomNavTapped(int index) {
     if (index == 0) Navigator.pushReplacementNamed(context, Routes.home);
@@ -27,8 +33,19 @@ class _LogsScreenState extends State<LogsScreen> {
     if (index == 4) mostrarMenuMas(context);
   }
 
+  void _limpiarFiltros() {
+    setState(() {
+      _searchController.clear();
+      _usuarioController.clear();
+      _estadoFiltro = 'Todos';
+      _moduloFiltro = 'Todos los módulos';
+      _accionFiltro = 'Todas las acciones';
+    });
+  }
+
   List<Map<String, dynamic>> _obtenerLogsFiltrados() {
     final query = _searchController.text.toLowerCase().trim();
+    final usuarioQuery = _usuarioController.text.toLowerCase().trim();
     List<Map<String, dynamic>> filtrados = [];
 
     for (var log in listaLogs) {
@@ -46,8 +63,11 @@ class _LogsScreenState extends State<LogsScreen> {
           tipo.contains(query);
 
       if (!coincide) continue;
+      if (usuarioQuery.isNotEmpty && !usr.contains(usuarioQuery)) continue;
       if (_estadoFiltro == 'Éxito' && log['estado'] != 'Éxito') continue;
       if (_estadoFiltro == 'Error' && log['estado'] != 'Error') continue;
+      if (_moduloFiltro != 'Todos los módulos' && log['modulo'] != _moduloFiltro) continue;
+      if (_accionFiltro != 'Todas las acciones' && log['tipo'] != _accionFiltro) continue;
 
       filtrados.add(log);
     }
@@ -72,6 +92,7 @@ class _LogsScreenState extends State<LogsScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _usuarioController.dispose();
     super.dispose();
   }
 
@@ -212,6 +233,40 @@ class _LogsScreenState extends State<LogsScreen> {
                 Expanded(child: _buildCampoFecha('DESDE (FECHA)', '06/22/2026')),
                 const SizedBox(width: 10),
                 Expanded(child: _buildCampoFecha('HASTA (FECHA)', '06/23/2026')),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildCampoDropdown('MÓDULO', _moduloFiltro, _modulos, (val) {
+                  if (val != null) setState(() => _moduloFiltro = val);
+                })),
+                const SizedBox(width: 10),
+                Expanded(child: _buildCampoDropdown('TIPO DE ACCIÓN', _accionFiltro, _acciones, (val) {
+                  if (val != null) setState(() => _accionFiltro = val);
+                })),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text('USUARIO (USERNAME)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+            const SizedBox(height: 6),
+            _buildInputText(_usuarioController, 'Ej. admin, Dr. Morales...', Icons.person_outline),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: _limpiarFiltros,
+                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey[300]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                  child: Text('Limpiar', style: TextStyle(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () => setState(() {}),
+                  icon: const Icon(Icons.filter_alt, size: 16, color: Colors.white),
+                  label: const Text('Aplicar Filtros', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                ),
               ],
             ),
           ],
@@ -403,6 +458,30 @@ class _LogsScreenState extends State<LogsScreen> {
               Text(fecha, style: const TextStyle(fontSize: 12, color: Colors.black87)),
               Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[500]),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCampoDropdown(String titulo, String valor, List<String> opciones, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(titulo, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[300]!)),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: valor,
+              isExpanded: true,
+              icon: const Icon(Icons.arrow_drop_down, size: 18),
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              onChanged: onChanged,
+              items: [for (var opc in opciones) DropdownMenuItem(value: opc, child: Text(opc, overflow: TextOverflow.ellipsis))],
+            ),
           ),
         ),
       ],
