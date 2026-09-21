@@ -13,11 +13,16 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
+  int _pestanaSeleccionada = 0;
+  String _filtroRol = 'Todos';
+  final List<String> _filtros = ['Todos', 'Doctores', 'Recepcionistas', 'Administradores'];
+
   late final TextEditingController _emailController;
   late final TextEditingController _telefonoController;
   final TextEditingController _claveActualController = TextEditingController();
   final TextEditingController _claveNuevaController = TextEditingController();
   final TextEditingController _claveConfirmarController = TextEditingController();
+  final TextEditingController _busquedaUsuarioController = TextEditingController();
 
   bool _ocultarClaveActual = true;
   bool _ocultarClaveNueva = true;
@@ -38,6 +43,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     _claveActualController.dispose();
     _claveNuevaController.dispose();
     _claveConfirmarController.dispose();
+    _busquedaUsuarioController.dispose();
     super.dispose();
   }
 
@@ -102,8 +108,31 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _obtenerUsuariosFiltrados() {
+    final query = _busquedaUsuarioController.text.trim().toLowerCase();
+    List<Map<String, dynamic>> resultado = [];
+
+    for (var usr in listaUsuarios) {
+      final rol = usr['rol'] as String;
+      if (_filtroRol == 'Doctores' && rol != 'Doctor') continue;
+      if (_filtroRol == 'Recepcionistas' && rol != 'Recepcionista') continue;
+      if (_filtroRol == 'Administradores' && rol != 'Administrador') continue;
+
+      final nombre = (usr['nombre'] as String).toLowerCase();
+      final usuario = (usr['usuario'] as String).toLowerCase();
+      final email = (usr['email'] as String).toLowerCase();
+
+      final coincide = query.isEmpty || nombre.contains(query) || usuario.contains(query) || email.contains(query);
+      if (!coincide) continue;
+      resultado.add(usr);
+    }
+    return resultado;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool esAdmin = (perfilUsuarioActual['rol'] as String? ?? '') == 'Administrador';
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -122,8 +151,46 @@ class _PerfilScreenState extends State<PerfilScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildVistaMiPerfil(),
+            if (esAdmin) ...[
+              Container(
+                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildBotonPestana('Mi Perfil', 0)),
+                    Expanded(child: _buildBotonPestana('Gestión de Usuarios', 1)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (!esAdmin || _pestanaSeleccionada == 0) _buildVistaMiPerfil(),
+            if (esAdmin && _pestanaSeleccionada == 1) _buildVistaGestionUsuarios(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBotonPestana(String texto, int index) {
+    final seleccionada = _pestanaSeleccionada == index;
+    return InkWell(
+      onTap: () => setState(() => _pestanaSeleccionada = index),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: seleccionada ? Colors.blue[700] : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            texto,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: seleccionada ? Colors.white : Colors.grey[700],
+            ),
+          ),
         ),
       ),
     );
@@ -291,6 +358,53 @@ class _PerfilScreenState extends State<PerfilScreen> {
           Text(valor, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
         ],
       ),
+    );
+  }
+
+  Widget _buildVistaGestionUsuarios() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[300]!)),
+          child: TextField(
+            controller: _busquedaUsuarioController,
+            onChanged: (val) => setState(() {}),
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+              hintText: 'Buscar usuario por nombre, email o rol...',
+              hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (var filtro in _filtros)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: InkWell(
+                    onTap: () => setState(() => _filtroRol = filtro),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _filtroRol == filtro ? Colors.blue[700] : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _filtroRol == filtro ? Colors.blue[700]! : Colors.grey[300]!),
+                      ),
+                      child: Text(filtro, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _filtroRol == filtro ? Colors.white : Colors.grey[700])),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
