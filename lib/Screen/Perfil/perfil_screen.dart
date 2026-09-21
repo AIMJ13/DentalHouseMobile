@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/custom_text_field.dart';
 import '../../Widget/dental_logo.dart';
@@ -128,6 +129,119 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
     return resultado;
   }
+
+  void _alternarEstadoUsuario(Map<String, dynamic> usuario) {
+    final bool activo = usuario['activo'] as bool;
+    final String nombre = usuario['nombre'] as String;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return ConfirmDialog(
+          titulo: activo ? '¿Desactivar Usuario?' : '¿Reactivar Usuario?',
+          subtitulo: 'Gestión de acceso al sistema',
+          icono: activo ? Icons.person_off_outlined : Icons.person_add_alt_1_outlined,
+          colorIcono: activo ? Colors.red[600] : Colors.teal[700],
+          colorFondoIcono: activo ? Colors.red[50] : Colors.teal[50],
+          colorAdvertencia: activo ? Colors.red[800] : Colors.teal[800],
+          colorFondoAdvertencia: activo ? Colors.red[50] : Colors.teal[50],
+          colorBotonConfirmar: activo ? Colors.red[500] : Colors.teal[700],
+          textoConfirmar: activo ? 'Sí, Desactivar' : 'Sí, Reactivar',
+          advertencia: activo
+              ? 'El usuario $nombre no podrá iniciar sesión en la aplicación móvil ni acceder al sistema.'
+              : 'El usuario $nombre tendrá acceso inmediato nuevamente con sus credenciales habituales.',
+          contenido: _buildUsuarioPreview(usuario),
+          onConfirmar: () {
+            setState(() => usuario['activo'] = !activo);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(activo ? 'Usuario desactivado' : 'Usuario reactivado con éxito'),
+                backgroundColor: activo ? Colors.red[600] : Colors.green[600],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildUsuarioPreview(Map<String, dynamic> usuario) {
+    final activo = usuario['activo'] as bool;
+    final nombre = usuario['nombre'] as String;
+    final rol = usuario['rol'] as String;
+    final email = usuario['email'] as String;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: activo ? Colors.blue[50] : Colors.red[50],
+            child: Text(nombre.isNotEmpty ? nombre.substring(0, 1) : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: activo ? Colors.blue[700] : Colors.red[700])),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                Text('$rol  •  $email', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _restablecerClaveUsuario(Map<String, dynamic> usuario) {
+    final String nombre = usuario['nombre'] as String;
+    final TextEditingController tempController = TextEditingController(text: 'Dental2026#');
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(8)), child: Icon(Icons.lock_reset, color: Colors.amber[800], size: 22)),
+              const SizedBox(width: 10),
+              const Expanded(child: Text('Restablecer Clave', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Genera una contraseña temporal para $nombre:', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+              const SizedBox(height: 12),
+              TextField(
+                controller: tempController,
+                decoration: InputDecoration(labelText: 'Contraseña Temporal', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Cancelar', style: TextStyle(color: Colors.grey[700]))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Contraseña temporal restablecida para $nombre'), backgroundColor: Colors.blue[700]));
+              },
+              child: const Text('Asignar', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -478,7 +592,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
-                  onPressed: () {},
+                  onPressed: () => _restablecerClaveUsuario(usr),
                 ),
               ),
               const SizedBox(width: 8),
@@ -490,7 +604,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
-                  onPressed: () => setState(() => usr['activo'] = !activo),
+                  onPressed: () => _alternarEstadoUsuario(usr),
                   child: Text(activo ? 'Desactivar' : 'Reactivar', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
