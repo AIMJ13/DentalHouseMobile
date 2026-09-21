@@ -139,10 +139,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
         title: const DentalLogo(),
         actions: const [UserBadge()],
       ),
@@ -178,19 +175,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: seleccionada ? Colors.blue[700] : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: seleccionada ? Colors.blue[700] : Colors.transparent, borderRadius: BorderRadius.circular(12)),
         child: Center(
-          child: Text(
-            texto,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: seleccionada ? Colors.white : Colors.grey[700],
-            ),
-          ),
+          child: Text(texto, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: seleccionada ? Colors.white : Colors.grey[700])),
         ),
       ),
     );
@@ -202,43 +189,27 @@ class _PerfilScreenState extends State<PerfilScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
           child: Row(
             children: [
               CircleAvatar(
                 radius: 32,
                 backgroundColor: Colors.blue[700],
-                child: Text(
-                  perfilUsuarioActual['avatarLetra'] as String? ?? 'U',
-                  style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
-                ),
+                child: Text(perfilUsuarioActual['avatarLetra'] as String, style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      perfilUsuarioActual['nombre'] as String? ?? '',
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
+                    Text(perfilUsuarioActual['nombre'] as String, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87)),
                     const SizedBox(height: 2),
-                    Text(
-                      '@${perfilUsuarioActual['usuario']}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
+                    Text('@${perfilUsuarioActual['usuario']}', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
-                      child: Text(
-                        perfilUsuarioActual['rol'] as String? ?? '',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700]),
-                      ),
+                      child: Text(perfilUsuarioActual['rol'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
                     ),
                   ],
                 ),
@@ -339,11 +310,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Widget _buildResumenCard(String etiqueta, String valor, Color colorPunto) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
       child: Column(
         children: [
           Row(
@@ -362,6 +329,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   Widget _buildVistaGestionUsuarios() {
+    final usuarios = _obtenerUsuariosFiltrados();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -404,7 +373,131 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('USUARIOS REGISTRADOS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[700], letterSpacing: 0.5)),
+            Text('${usuarios.length} mostrados', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          ],
+        ),
+        const SizedBox(height: 12),
+        for (var usr in usuarios) _buildUsuarioCard(usr),
+        const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildUsuarioCard(Map<String, dynamic> usr) {
+    final bool activo = usr['activo'] as bool;
+    final String rol = usr['rol'] as String;
+    final String nombre = usr['nombre'] as String;
+    final String usuario = usr['usuario'] as String;
+    final String email = usr['email'] as String;
+    final String telefono = usr['telefono'] as String;
+
+    Color rolColor = Colors.blue[700]!;
+    Color rolFondo = Colors.blue[50]!;
+
+    if (rol == 'Doctor') {
+      rolColor = Colors.teal[700]!;
+      rolFondo = Colors.teal[50]!;
+    } else if (rol == 'Recepcionista') {
+      rolColor = Colors.amber[900]!;
+      rolFondo = Colors.amber[50]!;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: rolFondo, borderRadius: BorderRadius.circular(6)),
+                child: Text(rol, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: rolColor)),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: activo ? Colors.green[50] : Colors.red[50], borderRadius: BorderRadius.circular(6)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 6, height: 6, decoration: BoxDecoration(color: activo ? Colors.green[600] : Colors.red[600], shape: BoxShape.circle)),
+                    const SizedBox(width: 4),
+                    Text(activo ? 'Activo' : 'Inactivo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: activo ? Colors.green[700] : Colors.red[700])),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: rolFondo,
+                child: Text(nombre.isNotEmpty ? nombre.substring(0, 1) : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: rolColor, fontSize: 16)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                    const SizedBox(height: 2),
+                    Text('@$usuario  •  $email', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.phone_outlined, size: 12, color: Colors.grey[500]),
+                        const SizedBox(width: 4),
+                        Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.lock_reset, size: 16),
+                  label: const Text('Reset Clave', style: TextStyle(fontSize: 11)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue[700],
+                    side: BorderSide(color: Colors.blue[200]!),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  onPressed: () {},
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: activo ? Colors.red[500] : Colors.teal[700],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  onPressed: () => setState(() => usr['activo'] = !activo),
+                  child: Text(activo ? 'Desactivar' : 'Reactivar', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
