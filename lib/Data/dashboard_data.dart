@@ -124,7 +124,6 @@ List<Map<String, dynamic>> listaEspecialidades = [
     'activo': false,
   },
 ];
-
 const Map<String, dynamic> metricasLogs = {
   'total': '142',
   'exito': '118',
@@ -264,4 +263,58 @@ List<Map<String, dynamic>> listaUsuarios = [
     'telefono': '+505 8123-4567',
     'activo': false,
   },
-];
+];
+const Map<String, dynamic> metricasPacientes = {
+  'total': '35',
+  'activos': '9',
+  'inactivos': '1',
+  'mostrados': '5 mostrados',
+};
+
+List<Map<String, dynamic>> listaPacientes = [
+  {
+    'id': 'PAC-001',
+    'nombre': 'Lester',
+    'apellido': 'Palacio',
+    'telefono': '809-555-1001',
+    'direccion': 'altamira',
+    'fechaNacimiento': '15/05/1990',
+    'activo': true,
+  },
+  {
+    'id': 'PAC-002',
+    'nombre': 'Roman',
+    'apellido': 'Rosales',
+    'telefono': '809-555-1002',
+    'direccion': 'Av. Central 456',
+    'fechaNacimiento': '22/08/1985',
+    'activo': true,
+  },
+  {
+    'id': 'PAC-003',
+    'nombre': 'Meylling',
+    'apellido': 'Garcia',
+    'telefono': '57893454',
+    'direccion': 'jinotepe, carazo',
+    'fechaNacimiento': '05/07/2001',
+    'activo': false,
+  },
+  {
+    'id': 'PAC-004',
+    'nombre': 'Miurell',
+    'apellido': 'Raquel',
+    'telefono': '57577819',
+    'direccion': 'Miurellgg@gmail.com',
+    'fechaNacimiento': '13/09/2005',
+    'activo': true,
+  },
+  {
+    'id': 'PAC-005',
+    'nombre': 'Wilfredo',
+    'apellido': 'Josue',
+    'telefono': '8899-1234',
+    'direccion': 'Managua, Reparto San Juan',
+    'fechaNacimiento': '10/11/1994',
+    'activo': true,
+  },
+];
