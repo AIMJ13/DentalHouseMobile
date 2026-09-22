@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'Pantalla/Iniciar sesión/login_screen.dart';
-import 'Pantalla/Citas/citas_screen.dart';
-=======
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screen/Home/home_screen.dart';
 import 'Screen/Login/login_screen.dart';
 import 'routes.dart';
->>>>>>> origin/Alex
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
