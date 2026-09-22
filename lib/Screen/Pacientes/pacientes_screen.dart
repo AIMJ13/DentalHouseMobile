@@ -4,6 +4,7 @@ import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
+import '../../Widget/user_badge.dart';
 import '../../routes.dart';
 import 'paciente_modal.dart';
 
@@ -16,9 +17,52 @@ class PacientesScreen extends StatefulWidget {
 
 class _PacientesScreenState extends State<PacientesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final int _currentIndex = 4;
 
-  void _onBottomNavTapped(int index) {
+  void _onBottomNavTapped(BuildContext context, int index) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+
+    if (rol == 'Doctor') {
+      if (index == 0) {
+        Navigator.pushReplacementNamed(context, Routes.home);
+        return;
+      }
+      if (index == 1) {
+        Navigator.pushReplacementNamed(context, Routes.citas);
+        return;
+      }
+      if (index == 2) {
+        return;
+      }
+      if (index == 3) {
+        mostrarMenuMas(context);
+        return;
+      }
+      return;
+    }
+
+    if (rol == 'Recepcionista') {
+      if (index == 0) {
+        Navigator.pushReplacementNamed(context, Routes.home);
+        return;
+      }
+      if (index == 1) {
+        Navigator.pushReplacementNamed(context, Routes.citas);
+        return;
+      }
+      if (index == 2) {
+        return;
+      }
+      if (index == 3) {
+        Navigator.pushReplacementNamed(context, Routes.servicios);
+        return;
+      }
+      if (index == 4) {
+        mostrarMenuMas(context);
+        return;
+      }
+      return;
+    }
+
     if (index == 0) {
       Navigator.pushReplacementNamed(context, Routes.home);
       return;
@@ -39,6 +83,33 @@ class _PacientesScreenState extends State<PacientesScreen> {
       mostrarMenuMas(context);
       return;
     }
+  }
+
+  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
+    if (rol == 'Doctor') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
+        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+      ];
+    }
+    if (rol == 'Recepcionista') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+      ];
+    }
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
+      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+    ];
   }
 
   List<Map<String, dynamic>> _obtenerPacientesFiltrados() {
@@ -66,6 +137,13 @@ class _PacientesScreenState extends State<PacientesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+
+    int navIndex = 4;
+    if (rol == 'Doctor' || rol == 'Recepcionista') {
+      navIndex = 2;
+    }
+
     int total = listaPacientes.length;
     int activos = 0;
     int inactivos = 0;
@@ -88,33 +166,8 @@ class _PacientesScreenState extends State<PacientesScreen> {
         centerTitle: false,
         titleSpacing: 16,
         title: const DentalLogo(),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Colors.blue[700],
-                  child: const Text(
-                    'A',
-                    style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Administrador',
-                  style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
+        actions: const [
+          UserBadge(),
         ],
       ),
       body: SingleChildScrollView(
@@ -225,8 +278,8 @@ class _PacientesScreenState extends State<PacientesScreen> {
                     ),
                   ],
                 ),
-              )
-            else
+              ),
+            if (pacientesFiltrados.isNotEmpty)
               for (var pac in pacientesFiltrados)
                 _buildPacienteCard(pac),
           ],
@@ -244,21 +297,15 @@ class _PacientesScreenState extends State<PacientesScreen> {
           highlightColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onBottomNavTapped,
+          currentIndex: navIndex,
+          onTap: (index) => _onBottomNavTapped(context, index),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           selectedItemColor: Colors.blue[700],
           unselectedItemColor: Colors.grey[600],
           selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-            BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-          ],
+          items: _obtenerItemsNavegacion(rol),
         ),
       ),
     );
