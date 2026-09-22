@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Data/dashboard_data.dart';
 import '../routes.dart';
 
 void mostrarMenuMas(BuildContext context) {
+  final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+  final bool esAdmin = rol == 'Administrador';
+  final bool esRecepcionista = rol == 'Recepcionista';
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -58,49 +63,64 @@ void mostrarMenuMas(BuildContext context) {
               ),
               const SizedBox(height: 16),
               _buildModalItem(
-                icon: Icons.medical_services_outlined,
-                iconColor: Colors.amber[800]!,
-                iconBgColor: Colors.amber[50]!,
-                title: 'Doctores',
-                subtitle: 'Gestión médica y turnos',
-                onTap: () {
-                  Navigator.pop(modalContext);
-                  Navigator.pushNamed(context, Routes.doctores);
-                },
-              ),
-              _buildModalItem(
-                icon: Icons.people_outline,
-                iconColor: Colors.teal[700]!,
-                iconBgColor: Colors.teal[50]!,
-                title: 'Pacientes',
-                subtitle: 'Directorio e historial clínico',
-                onTap: () {
-                  Navigator.pop(modalContext);
-                  Navigator.pushNamed(context, Routes.pacientes);
-                },
-              ),
-              _buildModalItem(
-                icon: Icons.science_outlined,
-                iconColor: Colors.blue[700]!,
+                icon: Icons.account_circle_outlined,
+                iconColor: Colors.blue[800]!,
                 iconBgColor: Colors.blue[50]!,
-                title: 'Especialidades',
-                subtitle: 'Áreas clínicas y tratamientos',
+                title: esAdmin ? 'Mi Perfil y Usuarios' : 'Mi Perfil',
+                subtitle: esAdmin ? 'Configuración personal y acceso' : 'Datos personales y contraseña',
                 onTap: () {
                   Navigator.pop(modalContext);
-                  Navigator.pushNamed(context, Routes.especialidades);
+                  Navigator.pushNamed(context, Routes.perfil);
                 },
               ),
-              _buildModalItem(
-                icon: Icons.terminal,
-                iconColor: Colors.indigo[700]!,
-                iconBgColor: Colors.indigo[50]!,
-                title: 'Registro de Actividad',
-                subtitle: 'Historial de eventos y auditoría',
-                onTap: () {
-                  Navigator.pop(modalContext);
-                  Navigator.pushNamed(context, Routes.logs);
-                },
-              ),
+              if (esAdmin || esRecepcionista)
+                _buildModalItem(
+                  icon: Icons.medical_services_outlined,
+                  iconColor: Colors.amber[800]!,
+                  iconBgColor: Colors.amber[50]!,
+                  title: 'Doctores',
+                  subtitle: esRecepcionista ? 'Consulta de personal médico' : 'Gestión médica y turnos',
+                  onTap: () {
+                    Navigator.pop(modalContext);
+                    Navigator.pushNamed(context, Routes.doctores);
+                  },
+                ),
+              if (esAdmin)
+                _buildModalItem(
+                  icon: Icons.people_outline,
+                  iconColor: Colors.teal[700]!,
+                  iconBgColor: Colors.teal[50]!,
+                  title: 'Pacientes',
+                  subtitle: 'Directorio e historial clínico',
+                  onTap: () {
+                    Navigator.pop(modalContext);
+                    Navigator.pushNamed(context, Routes.pacientes);
+                  },
+                ),
+              if (esAdmin || esRecepcionista)
+                _buildModalItem(
+                  icon: Icons.science_outlined,
+                  iconColor: Colors.blue[700]!,
+                  iconBgColor: Colors.blue[50]!,
+                  title: 'Especialidades',
+                  subtitle: esRecepcionista ? 'Catálogo de especialidades' : 'Áreas clínicas y tratamientos',
+                  onTap: () {
+                    Navigator.pop(modalContext);
+                    Navigator.pushNamed(context, Routes.especialidades);
+                  },
+                ),
+              if (esAdmin)
+                _buildModalItem(
+                  icon: Icons.terminal,
+                  iconColor: Colors.indigo[700]!,
+                  iconBgColor: Colors.indigo[50]!,
+                  title: 'Registro de Actividad',
+                  subtitle: 'Historial de eventos y auditoría',
+                  onTap: () {
+                    Navigator.pop(modalContext);
+                    Navigator.pushNamed(context, Routes.logs);
+                  },
+                ),
               _buildModalItem(
                 icon: Icons.logout,
                 iconColor: Colors.red[700]!,

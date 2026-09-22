@@ -4,6 +4,7 @@ import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
+import '../../Widget/user_badge.dart';
 import '../../routes.dart';
 import 'servicio_modal.dart';
 
@@ -18,9 +19,33 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Categoría'];
-  final int _currentIndex = 1;
 
   void _onBottomNavTapped(int index) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+
+    if (rol == 'Recepcionista') {
+      if (index == 0) {
+        Navigator.pushReplacementNamed(context, Routes.home);
+        return;
+      }
+      if (index == 1) {
+        Navigator.pushReplacementNamed(context, Routes.citas);
+        return;
+      }
+      if (index == 2) {
+        Navigator.pushReplacementNamed(context, Routes.pacientes);
+        return;
+      }
+      if (index == 3) {
+        return;
+      }
+      if (index == 4) {
+        mostrarMenuMas(context);
+        return;
+      }
+      return;
+    }
+
     if (index == 0) {
       Navigator.pushReplacementNamed(context, Routes.home);
       return;
@@ -40,6 +65,25 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
       mostrarMenuMas(context);
       return;
     }
+  }
+
+  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
+    if (rol == 'Recepcionista') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+      ];
+    }
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
+      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+    ];
   }
 
   List<Map<String, dynamic>> _obtenerServiciosFiltrados() {
@@ -65,6 +109,9 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final bool esAdmin = rol == 'Administrador';
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -74,33 +121,8 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
         centerTitle: false,
         titleSpacing: 16,
         title: const DentalLogo(),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Colors.blue[700],
-                  child: const Text(
-                    'A',
-                    style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Administrador',
-                  style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
+        actions: const [
+          UserBadge(),
         ],
       ),
       body: SingleChildScrollView(
@@ -124,12 +146,14 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Gestión de Servicios',
+                        'Catálogo de Servicios',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Administra los servicios clínicos disponibles para ventas, citas y atención odontológica.',
+                        esAdmin
+                            ? 'Administra tarifas y tratamientos ofrecidos en la clínica.'
+                            : 'Consulta de tarifas y tratamientos odontológicos.',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
@@ -182,26 +206,13 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                               color: _filtroSeleccionado == filtro ? Colors.blue[700]! : Colors.grey[300]!,
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                filtro,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _filtroSeleccionado == filtro ? Colors.white : Colors.grey[700],
-                                ),
-                              ),
-                              if (filtro == 'Categoría') ...[
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_drop_down,
-                                  size: 16,
-                                  color: _filtroSeleccionado == filtro ? Colors.white : Colors.grey[700],
-                                ),
-                              ],
-                            ],
+                          child: Text(
+                            filtro,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _filtroSeleccionado == filtro ? Colors.white : Colors.grey[700],
+                            ),
                           ),
                         ),
                       ),
@@ -210,7 +221,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -253,23 +264,26 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                 nombre: srv['nombre'] as String,
                 costo: srv['costo'] as String,
                 activo: srv['activo'] as bool,
+                esAdmin: esAdmin,
               ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _abrirModalServicio(),
-        backgroundColor: Colors.blue[700],
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-      ),
+      floatingActionButton: esAdmin
+          ? FloatingActionButton(
+              onPressed: () => _abrirModalServicio(),
+              backgroundColor: Colors.blue[700],
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            )
+          : null,
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: (rol == 'Recepcionista') ? 3 : 1,
           onTap: _onBottomNavTapped,
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
@@ -277,13 +291,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
           unselectedItemColor: Colors.grey[600],
           selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-            BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-          ],
+          items: _obtenerItemsNavegacion(rol),
         ),
       ),
     );
@@ -331,6 +339,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     required String nombre,
     required String costo,
     required bool activo,
+    required bool esAdmin,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -424,26 +433,28 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  text: 'Editar',
-                  onPressed: () => _abrirModalServicio(id: id, nombre: nombre, costo: costo, activo: activo),
-                  color: Colors.blue[700],
+          if (esAdmin) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    text: 'Editar',
+                    onPressed: () => _abrirModalServicio(id: id, nombre: nombre, costo: costo, activo: activo),
+                    color: Colors.blue[700],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: CustomButton(
-                  text: activo ? 'Desactivar' : 'Activar',
-                  onPressed: () => _mostrarDialogoEstado(id: id, nombre: nombre, costo: costo, activo: activo),
-                  color: activo ? Colors.red[500] : Colors.teal[700],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CustomButton(
+                    text: activo ? 'Desactivar' : 'Activar',
+                    onPressed: () => _mostrarDialogoEstado(id: id, nombre: nombre, costo: costo, activo: activo),
+                    color: activo ? Colors.red[500] : Colors.teal[700],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
