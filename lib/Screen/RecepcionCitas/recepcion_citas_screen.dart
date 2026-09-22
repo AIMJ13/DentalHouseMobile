@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Editar Cita/editar_cita_screen.dart';
+import 'editar_cita_modal.dart';
 
 class Cita {
   final String codigo;
@@ -19,14 +19,14 @@ class Cita {
   });
 }
 
-class CitasScreen extends StatefulWidget {
-  const CitasScreen({super.key});
+class RecepcionCitasScreen extends StatefulWidget {
+  const RecepcionCitasScreen({super.key});
 
   @override
-  State<CitasScreen> createState() => _CitasScreenState();
+  State<RecepcionCitasScreen> createState() => _RecepcionCitasScreenState();
 }
 
-class _CitasScreenState extends State<CitasScreen> {
+class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
   final List<Cita> _citas = [
     Cita(
       codigo: 'CIT-001',
@@ -218,7 +218,7 @@ class _CitasScreenState extends State<CitasScreen> {
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: _colorEstado(cita.estado)
-                                      .withOpacity(0.15),
+                                      .withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -258,7 +258,7 @@ class _CitasScreenState extends State<CitasScreen> {
                           const SizedBox(height: 10),
                           Row(
                             children: [
-                                                            Expanded(
+                              Expanded(
                                 child: OutlinedButton(
                                   onPressed: () {
                                     showDialog(
@@ -310,7 +310,7 @@ class _CitasScreenState extends State<CitasScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

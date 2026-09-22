@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Citas/citas_screen.dart';
+import 'recepcion_citas_screen.dart';
 
 class EditarCitaDialog extends StatefulWidget {
   final Cita cita;
@@ -147,7 +147,7 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                               context: context,
                               initialTime: TimeOfDay.now(),
                             );
-                            if (hora != null) {
+                            if (hora != null && context.mounted) {
                               _horaController.text = hora.format(context);
                             }
                           },
@@ -181,7 +181,6 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   onPressed: () {
-                    // Aquí luego guardamos los cambios y cerramos
                     Navigator.of(context).pop();
                   },
                   child: const Text(
