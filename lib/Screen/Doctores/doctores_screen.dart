@@ -4,6 +4,7 @@ import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
+import '../../Widget/user_badge.dart';
 import '../../routes.dart';
 import 'doctor_modal.dart';
 
@@ -21,6 +22,32 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
   final int _currentIndex = 4;
 
   void _onBottomNavTapped(int index) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+
+    if (rol == 'Recepcionista') {
+      if (index == 0) {
+        Navigator.pushReplacementNamed(context, Routes.home);
+        return;
+      }
+      if (index == 1) {
+        Navigator.pushReplacementNamed(context, Routes.citas);
+        return;
+      }
+      if (index == 2) {
+        Navigator.pushReplacementNamed(context, Routes.pacientes);
+        return;
+      }
+      if (index == 3) {
+        Navigator.pushReplacementNamed(context, Routes.servicios);
+        return;
+      }
+      if (index == 4) {
+        mostrarMenuMas(context);
+        return;
+      }
+      return;
+    }
+
     if (index == 0) {
       Navigator.pushReplacementNamed(context, Routes.home);
       return;
@@ -43,6 +70,25 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     }
   }
 
+  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
+    if (rol == 'Recepcionista') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+      ];
+    }
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
+      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
+      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+    ];
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -51,6 +97,8 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool esAdmin = (perfilUsuarioActual['rol'] as String? ?? '') == 'Administrador';
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -60,33 +108,8 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
         centerTitle: false,
         titleSpacing: 16,
         title: const DentalLogo(),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Colors.blue[700],
-                  child: const Text(
-                    'A',
-                    style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Administrador',
-                  style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
+        actions: const [
+          UserBadge(),
         ],
       ),
       body: SingleChildScrollView(
@@ -115,7 +138,9 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Administra el personal médico registrado en la clínica.',
+                        esAdmin
+                            ? 'Administra el personal médico registrado en la clínica.'
+                            : 'Consulta del personal médico disponible en la clínica.',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
@@ -240,16 +265,19 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                 especialidad: doc['especialidad'] as String,
                 telefono: doc['telefono'] as String,
                 activo: doc['activo'] as bool,
+                esAdmin: esAdmin,
               ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _abrirModalDoctor(),
-        backgroundColor: Colors.blue[700],
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-      ),
+      floatingActionButton: esAdmin
+          ? FloatingActionButton(
+              onPressed: () => _abrirModalDoctor(),
+              backgroundColor: Colors.blue[700],
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            )
+          : null,
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashColor: Colors.transparent,
@@ -264,13 +292,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           unselectedItemColor: Colors.grey[600],
           selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-            BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-          ],
+          items: _obtenerItemsNavegacion(perfilUsuarioActual['rol'] as String? ?? 'Administrador'),
         ),
       ),
     );
@@ -319,6 +341,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     required String especialidad,
     required String telefono,
     required bool activo,
+    required bool esAdmin,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -448,38 +471,40 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  text: 'Editar',
-                  onPressed: () => _abrirModalDoctor(
-                    id: id,
-                    nombre: nombre,
-                    especialidad: especialidad,
-                    telefono: telefono,
-                    activo: activo,
+          if (esAdmin) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    text: 'Editar',
+                    onPressed: () => _abrirModalDoctor(
+                      id: id,
+                      nombre: nombre,
+                      especialidad: especialidad,
+                      telefono: telefono,
+                      activo: activo,
+                    ),
+                    color: Colors.blue[700],
                   ),
-                  color: Colors.blue[700],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: CustomButton(
-                  text: activo ? 'Desactivar' : 'Activar',
-                  onPressed: () => _mostrarDialogoEstado(
-                    id: id,
-                    nombre: nombre,
-                    especialidad: especialidad,
-                    telefono: telefono,
-                    activo: activo,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CustomButton(
+                    text: activo ? 'Desactivar' : 'Activar',
+                    onPressed: () => _mostrarDialogoEstado(
+                      id: id,
+                      nombre: nombre,
+                      especialidad: especialidad,
+                      telefono: telefono,
+                      activo: activo,
+                    ),
+                    color: activo ? Colors.red[500] : Colors.teal[700],
                   ),
-                  color: activo ? Colors.red[500] : Colors.teal[700],
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
