@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/confirm_dialog.dart';
+import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
@@ -39,6 +41,23 @@ class _PacientesScreenState extends State<PacientesScreen> {
     }
   }
 
+  List<Map<String, dynamic>> _obtenerPacientesFiltrados() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtrados = [];
+    for (var pac in listaPacientes) {
+      final nombreCompleto = '${pac['nombre']} ${pac['apellido']}'.toLowerCase();
+      final id = (pac['id'] as String).toLowerCase();
+      final telefono = (pac['telefono'] as String).toLowerCase();
+      final coincide = query.isEmpty ||
+          nombreCompleto.contains(query) ||
+          id.contains(query) ||
+          telefono.contains(query);
+      if (!coincide) continue;
+      filtrados.add(pac);
+    }
+    return filtrados;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -57,6 +76,8 @@ class _PacientesScreenState extends State<PacientesScreen> {
         inactivos++;
       }
     }
+
+    final pacientesFiltrados = _obtenerPacientesFiltrados();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -139,6 +160,9 @@ class _PacientesScreenState extends State<PacientesScreen> {
               ),
               child: TextField(
                 controller: _searchController,
+                onChanged: (val) {
+                  setState(() {});
+                },
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                   hintText: 'Buscar paciente por nombre...',
@@ -167,6 +191,44 @@ class _PacientesScreenState extends State<PacientesScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'DIRECTORIO DE PACIENTES',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  '${pacientesFiltrados.length} mostrados',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (pacientesFiltrados.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(32),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                    Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No se encontraron pacientes',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  ],
+                ),
+              )
+            else
+              for (var pac in pacientesFiltrados)
+                _buildPacienteCard(pac),
           ],
         ),
       ),
@@ -239,6 +301,168 @@ class _PacientesScreenState extends State<PacientesScreen> {
     );
   }
 
+  Widget _buildBadgeId(String id) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        id,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green[700]),
+      ),
+    );
+  }
+
+  Widget _buildBadgeEstado(bool activo) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: activo ? Colors.green[50] : Colors.red[50],
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: activo ? Colors.green[600] : Colors.red[600],
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            activo ? 'Activo' : 'Inactivo',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: activo ? Colors.green[700] : Colors.red[700],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgesHeader(String id, bool activo) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildBadgeId(id),
+        _buildBadgeEstado(activo),
+      ],
+    );
+  }
+
+  Widget _buildAvatarPaciente(bool activo, {double tamano = 44, double iconoTamano = 24}) {
+    return Container(
+      width: tamano,
+      height: tamano,
+      decoration: BoxDecoration(
+        color: activo ? Colors.blue[50] : Colors.red[50],
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Icon(
+          Icons.person_outline,
+          color: activo ? Colors.blue[600] : Colors.red[400],
+          size: iconoTamano,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPacienteCard(Map<String, dynamic> paciente) {
+    final id = paciente['id'] as String;
+    final nombre = paciente['nombre'] as String;
+    final apellido = paciente['apellido'] as String;
+    final telefono = paciente['telefono'] as String;
+    final direccion = paciente['direccion'] as String;
+    final fechaNacimiento = paciente['fechaNacimiento'] as String;
+    final activo = paciente['activo'] as bool;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildBadgesHeader(id, activo),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAvatarPaciente(activo),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$nombre $apellido',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.phone_outlined, size: 13, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            '$telefono   •   $direccion',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Nacimiento: $fechaNacimiento',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  text: 'Editar',
+                  onPressed: () => _abrirModalPaciente(paciente: paciente),
+                  color: Colors.blue[700],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: CustomButton(
+                  text: activo ? 'Desactivar' : 'Activar',
+                  onPressed: () => _mostrarDialogoEstado(paciente),
+                  color: activo ? Colors.red[500] : Colors.teal[700],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _abrirModalPaciente({Map<String, dynamic>? paciente}) {
     showDialog(
       context: context,
@@ -282,6 +506,98 @@ class _PacientesScreenState extends State<PacientesScreen> {
           },
         );
       },
+    );
+  }
+
+  void _cambiarEstadoPaciente(String id, bool nuevoEstado) {
+    setState(() {
+      for (var pac in listaPacientes) {
+        if (pac['id'] == id) {
+          pac['activo'] = nuevoEstado;
+          break;
+        }
+      }
+    });
+  }
+
+  void _mostrarDialogoEstado(Map<String, dynamic> paciente) {
+    final id = paciente['id'] as String;
+    final nombre = paciente['nombre'] as String;
+    final apellido = paciente['apellido'] as String;
+    final activo = paciente['activo'] as bool;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return ConfirmDialog(
+          titulo: activo ? '¿Desactivar Paciente?' : '¿Activar Paciente?',
+          subtitulo: activo
+              ? '¿Estás seguro de que deseas desactivar al paciente "$nombre $apellido" ($id)?'
+              : '¿Estás seguro de que deseas activar al paciente "$nombre $apellido" ($id)?',
+          icono: activo ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+          colorIcono: activo ? Colors.red[600] : Colors.teal[700],
+          colorFondoIcono: activo ? Colors.red[50] : Colors.teal[50],
+          colorAdvertencia: activo ? Colors.red[800] : Colors.teal[800],
+          colorFondoAdvertencia: activo ? Colors.red[50] : Colors.teal[50],
+          colorBotonConfirmar: activo ? Colors.red[500] : Colors.teal[700],
+          textoConfirmar: activo ? 'Sí, Desactivar' : 'Sí, Activar',
+          advertencia: activo
+              ? 'El paciente no estará disponible temporalmente para nuevas citas y atención clínica.'
+              : 'El paciente estará disponible nuevamente para nuevas citas y atención clínica.',
+          contenido: _buildPacientePreview(paciente),
+          onConfirmar: () => _cambiarEstadoPaciente(id, !activo),
+        );
+      },
+    );
+  }
+
+  Widget _buildPacientePreview(Map<String, dynamic> paciente) {
+    final id = paciente['id'] as String;
+    final nombre = paciente['nombre'] as String;
+    final apellido = paciente['apellido'] as String;
+    final telefono = paciente['telefono'] as String;
+    final direccion = paciente['direccion'] as String;
+    final activo = paciente['activo'] as bool;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildBadgesHeader(id, activo),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildAvatarPaciente(activo, tamano: 38, iconoTamano: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$nombre $apellido',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      '$telefono • $direccion',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
