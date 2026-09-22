@@ -5,13 +5,14 @@ import '../routes.dart';
 void mostrarMenuMas(BuildContext context) {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (modalContext) {
       return SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -90,6 +91,17 @@ void mostrarMenuMas(BuildContext context) {
                 },
               ),
               _buildModalItem(
+                icon: Icons.terminal,
+                iconColor: Colors.indigo[700]!,
+                iconBgColor: Colors.indigo[50]!,
+                title: 'Registro de Actividad',
+                subtitle: 'Historial de eventos y auditoría',
+                onTap: () {
+                  Navigator.pop(modalContext);
+                  Navigator.pushNamed(context, Routes.logs);
+                },
+              ),
+              _buildModalItem(
                 icon: Icons.logout,
                 iconColor: Colors.red[700]!,
                 iconBgColor: Colors.red[50]!,
@@ -121,7 +133,7 @@ Widget _buildModalItem({
   required VoidCallback onTap,
 }) {
   return Container(
-    margin: const EdgeInsets.only(bottom: 12),
+    margin: const EdgeInsets.only(bottom: 10),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -129,9 +141,9 @@ Widget _buildModalItem({
     ),
     child: ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       leading: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(color: iconBgColor, borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: iconColor, size: 22),
       ),

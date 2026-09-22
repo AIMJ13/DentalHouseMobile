@@ -3,6 +3,7 @@ import '../../Data/dashboard_data.dart';
 import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/dental_logo.dart';
+import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
 import 'doctor_modal.dart';
 
@@ -34,6 +35,10 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     }
     if (index == 3) {
       Navigator.pushReplacementNamed(context, Routes.citas);
+      return;
+    }
+    if (index == 4) {
+      mostrarMenuMas(context);
       return;
     }
   }
@@ -496,6 +501,30 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           especialidad: especialidad,
           telefono: telefono,
           activo: activo,
+          onGuardar: (nuevoNombre, nuevaEspecialidad, nuevoTelefono, nuevoActivo) {
+            setState(() {
+              if (id != null) {
+                for (var doc in listaDoctores) {
+                  if (doc['id'] == id) {
+                    doc['nombre'] = nuevoNombre;
+                    doc['especialidad'] = nuevaEspecialidad;
+                    doc['telefono'] = nuevoTelefono;
+                    doc['activo'] = nuevoActivo;
+                    break;
+                  }
+                }
+              } else {
+                final nuevoId = 'DOC-00${listaDoctores.length + 1}';
+                listaDoctores.insert(0, {
+                  'id': nuevoId,
+                  'nombre': nuevoNombre,
+                  'especialidad': nuevaEspecialidad,
+                  'telefono': nuevoTelefono,
+                  'activo': nuevoActivo,
+                });
+              }
+            });
+          },
         );
       },
     );
