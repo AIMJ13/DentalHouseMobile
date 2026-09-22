@@ -1,24 +1,38 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'Pantalla/Iniciar sesión/login_screen.dart';
 import 'Pantalla/Citas/citas_screen.dart';
+=======
+import 'package:shared_preferences/shared_preferences.dart';
+import 'Screen/Home/home_screen.dart';
+import 'Screen/Login/login_screen.dart';
+import 'routes.dart';
+>>>>>>> origin/Alex
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({super.key, this.isLoggedIn = false});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DentalHouse',
       debugShowCheckedModeBanner: false,
+      title: 'DentalHouse',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+        fontFamily: 'Outfit',
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
       ),
-      home: const CitasScreen(),
+      home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+      routes: Routes.routes,
     );
   }
 }
