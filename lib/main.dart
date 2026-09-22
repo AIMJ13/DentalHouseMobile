@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screen/Home/home_screen.dart';
 import 'Screen/Login/login_screen.dart';
-import 'Screen/DoctorHome/doctor_home_screen.dart';
 import 'routes.dart';
 
 void main() async {
