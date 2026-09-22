@@ -26,7 +26,8 @@ class MyApp extends StatelessWidget {
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
       ),
-      home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+     home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+     //home: const DoctorHomeScreen(),
       routes: Routes.routes,
     );
   }
