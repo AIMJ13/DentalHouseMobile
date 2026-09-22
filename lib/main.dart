@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Screen/Home/home_screen.dart';
 import 'Screen/Login/login_screen.dart';
+import 'Screen/DoctorHome/doctor_home_screen.dart';
 import 'routes.dart';
 
 void main() async {
@@ -26,7 +27,8 @@ class MyApp extends StatelessWidget {
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
       ),
-      home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+     home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+     //home: const DoctorHomeScreen(),
       routes: Routes.routes,
     );
   }
