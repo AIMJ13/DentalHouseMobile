@@ -3,6 +3,7 @@ import '../../Data/dashboard_data.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/menu_mas_modal.dart';
 import '../../routes.dart';
+import 'paciente_modal.dart';
 
 class PacientesScreen extends StatefulWidget {
   const PacientesScreen({super.key});
@@ -169,6 +170,12 @@ class _PacientesScreenState extends State<PacientesScreen> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _abrirModalPaciente(),
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashColor: Colors.transparent,
@@ -229,6 +236,52 @@ class _PacientesScreenState extends State<PacientesScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _abrirModalPaciente({Map<String, dynamic>? paciente}) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return PacienteModal(
+          id: paciente?['id'] as String?,
+          nombre: paciente?['nombre'] as String?,
+          apellido: paciente?['apellido'] as String?,
+          telefono: paciente?['telefono'] as String?,
+          direccion: paciente?['direccion'] as String?,
+          fechaNacimiento: paciente?['fechaNacimiento'] as String?,
+          activo: (paciente?['activo'] as bool?) ?? true,
+          onGuardar: (nombre, apellido, telefono, direccion, fechaNacimiento, activo) {
+            setState(() {
+              if (paciente != null) {
+                final id = paciente['id'];
+                for (var pac in listaPacientes) {
+                  if (pac['id'] == id) {
+                    pac['nombre'] = nombre;
+                    pac['apellido'] = apellido;
+                    pac['telefono'] = telefono;
+                    pac['direccion'] = direccion;
+                    pac['fechaNacimiento'] = fechaNacimiento;
+                    pac['activo'] = activo;
+                    break;
+                  }
+                }
+              } else {
+                final nuevoId = 'PAC-00${listaPacientes.length + 1}';
+                listaPacientes.insert(0, {
+                  'id': nuevoId,
+                  'nombre': nombre,
+                  'apellido': apellido,
+                  'telefono': telefono,
+                  'direccion': direccion,
+                  'fechaNacimiento': fechaNacimiento,
+                  'activo': activo,
+                });
+              }
+            });
+          },
+        );
+      },
     );
   }
 }
