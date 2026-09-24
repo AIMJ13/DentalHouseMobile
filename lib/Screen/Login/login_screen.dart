@@ -89,8 +89,15 @@ class _LoginScreenState extends State<LoginScreen> {
     await prefs.setString('rol', usuarioValido['rol'] as String);
     await prefs.setString('usuario', usuarioValido['usuario'] as String);
 
+    final String rol = (usuarioValido['rol'] as String?) ?? 'Administrador';
     if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
+    if (rol == 'Doctor') {
+      Navigator.pushNamedAndRemoveUntil(context, Routes.doctorHome, (route) => false);
+    } else if (rol == 'Recepcionista') {
+      Navigator.pushNamedAndRemoveUntil(context, Routes.citas, (route) => false);
+    } else {
+      Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
+    }
   }
 
   @override

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'editar_cita_modal.dart';
 import '../../Widget/dental_logo.dart';
+import '../../routes.dart';
 
 class Cita {
   final String codigo;
@@ -78,11 +80,17 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        titleSpacing: 16,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+        titleSpacing: Navigator.canPop(context) ? 0 : 16,
         title: const DentalLogo(),
         actions: [
           Container(
-            margin: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.blue[50],
@@ -100,6 +108,16 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                 Text('Recepcionista', style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold)),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black54, size: 20),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(context, Routes.login, (route) => false);
+            },
           ),
         ],
       ),

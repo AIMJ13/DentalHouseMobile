@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Data/doctor_home_data.dart';
 import '../../Theme/app_colors.dart';
 import '../../Widget/rendimiento_card.dart';
@@ -8,6 +9,7 @@ import '../../Widget/status_badge.dart';
 import '../../Widget/section_header.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/doctor_bottom_nav.dart';
+import '../../routes.dart';
 
 class DoctorHomeScreen extends StatelessWidget {
   const DoctorHomeScreen({super.key});
@@ -67,6 +69,16 @@ class DoctorHomeScreen extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppColors.textDark, size: 20),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(context, Routes.login, (route) => false);
+            },
           ),
         ],
       ),
