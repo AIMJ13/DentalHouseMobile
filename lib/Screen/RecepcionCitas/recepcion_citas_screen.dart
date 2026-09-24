@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'editar_cita_modal.dart';
+import '../../Widget/dental_logo.dart';
 
 class Cita {
   final String codigo;
@@ -72,18 +73,50 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('DentalHouse'),
-        centerTitle: false,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: const DentalLogo(),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 10,
+                  backgroundColor: Colors.blue[700],
+                  child: const Text('R', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 6),
+                Text('Recepcionista', style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Agenda de Citas',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Icon(Icons.calendar_month, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Agenda de Citas',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             const Text(
@@ -139,16 +172,12 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     items: const [
                       DropdownMenuItem(
                         value: 'Todos',
-                        child: Text(
-                          'Todos los doctores',
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text('Todos los doctores', overflow: TextOverflow.ellipsis),
                       ),
                     ],
                     onChanged: (value) {},
@@ -163,16 +192,12 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     items: const [
                       DropdownMenuItem(
                         value: 'Todos',
-                        child: Text(
-                          'Todos los estados',
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text('Todos los estados', overflow: TextOverflow.ellipsis),
                       ),
                     ],
                     onChanged: (value) {},
@@ -214,11 +239,9 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _colorEstado(cita.estado)
-                                      .withValues(alpha: 0.15),
+                                  color: _colorEstado(cita.estado).withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -239,8 +262,7 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                           ),
                           Text(
                             cita.paciente,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                           Text(
                             cita.motivo,
@@ -273,15 +295,11 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                               Expanded(
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: cita.estado == 'Cancelada'
-                                        ? Colors.blue
-                                        : Colors.red,
+                                    backgroundColor: cita.estado == 'Cancelada' ? Colors.blue : Colors.red,
                                   ),
                                   onPressed: () {},
                                   child: Text(
-                                    cita.estado == 'Cancelada'
-                                        ? 'Reagendar'
-                                        : 'Cancelar',
+                                    cita.estado == 'Cancelada' ? 'Reagendar' : 'Cancelar',
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ),

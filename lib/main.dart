@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
       ),
      home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
      //home: const DoctorHomeScreen(),
+           //home: const RecepcionCitasScreen(),
       routes: Routes.routes,
     );
   }
