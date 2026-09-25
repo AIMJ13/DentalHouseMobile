@@ -20,8 +20,6 @@ class AgendaCitasScreen extends StatefulWidget {
 }
 
 class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
-  // Copia mutable de los datos de ejemplo, para poder cambiar el estado
-  // de una cita (Cancelar/Reactivar/Completar) sin tocar los datos originales.
   late List<Map<String, String>> _citas;
 
   final TextEditingController _busquedaController = TextEditingController();
@@ -49,7 +47,6 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
     super.dispose();
   }
 
-  // --- Colores y textos derivados del estado actual de cada cita ---
 
   StatusType _tipoDesdeEstado(String estado) {
     switch (estado) {
@@ -96,7 +93,6 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
         : Colors.white;
   }
 
-  // --- Acción rápida: cambia el estado de una cita ---
 
   void _cambiarEstado(String codigo, String nuevoEstado) {
     setState(() {
@@ -121,7 +117,6 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
     }
   }
 
-  // --- Filtro por fecha (calendario) ---
 
   bool _mismaFecha(String fechaTexto, DateTime fecha) {
     final partes = fechaTexto.split('/');
@@ -170,8 +165,6 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
       return coincideEstado && coincideBusqueda && coincideFecha;
     }).toList();
 
-    // El resumen de arriba también se recalcula en vivo según _citas,
-    // para que se note cuando marcas una cita como Completada/Cancelada.
     final resumen = [
       {'etiqueta': 'Total', 'valor': _citas.length.toString(), 'tipo': 'neutral'},
       {
@@ -395,8 +388,6 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
                     ? () => _cambiarEstado(c['codigo']!, 'Completada')
                     : null,
                 onEditar: () {
-                  // Reutilizamos el mismo EditarCitaDialog que ya construyó
-                  // la compañera para el módulo de Recepción.
                   final cita = Cita(
                     codigo: c['codigo']!,
                     paciente: c['paciente']!,
