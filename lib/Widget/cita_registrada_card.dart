@@ -18,6 +18,8 @@ class CitaRegistradaCard extends StatelessWidget {
   final Color accionSecundariaTextColor;
   final VoidCallback? onEditar;
   final VoidCallback? onAccionSecundaria;
+  final String? accionTerciariaTexto;
+  final VoidCallback? onAccionTerciaria;
 
   const CitaRegistradaCard({
     super.key,
@@ -35,6 +37,8 @@ class CitaRegistradaCard extends StatelessWidget {
     required this.accionSecundariaTextColor,
     this.onEditar,
     this.onAccionSecundaria,
+    this.accionTerciariaTexto,
+    this.onAccionTerciaria,
   });
 
   @override
@@ -156,6 +160,18 @@ class CitaRegistradaCard extends StatelessWidget {
                   ),
                 ),
               ),
+              // Acción rápida extra (por ahora solo "Completar"),
+              // solo aparece cuando la pantalla la habilita.
+              if (accionTerciariaTexto != null) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CustomButton(
+                    text: accionTerciariaTexto!,
+                    onPressed: onAccionTerciaria,
+                    color: AppColors.success,
+                  ),
+                ),
+              ],
             ],
           ),
         ],

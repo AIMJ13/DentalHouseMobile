@@ -1,5 +1,4 @@
-// Ajusta estos valores para que coincidan exactamente con tu diseño de Figma.
-// 'subTipo' / 'estadoTipo' aceptan: success, info, warning, danger, neutral.
+
 
 const List<Map<String, String>> rendimientoDoctor = [
   {
