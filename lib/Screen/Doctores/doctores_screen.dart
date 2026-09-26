@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/dental_logo.dart';
-import '../../Widget/menu_mas_modal.dart';
 import '../../Widget/user_badge.dart';
-import '../../routes.dart';
 import 'doctor_modal.dart';
 
 class DoctoresScreen extends StatefulWidget {
@@ -17,75 +16,6 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Especialidad'];
-  final int _currentIndex = 4;
-
-  void _onBottomNavTapped(int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-
-    if (rol == 'Recepcionista') {
-      if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
-        return;
-      }
-      if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.pacientes);
-        return;
-      }
-      if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.servicios);
-        return;
-      }
-      if (index == 4) {
-        mostrarMenuMas(context);
-        return;
-      }
-      return;
-    }
-
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.home);
-      return;
-    }
-    if (index == 1) {
-      Navigator.pushReplacementNamed(context, Routes.servicios);
-      return;
-    }
-    if (index == 2) {
-      Navigator.pushReplacementNamed(context, Routes.ventas);
-      return;
-    }
-    if (index == 3) {
-      Navigator.pushReplacementNamed(context, Routes.citas);
-      return;
-    }
-    if (index == 4) {
-      mostrarMenuMas(context);
-      return;
-    }
-  }
-
-  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
-    if (rol == 'Recepcionista') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-      ];
-    }
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-    ];
-  }
 
   @override
   void dispose() {
@@ -276,23 +206,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             )
           : null,
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onBottomNavTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue[700],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(perfilUsuarioActual['rol'] as String? ?? 'Administrador'),
-        ),
-      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
   }
 

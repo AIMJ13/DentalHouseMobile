@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/dental_logo.dart';
-import '../../Widget/menu_mas_modal.dart';
 import '../../Widget/user_badge.dart';
-import '../../routes.dart';
 import 'servicio_modal.dart';
 
 class ServiciosScreen extends StatefulWidget {
@@ -17,72 +16,6 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Categoría'];
-
-  void _onBottomNavTapped(int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-
-    if (rol == 'Recepcionista') {
-      if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
-        return;
-      }
-      if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.pacientes);
-        return;
-      }
-      if (index == 3) {
-        return;
-      }
-      if (index == 4) {
-        mostrarMenuMas(context);
-        return;
-      }
-      return;
-    }
-
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.home);
-      return;
-    }
-    if (index == 1) {
-      return;
-    }
-    if (index == 2) {
-      Navigator.pushReplacementNamed(context, Routes.ventas);
-      return;
-    }
-    if (index == 3) {
-      Navigator.pushReplacementNamed(context, Routes.citas);
-      return;
-    }
-    if (index == 4) {
-      mostrarMenuMas(context);
-      return;
-    }
-  }
-
-  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
-    if (rol == 'Recepcionista') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-      ];
-    }
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-    ];
-  }
 
   List<Map<String, dynamic>> _obtenerServiciosFiltrados() {
     final query = _searchController.text.toLowerCase().trim();
@@ -275,22 +208,8 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             )
           : null,
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: (rol == 'Recepcionista') ? 3 : 1,
-          onTap: _onBottomNavTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue[700],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(rol),
-        ),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: (rol == 'Recepcionista') ? 3 : 1,
       ),
     );
   }

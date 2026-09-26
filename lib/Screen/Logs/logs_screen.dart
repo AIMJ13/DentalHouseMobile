@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/dental_logo.dart';
-import '../../Widget/menu_mas_modal.dart';
 import '../../Widget/user_badge.dart';
-import '../../routes.dart';
 import 'log_detalle_modal.dart';
 
 class LogsScreen extends StatefulWidget {
@@ -21,20 +20,11 @@ class _LogsScreenState extends State<LogsScreen> {
   String _moduloFiltro = 'Todos los módulos';
   String _accionFiltro = 'Todas las acciones';
   bool _filtrosExpandidos = false;
-  final int _currentIndex = 4;
   int _paginaActual = 1;
   final int _porPagina = 5;
 
   final List<String> _modulos = ['Todos los módulos', 'Citas', 'Servicios', 'Seguridad', 'Doctores', 'Ventas'];
   final List<String> _acciones = ['Todas las acciones', 'Información', 'Modificación', 'Advertencia', 'Auditoría'];
-
-  void _onBottomNavTapped(int index) {
-    if (index == 0) Navigator.pushReplacementNamed(context, Routes.home);
-    if (index == 1) Navigator.pushReplacementNamed(context, Routes.servicios);
-    if (index == 2) Navigator.pushReplacementNamed(context, Routes.ventas);
-    if (index == 3) Navigator.pushReplacementNamed(context, Routes.citas);
-    if (index == 4) mostrarMenuMas(context);
-  }
 
   void _limpiarFiltros() {
     setState(() {
@@ -166,7 +156,7 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
   }
 
@@ -582,32 +572,6 @@ class _LogsScreenState extends State<LogsScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onBottomNavTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.blue[700],
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
         ],
       ),
     );
