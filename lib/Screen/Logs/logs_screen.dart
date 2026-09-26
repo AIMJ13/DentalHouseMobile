@@ -22,6 +22,8 @@ class _LogsScreenState extends State<LogsScreen> {
   String _accionFiltro = 'Todas las acciones';
   bool _filtrosExpandidos = false;
   final int _currentIndex = 4;
+  int _paginaActual = 1;
+  final int _porPagina = 5;
 
   final List<String> _modulos = ['Todos los módulos', 'Citas', 'Servicios', 'Seguridad', 'Doctores', 'Ventas'];
   final List<String> _acciones = ['Todas las acciones', 'Información', 'Modificación', 'Advertencia', 'Auditoría'];
@@ -41,6 +43,7 @@ class _LogsScreenState extends State<LogsScreen> {
       _estadoFiltro = 'Todos';
       _moduloFiltro = 'Todos los módulos';
       _accionFiltro = 'Todas las acciones';
+      _paginaActual = 1;
     });
   }
 
@@ -100,6 +103,11 @@ class _LogsScreenState extends State<LogsScreen> {
   @override
   Widget build(BuildContext context) {
     final logsFiltrados = _obtenerLogsFiltrados();
+    final totalPaginas = logsFiltrados.isEmpty ? 1 : ((logsFiltrados.length - 1) ~/ _porPagina) + 1;
+    if (_paginaActual > totalPaginas) {
+      _paginaActual = totalPaginas;
+    }
+    final logsPaginados = logsFiltrados.skip((_paginaActual - 1) * _porPagina).take(_porPagina).toList();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -114,34 +122,49 @@ class _LogsScreenState extends State<LogsScreen> {
           UserBadge(),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildEncabezado(),
-            const SizedBox(height: 16),
-            _buildPanelFiltros(),
-            const SizedBox(height: 16),
-            _buildBarraMetricas(),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 80.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('HISTORIAL DE EVENTOS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
-                  child: Text('${logsFiltrados.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+                _buildEncabezado(),
+                const SizedBox(height: 16),
+                _buildPanelFiltros(),
+                const SizedBox(height: 16),
+                _buildBarraMetricas(),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('HISTORIAL DE EVENTOS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
+                      child: Text('${logsFiltrados.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
+                if (logsPaginados.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    alignment: Alignment.center,
+                    child: Text('No se encontraron registros de eventos.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                  )
+                else
+                  for (var log in logsPaginados) _buildLogCard(log),
               ],
             ),
-            const SizedBox(height: 12),
-            for (var log in logsFiltrados) _buildLogCard(log),
-            const SizedBox(height: 12),
-            _buildPaginacion(),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 12,
+            left: 16,
+            right: 16,
+            child: _buildPaginacionFlotante(totalPaginas, logsFiltrados.length),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNav(context),
     );
@@ -480,51 +503,84 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Widget _buildPaginacion() {
+  Widget _buildPaginacionFlotante(int totalPaginas, int totalRegistros) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          InkWell(
+            onTap: _paginaActual > 1
+                ? () => setState(() => _paginaActual--)
+                : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _paginaActual > 1 ? Colors.blue[50] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
                 children: [
-                  Text('Por pág: ', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey[300]!)),
-                    child: const Text('10', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  Icon(
+                    Icons.chevron_left,
+                    size: 16,
+                    color: _paginaActual > 1 ? Colors.blue[700] : Colors.grey[400],
+                  ),
+                  Text(
+                    'Anterior',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _paginaActual > 1 ? Colors.blue[700] : Colors.grey[400],
+                    ),
                   ),
                 ],
               ),
-              Text('Página 1 de 15 (142 registros)', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey[300]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                  child: Text('< Anterior', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                ),
+          Text(
+            'Pág $_paginaActual de $totalPaginas ($totalRegistros)',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          InkWell(
+            onTap: _paginaActual < totalPaginas
+                ? () => setState(() => _paginaActual++)
+                : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _paginaActual < totalPaginas ? Colors.blue[50] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.blue[700]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                  child: Text('Siguiente >', style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.bold)),
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    'Siguiente',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _paginaActual < totalPaginas ? Colors.blue[700] : Colors.grey[400],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: _paginaActual < totalPaginas ? Colors.blue[700] : Colors.grey[400],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),
