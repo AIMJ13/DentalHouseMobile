@@ -14,7 +14,7 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
-  int _pestanaSeleccionada = 0;
+  bool _mostrarGestionUsuarios = false;
   String _filtroRol = 'Todos';
   final List<String> _filtros = ['Todos', 'Doctores', 'Recepcionistas', 'Administradores'];
 
@@ -163,7 +163,16 @@ class _PerfilScreenState extends State<PerfilScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         titleSpacing: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () {
+            if (_mostrarGestionUsuarios) {
+              setState(() => _mostrarGestionUsuarios = false);
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
         title: const DentalLogo(),
         actions: const [UserBadge()],
       ),
@@ -172,84 +181,114 @@ class _PerfilScreenState extends State<PerfilScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (esAdmin) ...[
-              Container(
-                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  children: [
-                    Expanded(child: _buildBotonPestana('Mi Perfil', 0)),
-                    Expanded(child: _buildBotonPestana('Gestión de Usuarios', 1)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (!esAdmin || _pestanaSeleccionada == 0) _buildVistaMiPerfil(),
-            if (esAdmin && _pestanaSeleccionada == 1) _buildVistaGestionUsuarios(),
+            if (!esAdmin || !_mostrarGestionUsuarios) _buildVistaMiPerfil(esAdmin),
+            if (esAdmin && _mostrarGestionUsuarios) _buildVistaGestionUsuarios(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBotonPestana(String texto, int index) {
-    final seleccionada = _pestanaSeleccionada == index;
-    return InkWell(
-      onTap: () => setState(() => _pestanaSeleccionada = index),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(color: seleccionada ? Colors.blue[700] : Colors.transparent, borderRadius: BorderRadius.circular(12)),
-        child: Center(
-          child: Text(texto, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: seleccionada ? Colors.white : Colors.grey[700])),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVistaMiPerfil() {
+  Widget _buildVistaMiPerfil(bool esAdmin) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
-          child: Row(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundColor: Colors.blue[700],
-                child: Text(perfilUsuarioActual['avatarLetra'] as String, style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(perfilUsuarioActual['nombre'] as String, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87)),
-                    const SizedBox(height: 2),
-                    Text('@${perfilUsuarioActual['usuario']}', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
-                      child: Text(perfilUsuarioActual['rol'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.blue[700],
+                    child: Text(
+                      perfilUsuarioActual['avatarLetra'] as String,
+                      style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          perfilUsuarioActual['nombre'] as String,
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '@${perfilUsuarioActual['usuario']}',
+                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
+                              child: Text(
+                                perfilUsuarioActual['rol'] as String,
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.green[600],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.check_circle, size: 12, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Activo',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+              if (esAdmin) ...[
+                const SizedBox(height: 14),
+                const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => setState(() => _mostrarGestionUsuarios = true),
+                    icon: const Icon(Icons.people_outline, size: 18, color: Colors.white),
+                    label: const Text(
+                      'Gestión de Usuarios',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[700],
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(child: _buildResumenCard('Citas Hoy', '${perfilUsuarioActual['citasHoy']}', Colors.amber[700]!)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildResumenCard('Atenciones', '${perfilUsuarioActual['totalAtenciones']}', Colors.teal[700]!)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildResumenCard('Estado', 'Activo', Colors.green[600]!)),
-          ],
         ),
         const SizedBox(height: 20),
         const Text('Actualizar Datos de Contacto', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
@@ -331,33 +370,35 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  Widget _buildResumenCard(String etiqueta, String valor, Color colorPunto) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(width: 7, height: 7, decoration: BoxDecoration(color: colorPunto, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(valor, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildVistaGestionUsuarios() {
     final usuarios = _obtenerUsuariosFiltrados();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        InkWell(
+          onTap: () => setState(() => _mostrarGestionUsuarios = false),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_back, size: 16, color: Colors.blue[700]),
+                const SizedBox(width: 6),
+                Text(
+                  'Volver a Mi Perfil',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
         Container(
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[300]!)),
           child: TextField(
