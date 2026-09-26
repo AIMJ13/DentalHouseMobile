@@ -185,7 +185,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
             },
           ),
           title: const DentalLogo(),
-          actions: const [UserBadge()],
+          actions: [
+            UserBadge(
+              onTap: _mostrarGestionUsuarios
+                  ? () => setState(() => _mostrarGestionUsuarios = false)
+                  : null,
+            ),
+          ],
         ),
         body: Stack(
           children: [

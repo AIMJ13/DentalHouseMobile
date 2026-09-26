@@ -70,6 +70,9 @@ void mostrarMenuMas(BuildContext context) {
                 subtitle: esAdmin ? 'Configuración personal y acceso' : 'Datos personales y contraseña',
                 onTap: () {
                   Navigator.pop(modalContext);
+                  if (ModalRoute.of(context)?.settings.name == Routes.perfil) {
+                    return;
+                  }
                   Navigator.pushNamed(context, Routes.perfil);
                 },
               ),
