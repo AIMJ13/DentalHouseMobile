@@ -1,5 +1,4 @@
-// Ajusta estos valores para que coincidan exactamente con tu diseño de Figma.
-// 'subTipo' / 'estadoTipo' aceptan: success, info, warning, danger, neutral.
+
 
 const List<Map<String, String>> rendimientoDoctor = [
   {
@@ -78,4 +77,10 @@ const List<Map<String, String>> citasHoyDoctor = [
     'estado': 'Completada',
     'estadoTipo': 'success',
   },
+];
+
+const List<Map<String, String>> resumenDiarioDoctor = [
+  {'etiqueta': 'Citas Hoy', 'valor': '6', 'tipo': 'info'},
+  {'etiqueta': 'Pacientes Activo', 'valor': '2', 'tipo': 'success'},
+  {'etiqueta': 'En Espera', 'valor': '3', 'tipo': 'warning'},
 ];

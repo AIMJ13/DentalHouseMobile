@@ -1,4 +1,4 @@
-// Ajusta estos valores para que coincidan exactamente con tu diseño de Figma.
+
 
 const List<Map<String, String>> resumenCitasItems = [
   {'etiqueta': 'Total', 'valor': '55', 'tipo': 'neutral'},

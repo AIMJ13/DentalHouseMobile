@@ -8,6 +8,9 @@ import '../../Widget/section_header.dart';
 import '../../Widget/cita_registrada_card.dart';
 import '../../Widget/status_badge.dart';
 import '../../Widget/custom_text_field.dart';
+import 'agendar_cita_modal.dart';
+import '../RecepcionCitas/editar_cita_modal.dart';
+import '../RecepcionCitas/recepcion_citas_screen.dart' show Cita;
 
 class AgendaCitasScreen extends StatefulWidget {
   const AgendaCitasScreen({super.key});
@@ -17,13 +20,19 @@ class AgendaCitasScreen extends StatefulWidget {
 }
 
 class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
+  late List<Map<String, String>> _citas;
+
   final TextEditingController _busquedaController = TextEditingController();
+  final TextEditingController _fechaController = TextEditingController();
+
   String _busqueda = '';
   String _estadoFiltro = 'Todos';
+  DateTime? _fechaSeleccionada;
 
   @override
   void initState() {
     super.initState();
+    _citas = citasRegistradas.map((c) => Map<String, String>.from(c)).toList();
     _busquedaController.addListener(() {
       setState(() {
         _busqueda = _busquedaController.text;
@@ -34,55 +43,151 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
   @override
   void dispose() {
     _busquedaController.dispose();
+    _fechaController.dispose();
     super.dispose();
   }
 
-  StatusType _tipoDesde(String? valor) {
-    switch (valor) {
-      case 'success':
-        return StatusType.success;
-      case 'info':
+
+  StatusType _tipoDesdeEstado(String estado) {
+    switch (estado) {
+      case 'Programada':
         return StatusType.info;
-      case 'warning':
-        return StatusType.warning;
-      case 'danger':
+      case 'Completada':
+        return StatusType.success;
+      case 'Cancelada':
         return StatusType.danger;
+      case 'No asistió':
+        return StatusType.warning;
       default:
         return StatusType.neutral;
     }
   }
 
-  Color _colorDesde(String? tipo) {
-    switch (tipo) {
-      case 'success':
-        return AppColors.success;
-      case 'info':
-        return AppColors.info;
-      case 'warning':
-        return AppColors.warning;
-      case 'danger':
+  String _accionTextoPara(String estado) {
+    switch (estado) {
+      case 'Programada':
+        return 'Cancelar';
+      case 'Cancelada':
+        return 'Reactivar';
+      case 'No asistió':
+        return 'Reagendar';
+      default:
+        return 'Cancelar';
+    }
+  }
+
+  Color _accionColorPara(String estado) {
+    switch (estado) {
+      case 'Programada':
         return AppColors.danger;
+      case 'Cancelada':
+        return AppColors.success;
       default:
         return Colors.white;
     }
   }
 
-  Color _textColorDesde(String? tipo) {
-    return tipo == null || tipo == 'neutral'
+  Color _accionTextColorPara(String estado) {
+    return _accionColorPara(estado) == Colors.white
         ? AppColors.textDark
         : Colors.white;
   }
 
+
+  void _cambiarEstado(String codigo, String nuevoEstado) {
+    setState(() {
+      final index = _citas.indexWhere((c) => c['codigo'] == codigo);
+      if (index != -1) {
+        _citas[index]['estado'] = nuevoEstado;
+      }
+    });
+  }
+
+  void _onAccionSecundaria(String codigo, String estadoActual) {
+    switch (estadoActual) {
+      case 'Programada':
+        _cambiarEstado(codigo, 'Cancelada');
+        break;
+      case 'Cancelada':
+        _cambiarEstado(codigo, 'Programada');
+        break;
+      case 'No asistió':
+        _cambiarEstado(codigo, 'Programada');
+        break;
+    }
+  }
+
+
+  bool _mismaFecha(String fechaTexto, DateTime fecha) {
+    final partes = fechaTexto.split('/');
+    if (partes.length != 3) return false;
+    final dia = int.tryParse(partes[0]);
+    final mes = int.tryParse(partes[1]);
+    final anio = int.tryParse(partes[2]);
+    return dia == fecha.day && mes == fecha.month && anio == fecha.year;
+  }
+
+  Future<void> _elegirFecha() async {
+    final fecha = await showDatePicker(
+      context: context,
+      initialDate: _fechaSeleccionada ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (fecha != null) {
+      setState(() {
+        _fechaSeleccionada = fecha;
+        _fechaController.text =
+            '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+      });
+    }
+  }
+
+  void _limpiarFiltros() {
+    setState(() {
+      _busquedaController.clear();
+      _fechaController.clear();
+      _estadoFiltro = 'Todos';
+      _fechaSeleccionada = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final citasFiltradas = citasRegistradas.where((c) {
+    final citasFiltradas = _citas.where((c) {
       final coincideEstado =
           _estadoFiltro == 'Todos' || c['estado'] == _estadoFiltro;
       final texto = _busqueda.toLowerCase();
       final coincideBusqueda = c['paciente']!.toLowerCase().contains(texto) ||
           c['motivo']!.toLowerCase().contains(texto);
-      return coincideEstado && coincideBusqueda;
+      final coincideFecha = _fechaSeleccionada == null ||
+          _mismaFecha(c['fecha']!, _fechaSeleccionada!);
+      return coincideEstado && coincideBusqueda && coincideFecha;
     }).toList();
+
+    final resumen = [
+      {'etiqueta': 'Total', 'valor': _citas.length.toString(), 'tipo': 'neutral'},
+      {
+        'etiqueta': 'Programadas',
+        'valor': _citas.where((c) => c['estado'] == 'Programada').length.toString(),
+        'tipo': 'info',
+      },
+      {
+        'etiqueta': 'Completadas',
+        'valor': _citas.where((c) => c['estado'] == 'Completada').length.toString(),
+        'tipo': 'success',
+      },
+      {
+        'etiqueta': 'Canceladas',
+        'valor': _citas.where((c) => c['estado'] == 'Cancelada').length.toString(),
+        'tipo': 'danger',
+      },
+      {
+        'etiqueta': 'No asistió',
+        'valor': _citas.where((c) => c['estado'] == 'No asistió').length.toString(),
+        'tipo': 'warning',
+      },
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -120,7 +225,7 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            StatsSummaryRow(items: resumenCitasItems),
+            StatsSummaryRow(items: resumen),
             const SizedBox(height: 16),
             CustomTextField(
               hintText: 'Buscar por paciente o motivo...',
@@ -131,22 +236,22 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.calendar_today,
-                            size: 16, color: AppColors.textGrey),
-                        SizedBox(width: 8),
-                        Text('dd/mm/aaaa',
-                            style: TextStyle(color: AppColors.textGrey)),
-                      ],
+                  child: TextField(
+                    controller: _fechaController,
+                    readOnly: true,
+                    onTap: _elegirFecha,
+                    decoration: InputDecoration(
+                      hintText: 'dd/mm/aaaa',
+                      hintStyle: const TextStyle(color: AppColors.textGrey),
+                      prefixIcon: const Icon(Icons.calendar_today,
+                          size: 16, color: AppColors.textGrey),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
                     ),
                   ),
                 ),
@@ -209,25 +314,30 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text('Hoy',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w600)),
-                ),
-                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      _busquedaController.clear();
-                      _estadoFiltro = 'Todos';
+                      final hoy = DateTime.now();
+                      _fechaSeleccionada = hoy;
+                      _fechaController.text =
+                          '${hoy.day.toString().padLeft(2, '0')}/${hoy.month.toString().padLeft(2, '0')}/${hoy.year}';
                     });
                   },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text('Hoy',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _limpiarFiltros,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 12),
@@ -257,31 +367,54 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
                   style: TextStyle(color: AppColors.textGrey),
                 ),
               ),
-            ...citasFiltradas.map(
-              (c) => CitaRegistradaCard(
+            ...citasFiltradas.map((c) {
+              final estadoActual = c['estado']!;
+              return CitaRegistradaCard(
                 codigo: c['codigo']!,
-                estado: c['estado']!,
-                estadoTipo: _tipoDesde(c['estadoTipo']),
+                estado: estadoActual,
+                estadoTipo: _tipoDesdeEstado(estadoActual),
                 paciente: c['paciente']!,
                 pacienteId: c['pacienteId']!,
                 motivo: c['motivo']!,
                 doctor: c['doctor']!,
                 fecha: c['fecha']!,
                 hora: c['hora']!,
-                accionSecundariaTexto: c['accionTexto']!,
-                accionSecundariaColor: _colorDesde(c['accionTipo']),
-                accionSecundariaTextColor: _textColorDesde(c['accionTipo']),
-                onEditar: () {},
-                onAccionSecundaria: () {},
-              ),
-            ),
+                accionSecundariaTexto: _accionTextoPara(estadoActual),
+                accionSecundariaColor: _accionColorPara(estadoActual),
+                accionSecundariaTextColor: _accionTextColorPara(estadoActual),
+                accionTerciariaTexto:
+                    estadoActual == 'Programada' ? 'Completar' : null,
+                onAccionTerciaria: estadoActual == 'Programada'
+                    ? () => _cambiarEstado(c['codigo']!, 'Completada')
+                    : null,
+                onEditar: () {
+                  final cita = Cita(
+                    codigo: c['codigo']!,
+                    paciente: c['paciente']!,
+                    motivo: c['motivo']!,
+                    doctor: c['doctor']!,
+                    fechaHora: '${c['fecha']} • ${c['hora']}',
+                    estado: estadoActual,
+                  );
+                  showDialog(
+                    context: context,
+                    builder: (context) => EditarCitaDialog(cita: cita),
+                  );
+                },
+                onAccionSecundaria: () =>
+                    _onAccionSecundaria(c['codigo']!, estadoActual),
+              );
+            }),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         onPressed: () {
-          // Próximo paso: abrir la pantalla de 'Agendar Cita'.
+          showDialog(
+            context: context,
+            builder: (context) => const AgendarCitaDialog(),
+          );
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
