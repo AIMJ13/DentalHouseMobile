@@ -78,3 +78,9 @@ const List<Map<String, String>> citasHoyDoctor = [
     'estadoTipo': 'success',
   },
 ];
+
+const List<Map<String, String>> resumenDiarioDoctor = [
+  {'etiqueta': 'Citas Hoy', 'valor': '6', 'tipo': 'info'},
+  {'etiqueta': 'Pacientes Activo', 'valor': '2', 'tipo': 'success'},
+  {'etiqueta': 'En Espera', 'valor': '3', 'tipo': 'warning'},
+];
