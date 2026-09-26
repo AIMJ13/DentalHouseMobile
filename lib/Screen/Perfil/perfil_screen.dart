@@ -325,7 +325,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               ),
               if (esAdmin) ...[
                 const SizedBox(height: 14),
-                const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                Divider(height: 1, color: Colors.grey[200]!),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,

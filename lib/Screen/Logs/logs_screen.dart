@@ -97,7 +97,14 @@ class _LogsScreenState extends State<LogsScreen> {
     if (_paginaActual > totalPaginas) {
       _paginaActual = totalPaginas;
     }
-    final logsPaginados = logsFiltrados.skip((_paginaActual - 1) * _porPagina).take(_porPagina).toList();
+    final int inicio = (_paginaActual - 1) * _porPagina;
+    final int fin = (inicio + _porPagina < logsFiltrados.length) ? inicio + _porPagina : logsFiltrados.length;
+    final List<Map<String, dynamic>> logsPaginados = [];
+    if (inicio < logsFiltrados.length) {
+      for (int i = inicio; i < fin; i++) {
+        logsPaginados.add(logsFiltrados[i]);
+      }
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey[50],

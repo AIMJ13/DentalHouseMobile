@@ -102,7 +102,7 @@ class _UsuarioModalState extends State<UsuarioModal> {
           ],
         );
       },
-    );
+    ).then((_) => tempController.dispose());
   }
 
   @override

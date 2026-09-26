@@ -151,6 +151,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(

@@ -17,6 +17,27 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Especialidad'];
 
+  List<Map<String, dynamic>> _obtenerDoctoresFiltrados() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtrados = [];
+    for (var doc in listaDoctores) {
+      final nombre = (doc['nombre'] as String).toLowerCase();
+      final id = (doc['id'] as String).toLowerCase();
+      final especialidad = (doc['especialidad'] as String).toLowerCase();
+      final telefono = (doc['telefono'] as String).toLowerCase();
+      final coincide = query.isEmpty ||
+          nombre.contains(query) ||
+          id.contains(query) ||
+          especialidad.contains(query) ||
+          telefono.contains(query);
+      if (!coincide) continue;
+      if (_filtroSeleccionado == 'Activos' && doc['activo'] != true) continue;
+      if (_filtroSeleccionado == 'Inactivos' && doc['activo'] != false) continue;
+      filtrados.add(doc);
+    }
+    return filtrados;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -85,6 +106,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               ),
               child: TextField(
                 controller: _searchController,
+                onChanged: (val) => setState(() {}),
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                   hintText: 'Buscar doctor por nombre, ID o teléfono...',
@@ -180,13 +202,13 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                   ),
                 ),
                 Text(
-                  metricasDoctores['mostrados'] as String,
+                  '${_obtenerDoctoresFiltrados().length} mostrados',
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            for (var doc in listaDoctores)
+            for (var doc in _obtenerDoctoresFiltrados())
               _buildDoctorCard(
                 id: doc['id'] as String,
                 nombre: doc['nombre'] as String,
