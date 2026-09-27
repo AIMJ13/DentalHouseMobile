@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'editar_cita_modal.dart';
 import '../../Widget/dental_logo.dart';
+import 'agendar_cita_modal.dart';
 
 class Cita {
   final String codigo;
@@ -316,8 +317,13 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+            floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => const AgendarCitaModal(),
+          );
+        },
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
