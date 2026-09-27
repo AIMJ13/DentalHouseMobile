@@ -13,6 +13,10 @@ import 'Screen/DoctorHome/doctor_home_screen.dart';
 import 'Screen/DoctorAgenda/agenda_citas_screen.dart';
 import 'Screen/DoctorPacientes/gestion_pacientes_screen.dart';
 import 'Screen/RecepcionCitas/recepcion_citas_screen.dart';
+import 'Screen/RecepcionPacientes/recepcion_pacientes_screen.dart';
+import 'Screen/RecepcionEspecialidades/recepcion_especialidades_screen.dart';
+import 'Screen/RecepcionDoctores/recepcion_doctores_screen.dart';
+import 'Screen/RecepcionServicios/recepcion_servicios_screen.dart';
 
 class Routes {
   Routes._();
@@ -31,6 +35,10 @@ class Routes {
   static const String doctorAgenda = '/doctor-agenda';
   static const String doctorPacientes = '/doctor-pacientes';
   static const String recepcionCitas = '/recepcion-citas';
+  static const String recepcionPacientes = '/recepcion-pacientes';
+  static const String recepcionEspecialidades = '/recepcion-especialidades';
+  static const String recepcionDoctores = '/recepcion-doctores';
+  static const String recepcionServicios = '/recepcion-servicios';
 
   static Map<String, WidgetBuilder> get routes => {
     login: (context) => const LoginScreen(),
@@ -44,10 +52,12 @@ class Routes {
     servicios: (context) => const ServiciosScreen(),
     ventas: (context) => const VentasScreen(),
     doctorHome: (context) => const DoctorHomeScreen(),
-    doctorAgenda: (context) => const AgendaCitasScreen(), 
+    doctorAgenda: (context) => const AgendaCitasScreen(),
     doctorPacientes: (context) => const GestionPacientesScreen(),
     recepcionCitas: (context) => const RecepcionCitasScreen(),
-
-
+    recepcionPacientes: (context) => const RecepcionPacientesScreen(),
+    recepcionEspecialidades: (context) => const RecepcionEspecialidadesScreen(),
+    recepcionDoctores: (context) => const RecepcionDoctoresScreen(),
+    recepcionServicios: (context) => const RecepcionServiciosScreen(),
   };
 }

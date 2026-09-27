@@ -3,8 +3,17 @@ import 'recepcion_citas_screen.dart';
 
 class EditarCitaDialog extends StatefulWidget {
   final Cita cita;
+  final bool esReagendar;
+  final String? Function(String fecha, String hora) validarChoque;
+  final void Function(String motivo, String fecha, String hora) onGuardar;
 
-  const EditarCitaDialog({super.key, required this.cita});
+  const EditarCitaDialog({
+    super.key,
+    required this.cita,
+    required this.validarChoque,
+    required this.onGuardar,
+    this.esReagendar = false,
+  });
 
   @override
   State<EditarCitaDialog> createState() => _EditarCitaDialogState();
@@ -14,13 +23,14 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
   late TextEditingController _motivoController;
   late TextEditingController _fechaController;
   late TextEditingController _horaController;
+  String? _errorHorario;
 
   @override
   void initState() {
     super.initState();
     _motivoController = TextEditingController(text: widget.cita.motivo);
-    _fechaController = TextEditingController();
-    _horaController = TextEditingController();
+    _fechaController = TextEditingController(text: widget.esReagendar ? '' : widget.cita.fecha);
+    _horaController = TextEditingController(text: widget.esReagendar ? '' : widget.cita.hora);
   }
 
   @override
@@ -29,6 +39,30 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
     _fechaController.dispose();
     _horaController.dispose();
     super.dispose();
+  }
+
+  void _guardar() {
+    final fecha = _fechaController.text.trim();
+    final hora = _horaController.text.trim();
+    final motivo = _motivoController.text.trim();
+
+    if (fecha.isEmpty || hora.isEmpty) {
+      setState(() {
+        _errorHorario = 'Selecciona fecha y hora de la cita.';
+      });
+      return;
+    }
+
+    final error = widget.validarChoque(fecha, hora);
+    if (error != null) {
+      setState(() {
+        _errorHorario = error;
+      });
+      return;
+    }
+
+    Navigator.of(context).pop();
+    widget.onGuardar(motivo, fecha, hora);
   }
 
   @override
@@ -45,9 +79,9 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Editar Cita',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    widget.esReagendar ? 'Reagendar Cita' : 'Editar Cita',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -55,42 +89,17 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                   ),
                 ],
               ),
-              const Text(
-                'Modifique los datos de la cita registrada.',
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+              Text(
+                widget.esReagendar
+                    ? 'Selecciona una nueva fecha y hora para la cita.'
+                    : 'Modifique los datos de la cita registrada.',
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
               ),
               const SizedBox(height: 16),
 
-              const Text('Paciente', style: TextStyle(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                initialValue: widget.cita.paciente,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: [widget.cita.paciente]
-                    .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                    .toList(),
-                onChanged: (value) {},
-              ),
-              const SizedBox(height: 16),
-
-              const Text('Doctor', style: TextStyle(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                initialValue: widget.cita.doctor,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: [widget.cita.doctor]
-                    .map((d) => DropdownMenuItem(value: d, child: Text(d)))
-                    .toList(),
-                onChanged: (value) {},
-              ),
+              Text('Paciente: ${widget.cita.paciente}', style: const TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text('Doctor: ${widget.cita.doctor}', style: TextStyle(color: Colors.grey[700])),
               const SizedBox(height: 16),
 
               Row(
@@ -118,8 +127,11 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                               lastDate: DateTime(2030),
                             );
                             if (fecha != null) {
-                              _fechaController.text =
-                                  '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+                              setState(() {
+                                _fechaController.text =
+                                    '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+                                _errorHorario = null;
+                              });
                             }
                           },
                         ),
@@ -148,7 +160,10 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                               initialTime: TimeOfDay.now(),
                             );
                             if (hora != null && context.mounted) {
-                              _horaController.text = hora.format(context);
+                              setState(() {
+                                _horaController.text = hora.format(context);
+                                _errorHorario = null;
+                              });
                             }
                           },
                         ),
@@ -157,6 +172,13 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                   ),
                 ],
               ),
+              if (_errorHorario != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorHorario!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 16),
 
               const Text('Motivo de la cita', style: TextStyle(fontWeight: FontWeight.w500)),
@@ -180,12 +202,10 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'Guardar cambios',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  onPressed: _guardar,
+                  child: Text(
+                    widget.esReagendar ? 'Reagendar' : 'Guardar cambios',
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ),
