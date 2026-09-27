@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'Screen/Citas/citas_screen.dart';
 import 'Screen/Doctores/doctores_screen.dart';
 import 'Screen/Especialidades/especialidades_screen.dart';
 import 'Screen/Home/home_screen.dart';
@@ -35,7 +34,7 @@ class Routes {
   static Map<String, WidgetBuilder> get routes => {
     login: (context) => const LoginScreen(),
     home: (context) => const HomeScreen(),
-    citas: (context) => const CitasScreen(),
+    citas: (context) => const RecepcionCitasScreen(),
     doctores: (context) => const DoctoresScreen(),
     especialidades: (context) => const EspecialidadesScreen(),
     logs: (context) => const LogsScreen(),

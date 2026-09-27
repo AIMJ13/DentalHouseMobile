@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
-import '../../Widget/confirm_dialog.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/custom_button.dart';
 import '../../Widget/custom_text_field.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/user_badge.dart';
+import 'usuario_modal.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -14,7 +15,7 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
-  int _pestanaSeleccionada = 0;
+  bool _mostrarGestionUsuarios = false;
   String _filtroRol = 'Todos';
   final List<String> _filtros = ['Todos', 'Doctores', 'Recepcionistas', 'Administradores'];
 
@@ -130,113 +131,23 @@ class _PerfilScreenState extends State<PerfilScreen> {
     return resultado;
   }
 
-  void _alternarEstadoUsuario(Map<String, dynamic> usuario) {
-    final bool activo = usuario['activo'] as bool;
-    final String nombre = usuario['nombre'] as String;
-
+  void _abrirModalUsuario(Map<String, dynamic> usr) {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return ConfirmDialog(
-          titulo: activo ? '¿Desactivar Usuario?' : '¿Reactivar Usuario?',
-          subtitulo: 'Gestión de acceso al sistema',
-          icono: activo ? Icons.person_off_outlined : Icons.person_add_alt_1_outlined,
-          colorIcono: activo ? Colors.red[600] : Colors.teal[700],
-          colorFondoIcono: activo ? Colors.red[50] : Colors.teal[50],
-          colorAdvertencia: activo ? Colors.red[800] : Colors.teal[800],
-          colorFondoAdvertencia: activo ? Colors.red[50] : Colors.teal[50],
-          colorBotonConfirmar: activo ? Colors.red[500] : Colors.teal[700],
-          textoConfirmar: activo ? 'Sí, Desactivar' : 'Sí, Reactivar',
-          advertencia: activo
-              ? 'El usuario $nombre no podrá iniciar sesión en la aplicación móvil ni acceder al sistema.'
-              : 'El usuario $nombre tendrá acceso inmediato nuevamente con sus credenciales habituales.',
-          contenido: _buildUsuarioPreview(usuario),
-          onConfirmar: () {
-            setState(() => usuario['activo'] = !activo);
+        return UsuarioModal(
+          usuario: usr,
+          onGuardar: (nuevoActivo) {
+            setState(() {
+              usr['activo'] = nuevoActivo;
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(activo ? 'Usuario desactivado' : 'Usuario reactivado con éxito'),
-                backgroundColor: activo ? Colors.red[600] : Colors.green[600],
+                content: Text(nuevoActivo ? 'Usuario reactivado con éxito' : 'Usuario desactivado'),
+                backgroundColor: nuevoActivo ? Colors.green[600] : Colors.red[600],
               ),
             );
           },
-        );
-      },
-    );
-  }
-
-  Widget _buildUsuarioPreview(Map<String, dynamic> usuario) {
-    final activo = usuario['activo'] as bool;
-    final nombre = usuario['nombre'] as String;
-    final rol = usuario['rol'] as String;
-    final email = usuario['email'] as String;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: activo ? Colors.blue[50] : Colors.red[50],
-            child: Text(nombre.isNotEmpty ? nombre.substring(0, 1) : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: activo ? Colors.blue[700] : Colors.red[700])),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
-                Text('$rol  •  $email', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _restablecerClaveUsuario(Map<String, dynamic> usuario) {
-    final String nombre = usuario['nombre'] as String;
-    final TextEditingController tempController = TextEditingController(text: 'Dental2026#');
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(8)), child: Icon(Icons.lock_reset, color: Colors.amber[800], size: 22)),
-              const SizedBox(width: 10),
-              const Expanded(child: Text('Restablecer Clave', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Genera una contraseña temporal para $nombre:', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-              const SizedBox(height: 12),
-              TextField(
-                controller: tempController,
-                decoration: InputDecoration(labelText: 'Contraseña Temporal', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Cancelar', style: TextStyle(color: Colors.grey[700]))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Contraseña temporal restablecida para $nombre'), backgroundColor: Colors.blue[700]));
-              },
-              child: const Text('Asignar', style: TextStyle(color: Colors.white)),
-            ),
-          ],
         );
       },
     );
@@ -246,100 +157,157 @@ class _PerfilScreenState extends State<PerfilScreen> {
   @override
   Widget build(BuildContext context) {
     final bool esAdmin = (perfilUsuarioActual['rol'] as String? ?? '') == 'Administrador';
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final int indexNav = (rol == 'Doctor') ? 3 : 4;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
-        title: const DentalLogo(),
-        actions: const [UserBadge()],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (esAdmin) ...[
-              Container(
-                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  children: [
-                    Expanded(child: _buildBotonPestana('Mi Perfil', 0)),
-                    Expanded(child: _buildBotonPestana('Gestión de Usuarios', 1)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (!esAdmin || _pestanaSeleccionada == 0) _buildVistaMiPerfil(),
-            if (esAdmin && _pestanaSeleccionada == 1) _buildVistaGestionUsuarios(),
+    return PopScope(
+      canPop: !_mostrarGestionUsuarios,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_mostrarGestionUsuarios) {
+          setState(() => _mostrarGestionUsuarios = false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          titleSpacing: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () {
+              if (_mostrarGestionUsuarios) {
+                setState(() => _mostrarGestionUsuarios = false);
+              } else {
+                Navigator.pop(context);
+              }
+            },
+          ),
+          title: const DentalLogo(),
+          actions: [
+            UserBadge(
+              onTap: _mostrarGestionUsuarios
+                  ? () => setState(() => _mostrarGestionUsuarios = false)
+                  : null,
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBotonPestana(String texto, int index) {
-    final seleccionada = _pestanaSeleccionada == index;
-    return InkWell(
-      onTap: () => setState(() => _pestanaSeleccionada = index),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(color: seleccionada ? Colors.blue[700] : Colors.transparent, borderRadius: BorderRadius.circular(12)),
-        child: Center(
-          child: Text(texto, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: seleccionada ? Colors.white : Colors.grey[700])),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!esAdmin || !_mostrarGestionUsuarios) _buildVistaMiPerfil(esAdmin),
+              if (esAdmin && _mostrarGestionUsuarios) _buildVistaGestionUsuarios(),
+            ],
+          ),
         ),
+        bottomNavigationBar: CustomBottomNav(currentIndex: indexNav),
       ),
     );
   }
 
-  Widget _buildVistaMiPerfil() {
+  Widget _buildVistaMiPerfil(bool esAdmin) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
-          child: Row(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundColor: Colors.blue[700],
-                child: Text(perfilUsuarioActual['avatarLetra'] as String, style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(perfilUsuarioActual['nombre'] as String, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87)),
-                    const SizedBox(height: 2),
-                    Text('@${perfilUsuarioActual['usuario']}', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
-                      child: Text(perfilUsuarioActual['rol'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.blue[700],
+                    child: Text(
+                      perfilUsuarioActual['avatarLetra'] as String,
+                      style: const TextStyle(fontSize: 26, color: Colors.white, fontWeight: FontWeight.bold),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          perfilUsuarioActual['nombre'] as String,
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '@${perfilUsuarioActual['usuario']}',
+                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
+                              child: Text(
+                                perfilUsuarioActual['rol'] as String,
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.green[600],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.check_circle, size: 12, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Activo',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+              if (esAdmin) ...[
+                const SizedBox(height: 14),
+                Divider(height: 1, color: Colors.grey[200]!),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => setState(() => _mostrarGestionUsuarios = true),
+                    icon: const Icon(Icons.people_outline, size: 18, color: Colors.white),
+                    label: const Text(
+                      'Gestión de Usuarios',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[700],
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(child: _buildResumenCard('Citas Hoy', '${perfilUsuarioActual['citasHoy']}', Colors.amber[700]!)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildResumenCard('Atenciones', '${perfilUsuarioActual['totalAtenciones']}', Colors.teal[700]!)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildResumenCard('Estado', 'Activo', Colors.green[600]!)),
-          ],
         ),
         const SizedBox(height: 20),
         const Text('Actualizar Datos de Contacto', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
@@ -417,27 +385,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
       suffixIcon: IconButton(
         icon: Icon(ocultar ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 18, color: Colors.grey),
         onPressed: onToggle,
-      ),
-    );
-  }
-
-  Widget _buildResumenCard(String etiqueta, String valor, Color colorPunto) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(width: 7, height: 7, decoration: BoxDecoration(color: colorPunto, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(valor, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
-        ],
       ),
     );
   }
@@ -521,96 +468,69 @@ class _PerfilScreenState extends State<PerfilScreen> {
       rolFondo = Colors.amber[50]!;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: rolFondo, borderRadius: BorderRadius.circular(6)),
-                child: Text(rol, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: rolColor)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: activo ? Colors.green[50] : Colors.red[50], borderRadius: BorderRadius.circular(6)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(width: 6, height: 6, decoration: BoxDecoration(color: activo ? Colors.green[600] : Colors.red[600], shape: BoxShape.circle)),
-                    const SizedBox(width: 4),
-                    Text(activo ? 'Activo' : 'Inactivo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: activo ? Colors.green[700] : Colors.red[700])),
-                  ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _abrirModalUsuario(usr),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: rolFondo, borderRadius: BorderRadius.circular(6)),
+                  child: Text(rol, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: rolColor)),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: rolFondo,
-                child: Text(nombre.isNotEmpty ? nombre.substring(0, 1) : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: rolColor, fontSize: 16)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
-                    const SizedBox(height: 2),
-                    Text('@$usuario  •  $email', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(Icons.phone_outlined, size: 12, color: Colors.grey[500]),
-                        const SizedBox(width: 4),
-                        Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.lock_reset, size: 16),
-                  label: const Text('Reset Clave', style: TextStyle(fontSize: 11)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue[700],
-                    side: BorderSide(color: Colors.blue[200]!),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: activo ? Colors.green[50] : Colors.red[50], borderRadius: BorderRadius.circular(6)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 6, height: 6, decoration: BoxDecoration(color: activo ? Colors.green[600] : Colors.red[600], shape: BoxShape.circle)),
+                      const SizedBox(width: 4),
+                      Text(activo ? 'Activo' : 'Inactivo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: activo ? Colors.green[700] : Colors.red[700])),
+                    ],
                   ),
-                  onPressed: () => _restablecerClaveUsuario(usr),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: activo ? Colors.red[500] : Colors.teal[700],
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: rolFondo,
+                  child: Text(nombre.isNotEmpty ? nombre.substring(0, 1) : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: rolColor, fontSize: 16)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                      const SizedBox(height: 2),
+                      Text('@$usuario  •  $email', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.phone_outlined, size: 12, color: Colors.grey[500]),
+                          const SizedBox(width: 4),
+                          Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                        ],
+                      ),
+                    ],
                   ),
-                  onPressed: () => _alternarEstadoUsuario(usr),
-                  child: Text(activo ? 'Desactivar' : 'Reactivar', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

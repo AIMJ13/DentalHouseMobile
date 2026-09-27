@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../Widget/confirm_dialog.dart';
 import '../../Widget/custom_bottom_modal.dart';
 import '../../Widget/custom_select_modal.dart';
 import '../../Widget/custom_text_field.dart';
@@ -37,6 +38,8 @@ class _DoctorModalState extends State<DoctorModal> {
   late final TextEditingController _telefonoController;
   late String _especialidadSeleccionada;
   late bool _esActivo;
+  bool _confirmadoDesactivar = false;
+  bool _confirmadoActivar = false;
 
   final List<String> _especialidades = [
     'Ortodoncia',
@@ -157,9 +160,87 @@ class _DoctorModalState extends State<DoctorModal> {
           EstadoToggle(
             valor: _esActivo,
             onChanged: (val) {
-              setState(() {
-                _esActivo = val;
-              });
+              if (widget.id == null) {
+                setState(() => _esActivo = val);
+                return;
+              }
+              if (!val) {
+                if (!_confirmadoDesactivar) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => ConfirmDialog(
+                      titulo: '¿Desactivar Doctor?',
+                      subtitulo: 'Confirmar cambio de estado',
+                      icono: Icons.warning_amber_rounded,
+                      colorIcono: Colors.red[600],
+                      colorFondoIcono: Colors.red[50],
+                      colorAdvertencia: Colors.red[800],
+                      colorFondoAdvertencia: Colors.red[50],
+                      colorBotonConfirmar: Colors.red[500],
+                      textoConfirmar: 'Sí, Desactivar',
+                      advertencia: 'El doctor pasará a estado Inactivo. No podrá ser asignado a nuevas citas o consultas.',
+                      contenido: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Text(
+                          widget.nombre ?? 'Doctor',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                      onConfirmar: () {
+                        setState(() {
+                          _esActivo = false;
+                          _confirmadoDesactivar = true;
+                        });
+                      },
+                    ),
+                  );
+                } else {
+                  setState(() => _esActivo = false);
+                }
+              } else {
+                if (!_confirmadoActivar) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => ConfirmDialog(
+                      titulo: '¿Activar Doctor?',
+                      subtitulo: 'Confirmar reactivación médica',
+                      icono: Icons.check_circle_outline,
+                      colorIcono: Colors.teal[700],
+                      colorFondoIcono: Colors.teal[50],
+                      colorAdvertencia: Colors.teal[800],
+                      colorFondoAdvertencia: Colors.teal[50],
+                      colorBotonConfirmar: Colors.teal[700],
+                      textoConfirmar: 'Sí, Activar',
+                      advertencia: 'El doctor pasará a estado Activo. Estará disponible para citas y consultas médicas.',
+                      contenido: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Text(
+                          widget.nombre ?? 'Doctor',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                      onConfirmar: () {
+                        setState(() {
+                          _esActivo = true;
+                          _confirmadoActivar = true;
+                        });
+                      },
+                    ),
+                  );
+                } else {
+                  setState(() => _esActivo = true);
+                }
+              }
             },
           ),
         ],

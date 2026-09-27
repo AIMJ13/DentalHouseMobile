@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
-import '../../Widget/confirm_dialog.dart';
-import '../../Widget/custom_button.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/dental_logo.dart';
-import '../../Widget/menu_mas_modal.dart';
 import '../../Widget/user_badge.dart';
-import '../../routes.dart';
 import 'doctor_modal.dart';
 
 class DoctoresScreen extends StatefulWidget {
@@ -19,74 +16,26 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Especialidad'];
-  final int _currentIndex = 4;
 
-  void _onBottomNavTapped(int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-
-    if (rol == 'Recepcionista') {
-      if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
-        return;
-      }
-      if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.pacientes);
-        return;
-      }
-      if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.servicios);
-        return;
-      }
-      if (index == 4) {
-        mostrarMenuMas(context);
-        return;
-      }
-      return;
+  List<Map<String, dynamic>> _obtenerDoctoresFiltrados() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtrados = [];
+    for (var doc in listaDoctores) {
+      final nombre = (doc['nombre'] as String).toLowerCase();
+      final id = (doc['id'] as String).toLowerCase();
+      final especialidad = (doc['especialidad'] as String).toLowerCase();
+      final telefono = (doc['telefono'] as String).toLowerCase();
+      final coincide = query.isEmpty ||
+          nombre.contains(query) ||
+          id.contains(query) ||
+          especialidad.contains(query) ||
+          telefono.contains(query);
+      if (!coincide) continue;
+      if (_filtroSeleccionado == 'Activos' && doc['activo'] != true) continue;
+      if (_filtroSeleccionado == 'Inactivos' && doc['activo'] != false) continue;
+      filtrados.add(doc);
     }
-
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.home);
-      return;
-    }
-    if (index == 1) {
-      Navigator.pushReplacementNamed(context, Routes.servicios);
-      return;
-    }
-    if (index == 2) {
-      Navigator.pushReplacementNamed(context, Routes.ventas);
-      return;
-    }
-    if (index == 3) {
-      Navigator.pushReplacementNamed(context, Routes.citas);
-      return;
-    }
-    if (index == 4) {
-      mostrarMenuMas(context);
-      return;
-    }
-  }
-
-  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
-    if (rol == 'Recepcionista') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-      ];
-    }
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-    ];
+    return filtrados;
   }
 
   @override
@@ -157,6 +106,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               ),
               child: TextField(
                 controller: _searchController,
+                onChanged: (val) => setState(() {}),
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                   hintText: 'Buscar doctor por nombre, ID o teléfono...',
@@ -252,13 +202,13 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                   ),
                 ),
                 Text(
-                  metricasDoctores['mostrados'] as String,
+                  '${_obtenerDoctoresFiltrados().length} mostrados',
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            for (var doc in listaDoctores)
+            for (var doc in _obtenerDoctoresFiltrados())
               _buildDoctorCard(
                 id: doc['id'] as String,
                 nombre: doc['nombre'] as String,
@@ -278,23 +228,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             )
           : null,
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onBottomNavTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue[700],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(perfilUsuarioActual['rol'] as String? ?? 'Administrador'),
-        ),
-      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
   }
 
@@ -343,169 +277,147 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     required bool activo,
     required bool esAdmin,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: activo ? Colors.teal[50] : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  id,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: activo ? Colors.teal[700] : Colors.grey[700],
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: esAdmin
+          ? () => _abrirModalDoctor(
+                id: id,
+                nombre: nombre,
+                especialidad: especialidad,
+                telefono: telefono,
+                activo: activo,
+              )
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: activo ? Colors.teal[50] : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    id,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: activo ? Colors.teal[700] : Colors.grey[700],
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: activo ? Colors.green[50] : Colors.red[50],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: activo ? Colors.green[600] : Colors.red[600],
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      activo ? 'Activo' : 'Inactivo',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: activo ? Colors.green[700] : Colors.red[700],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: activo ? Colors.blue[50] : Colors.red[50],
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.person_outline,
-                  color: activo ? Colors.blue[700] : Colors.red[700],
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      nombre,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            especialidad,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blue[700],
-                            ),
-                          ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: activo ? Colors.green[50] : Colors.red[50],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: activo ? Colors.green[600] : Colors.red[600],
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 10),
-                        Icon(
-                          Icons.phone_outlined,
-                          size: 13,
-                          color: Colors.grey[500],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        activo ? 'Activo' : 'Inactivo',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: activo ? Colors.green[700] : Colors.red[700],
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          telefono,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          if (esAdmin) ...[
-            const SizedBox(height: 14),
+              ],
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: CustomButton(
-                    text: 'Editar',
-                    onPressed: () => _abrirModalDoctor(
-                      id: id,
-                      nombre: nombre,
-                      especialidad: especialidad,
-                      telefono: telefono,
-                      activo: activo,
-                    ),
-                    color: Colors.blue[700],
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: activo ? Colors.blue[50] : Colors.red[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person_outline,
+                    color: activo ? Colors.blue[700] : Colors.red[700],
+                    size: 22,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: CustomButton(
-                    text: activo ? 'Desactivar' : 'Activar',
-                    onPressed: () => _mostrarDialogoEstado(
-                      id: id,
-                      nombre: nombre,
-                      especialidad: especialidad,
-                      telefono: telefono,
-                      activo: activo,
-                    ),
-                    color: activo ? Colors.red[500] : Colors.teal[700],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nombre,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              especialidad,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Icon(
+                            Icons.phone_outlined,
+                            size: 13,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            telefono,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -554,150 +466,5 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
       },
     );
   }
-
-  void _cambiarEstadoDoctor(String id, bool nuevoEstado) {
-    setState(() {
-      for (var doc in listaDoctores) {
-        if (doc['id'] == id) {
-          doc['activo'] = nuevoEstado;
-          break;
-        }
-      }
-    });
-  }
-
-  void _mostrarDialogoEstado({
-    required String id,
-    required String nombre,
-    required String especialidad,
-    required String telefono,
-    required bool activo,
-  }) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return ConfirmDialog(
-          titulo: activo ? '¿Desactivar Doctor?' : '¿Activar Doctor?',
-          subtitulo: 'Confirmar cambio de estado médico',
-          icono: activo ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-          colorIcono: activo ? Colors.red[600] : Colors.teal[700],
-          colorFondoIcono: activo ? Colors.red[50] : Colors.teal[50],
-          colorAdvertencia: activo ? Colors.red[800] : Colors.teal[800],
-          colorFondoAdvertencia: activo ? Colors.red[50] : Colors.teal[50],
-          colorBotonConfirmar: activo ? Colors.red[500] : Colors.teal[700],
-          textoConfirmar: activo ? 'Sí, Desactivar' : 'Sí, Activar',
-          advertencia: activo
-              ? 'El doctor pasará a estado Inactivo. No podrá ser asignado a nuevas citas o consultas hasta que sea reactivado nuevamente.'
-              : 'El doctor pasará a estado Activo. Estará disponible para ser asignado a nuevas citas y consultas médicas.',
-          contenido: _buildDoctorPreview(
-            id: id,
-            nombre: nombre,
-            especialidad: especialidad,
-            telefono: telefono,
-            activo: activo,
-          ),
-          onConfirmar: () {
-            _cambiarEstadoDoctor(id, !activo);
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDoctorPreview({
-    required String id,
-    required String nombre,
-    required String especialidad,
-    required String telefono,
-    required bool activo,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.teal[50],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  id,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.teal[700]),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: activo ? Colors.green[50] : Colors.red[50],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: activo ? Colors.green[600] : Colors.red[600],
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      activo ? 'Activo' : 'Inactivo',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: activo ? Colors.green[700] : Colors.red[700],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: activo ? Colors.blue[50] : Colors.red[50],
-                child: Icon(
-                  Icons.person_outline,
-                  size: 18,
-                  color: activo ? Colors.blue[700] : Colors.red[700],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
-                  Row(
-                    children: [
-                      Text(especialidad, style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.w600)),
-                      const SizedBox(width: 8),
-                      Icon(Icons.phone_outlined, size: 11, color: Colors.grey[500]),
-                      const SizedBox(width: 2),
-                      Text(telefono, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
+

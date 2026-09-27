@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../Data/dashboard_data.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/dental_logo.dart';
-import '../../Widget/menu_mas_modal.dart';
 import '../../Widget/user_badge.dart';
-import '../../routes.dart';
 import 'log_detalle_modal.dart';
 
 class LogsScreen extends StatefulWidget {
@@ -21,18 +20,11 @@ class _LogsScreenState extends State<LogsScreen> {
   String _moduloFiltro = 'Todos los módulos';
   String _accionFiltro = 'Todas las acciones';
   bool _filtrosExpandidos = false;
-  final int _currentIndex = 4;
+  int _paginaActual = 1;
+  final int _porPagina = 5;
 
   final List<String> _modulos = ['Todos los módulos', 'Citas', 'Servicios', 'Seguridad', 'Doctores', 'Ventas'];
   final List<String> _acciones = ['Todas las acciones', 'Información', 'Modificación', 'Advertencia', 'Auditoría'];
-
-  void _onBottomNavTapped(int index) {
-    if (index == 0) Navigator.pushReplacementNamed(context, Routes.home);
-    if (index == 1) Navigator.pushReplacementNamed(context, Routes.servicios);
-    if (index == 2) Navigator.pushReplacementNamed(context, Routes.ventas);
-    if (index == 3) Navigator.pushReplacementNamed(context, Routes.citas);
-    if (index == 4) mostrarMenuMas(context);
-  }
 
   void _limpiarFiltros() {
     setState(() {
@@ -41,6 +33,7 @@ class _LogsScreenState extends State<LogsScreen> {
       _estadoFiltro = 'Todos';
       _moduloFiltro = 'Todos los módulos';
       _accionFiltro = 'Todas las acciones';
+      _paginaActual = 1;
     });
   }
 
@@ -100,6 +93,18 @@ class _LogsScreenState extends State<LogsScreen> {
   @override
   Widget build(BuildContext context) {
     final logsFiltrados = _obtenerLogsFiltrados();
+    final totalPaginas = logsFiltrados.isEmpty ? 1 : ((logsFiltrados.length - 1) ~/ _porPagina) + 1;
+    if (_paginaActual > totalPaginas) {
+      _paginaActual = totalPaginas;
+    }
+    final int inicio = (_paginaActual - 1) * _porPagina;
+    final int fin = (inicio + _porPagina < logsFiltrados.length) ? inicio + _porPagina : logsFiltrados.length;
+    final List<Map<String, dynamic>> logsPaginados = [];
+    if (inicio < logsFiltrados.length) {
+      for (int i = inicio; i < fin; i++) {
+        logsPaginados.add(logsFiltrados[i]);
+      }
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -114,36 +119,51 @@ class _LogsScreenState extends State<LogsScreen> {
           UserBadge(),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildEncabezado(),
-            const SizedBox(height: 16),
-            _buildPanelFiltros(),
-            const SizedBox(height: 16),
-            _buildBarraMetricas(),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 80.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('HISTORIAL DE EVENTOS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
-                  child: Text('${logsFiltrados.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+                _buildEncabezado(),
+                const SizedBox(height: 16),
+                _buildPanelFiltros(),
+                const SizedBox(height: 16),
+                _buildBarraMetricas(),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('HISTORIAL DE EVENTOS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
+                      child: Text('${logsFiltrados.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
+                if (logsPaginados.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    alignment: Alignment.center,
+                    child: Text('No se encontraron registros de eventos.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                  )
+                else
+                  for (var log in logsPaginados) _buildLogCard(log),
               ],
             ),
-            const SizedBox(height: 12),
-            for (var log in logsFiltrados) _buildLogCard(log),
-            const SizedBox(height: 12),
-            _buildPaginacion(),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 12,
+            left: 16,
+            right: 16,
+            child: _buildPaginacionFlotante(totalPaginas, logsFiltrados.length),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
   }
 
@@ -480,78 +500,85 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Widget _buildPaginacion() {
+  Widget _buildPaginacionFlotante(int totalPaginas, int totalRegistros) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          InkWell(
+            onTap: _paginaActual > 1
+                ? () => setState(() => _paginaActual--)
+                : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _paginaActual > 1 ? Colors.blue[50] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
                 children: [
-                  Text('Por pág: ', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey[300]!)),
-                    child: const Text('10', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  Icon(
+                    Icons.chevron_left,
+                    size: 16,
+                    color: _paginaActual > 1 ? Colors.blue[700] : Colors.grey[400],
+                  ),
+                  Text(
+                    'Anterior',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _paginaActual > 1 ? Colors.blue[700] : Colors.grey[400],
+                    ),
                   ),
                 ],
               ),
-              Text('Página 1 de 15 (142 registros)', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey[300]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                  child: Text('< Anterior', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.blue[700]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                  child: Text('Siguiente >', style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
+          Text(
+            'Pág $_paginaActual de $totalPaginas ($totalRegistros)',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onBottomNavTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.blue[700],
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+          InkWell(
+            onTap: _paginaActual < totalPaginas
+                ? () => setState(() => _paginaActual++)
+                : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _paginaActual < totalPaginas ? Colors.blue[50] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'Siguiente',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _paginaActual < totalPaginas ? Colors.blue[700] : Colors.grey[400],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: _paginaActual < totalPaginas ? Colors.blue[700] : Colors.grey[400],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
