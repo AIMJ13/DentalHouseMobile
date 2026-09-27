@@ -193,62 +193,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ),
           ],
         ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, _mostrarGestionUsuarios ? 86.0 : 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!esAdmin || !_mostrarGestionUsuarios) _buildVistaMiPerfil(esAdmin),
-                  if (esAdmin && _mostrarGestionUsuarios) _buildVistaGestionUsuarios(),
-                ],
-              ),
-            ),
-            if (esAdmin && _mostrarGestionUsuarios)
-              Positioned(
-                bottom: 12,
-                left: 16,
-                right: 16,
-                child: _buildBotonFlotanteVolverPerfil(),
-              ),
-          ],
-        ),
-        bottomNavigationBar: CustomBottomNav(currentIndex: indexNav),
-      ),
-    );
-  }
-
-  Widget _buildBotonFlotanteVolverPerfil() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.blue[700],
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => setState(() => _mostrarGestionUsuarios = false),
-          borderRadius: BorderRadius.circular(14),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.arrow_back, size: 18, color: Colors.white),
-                SizedBox(width: 8),
-                Text(
-                  'Volver a Mi Perfil',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!esAdmin || !_mostrarGestionUsuarios) _buildVistaMiPerfil(esAdmin),
+              if (esAdmin && _mostrarGestionUsuarios) _buildVistaGestionUsuarios(),
+            ],
           ),
         ),
+        bottomNavigationBar: CustomBottomNav(currentIndex: indexNav),
       ),
     );
   }
@@ -440,6 +395,33 @@ class _PerfilScreenState extends State<PerfilScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        InkWell(
+          onTap: () => setState(() => _mostrarGestionUsuarios = false),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_back, size: 16, color: Colors.blue[700]),
+                const SizedBox(width: 6),
+                Text(
+                  'Volver a Mi Perfil',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
         Container(
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[300]!)),
           child: TextField(

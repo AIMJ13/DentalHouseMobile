@@ -39,69 +39,80 @@ class CustomBottomModal extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(icono, color: Colors.blue[700], size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icono, color: Colors.blue[700], size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
                               titulo,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (badgeTexto != null) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.teal[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  badgeTexto!,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.teal[700],
-                                  ),
+                          ),
+                          if (badgeTexto != null) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.teal[50],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                badgeTexto!,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal[700],
                                 ),
                               ),
-                            ],
+                            ),
                           ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitulo,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[600],
                         ),
-                        Text(
-                          subtitulo,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(4),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    if (onCancelar != null) {
+                      onCancelar!();
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
                       shape: BoxShape.circle,
@@ -112,13 +123,6 @@ class CustomBottomModal extends StatelessWidget {
                       color: Colors.black54,
                     ),
                   ),
-                  onPressed: () {
-                    if (onCancelar != null) {
-                      onCancelar!();
-                    } else {
-                      Navigator.pop(context);
-                    }
-                  },
                 ),
               ],
             ),

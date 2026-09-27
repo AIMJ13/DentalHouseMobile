@@ -172,11 +172,13 @@ class _UsuarioModalState extends State<UsuarioModal> {
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '@$usuario  •  $email',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Row(
