@@ -14,6 +14,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
+
   const MyApp({super.key, this.isLoggedIn = false});
 
   @override
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
       ),
-     home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
+    home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
      //home: const DoctorHomeScreen(),
            //home: const RecepcionCitasScreen(),
       routes: Routes.routes,

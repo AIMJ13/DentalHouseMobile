@@ -18,10 +18,12 @@ class Cita {
     required this.paciente,
     required this.motivo,
     required this.doctor,
-    required this.fecha,
-    required this.hora,
+    String? fecha,
+    String? hora,
+    String? fechaHora,
     required this.estado,
-  });
+  })  : fecha = fecha ?? (fechaHora?.split(' • ').first ?? ''),
+        hora = hora ?? ((fechaHora?.split(' • ').length ?? 0) > 1 ? fechaHora!.split(' • ')[1] : '');
 
   String get fechaHora => '$fecha • $hora';
 }

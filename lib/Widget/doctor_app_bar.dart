@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../Theme/app_colors.dart';
 import 'dental_logo.dart';
 
+
 class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String doctorInicial;
   final String doctorNombre;
