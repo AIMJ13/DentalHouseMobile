@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../Data/doctor_home_data.dart';
 import '../../Theme/app_colors.dart';
 import '../../Widget/rendimiento_card.dart';
@@ -7,9 +6,9 @@ import '../../Widget/paciente_reciente_tile.dart';
 import '../../Widget/cita_hoy_tile.dart';
 import '../../Widget/status_badge.dart';
 import '../../Widget/section_header.dart';
-import '../../Widget/dental_logo.dart';
 import '../../Widget/doctor_bottom_nav.dart';
-import '../../routes.dart';
+import '../../Widget/doctor_app_bar.dart';
+import '../../Widget/stats_summary_row.dart';
 
 class DoctorHomeScreen extends StatelessWidget {
   const DoctorHomeScreen({super.key});
@@ -33,55 +32,7 @@ class DoctorHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        titleSpacing: 16,
-        title: const DentalLogo(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: AppColors.textDark),
-            onPressed: () {},
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: const [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: AppColors.primary,
-                    child: Text(
-                      'M',
-                      style: TextStyle(color: Colors.white, fontSize: 11),
-                    ),
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Dr. Morales',
-                    style: TextStyle(fontSize: 12, color: AppColors.textDark),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.textDark, size: 20),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              if (!context.mounted) return;
-              Navigator.pushNamedAndRemoveUntil(context, Routes.login, (route) => false);
-            },
-          ),
-        ],
-      ),
+      appBar: const DoctorAppBar(),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -117,6 +68,8 @@ class DoctorHomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            StatsSummaryRow(items: resumenDiarioDoctor),
+              const SizedBox(height: 16),
             RendimientoCard(
               stats: rendimientoDoctor,
               badgeText: 'En Consulta',
