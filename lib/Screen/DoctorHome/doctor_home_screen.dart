@@ -6,7 +6,6 @@ import '../../Widget/paciente_reciente_tile.dart';
 import '../../Widget/cita_hoy_tile.dart';
 import '../../Widget/status_badge.dart';
 import '../../Widget/section_header.dart';
-import '../../Widget/dental_logo.dart';
 import '../../Widget/doctor_bottom_nav.dart';
 import '../../Widget/doctor_app_bar.dart';
 import '../../Widget/stats_summary_row.dart';
@@ -33,7 +32,9 @@ class DoctorHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+
               appBar: const DoctorAppBar(),
+
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),

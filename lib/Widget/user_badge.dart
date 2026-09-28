@@ -3,12 +3,21 @@ import '../Data/dashboard_data.dart';
 import '../routes.dart';
 
 class UserBadge extends StatelessWidget {
-  const UserBadge({super.key});
+  final bool habilitado;
+  final VoidCallback? onTap;
+
+  const UserBadge({
+    super.key,
+    this.habilitado = true,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final rolActual = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
     final letra = perfilUsuarioActual['avatarLetra'] as String? ?? rolActual.substring(0, 1);
+    final bool estaEnPerfil = ModalRoute.of(context)?.settings.name == Routes.perfil;
+    final bool puedeNavegar = habilitado && !estaEnPerfil;
 
     Color fondoColor = Colors.blue[50]!;
     Color avatarColor = Colors.blue[700]!;
@@ -24,8 +33,15 @@ class UserBadge extends StatelessWidget {
       textoColor = Colors.amber[900]!;
     }
 
+    VoidCallback? accionTap;
+    if (onTap != null) {
+      accionTap = onTap;
+    } else if (puedeNavegar) {
+      accionTap = () => Navigator.pushNamed(context, Routes.perfil);
+    }
+
     return InkWell(
-      onTap: () => Navigator.pushNamed(context, Routes.perfil),
+      onTap: accionTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         margin: const EdgeInsets.only(right: 16),
