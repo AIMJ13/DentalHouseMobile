@@ -32,7 +32,9 @@ class DoctorHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const DoctorAppBar(),
+
+              appBar: const DoctorAppBar(),
+
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
