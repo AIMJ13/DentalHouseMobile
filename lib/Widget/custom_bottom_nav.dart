@@ -14,13 +14,16 @@ class CustomBottomNav extends StatelessWidget {
   });
 
   void _defaultOnTap(BuildContext context, int index) {
-    if (index == currentIndex) {
-      if (index == 4 || (perfilUsuarioActual['rol'] == 'Doctor' && index == 3)) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+
+    if (currentIndex >= 0 && index == currentIndex) {
+      if (rol == 'Administrador' && index == 4) {
+        mostrarMenuMas(context);
+      } else if (rol == 'Doctor' && index == 3) {
         mostrarMenuMas(context);
       }
       return;
     }
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
 
     if (rol == 'Doctor') {
       if (index == 0) {
@@ -119,7 +122,8 @@ class CustomBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
     final items = _obtenerItemsNavegacion(rol);
-    final int safeIndex = (currentIndex >= 0 && currentIndex < items.length) ? currentIndex : 0;
+    final bool tieneSeleccion = currentIndex >= 0 && currentIndex < items.length;
+    final int safeIndex = tieneSeleccion ? currentIndex : 0;
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -137,9 +141,12 @@ class CustomBottomNav extends StatelessWidget {
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: Colors.blue[700],
+        selectedItemColor: tieneSeleccion ? Colors.blue[700] : Colors.grey[600],
         unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+        selectedLabelStyle: TextStyle(
+          fontSize: 11,
+          fontWeight: tieneSeleccion ? FontWeight.bold : FontWeight.normal,
+        ),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         items: items,
       ),
