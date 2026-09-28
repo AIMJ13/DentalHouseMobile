@@ -85,7 +85,7 @@ void mostrarMenuMas(BuildContext context) {
                   subtitle: esRecepcionista ? 'Consulta de personal médico' : 'Gestión médica y turnos',
                   onTap: () {
                     Navigator.pop(modalContext);
-                    Navigator.pushNamed(context, Routes.doctores);
+                    Navigator.pushNamed(context, esRecepcionista ? Routes.recepcionDoctores : Routes.doctores);
                   },
                 ),
               if (esAdmin)
@@ -109,7 +109,7 @@ void mostrarMenuMas(BuildContext context) {
                   subtitle: esRecepcionista ? 'Catálogo de especialidades' : 'Áreas clínicas y tratamientos',
                   onTap: () {
                     Navigator.pop(modalContext);
-                    Navigator.pushNamed(context, Routes.especialidades);
+                    Navigator.pushNamed(context, esRecepcionista ? Routes.recepcionEspecialidades : Routes.especialidades);
                   },
                 ),
               if (esAdmin)

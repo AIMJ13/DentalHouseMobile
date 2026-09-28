@@ -17,7 +17,7 @@ class _RecepcionDoctoresScreenState extends State<RecepcionDoctoresScreen> {
 
   void _onBottomNavTapped(int index) {
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.home);
+      Navigator.pushReplacementNamed(context, Routes.recepcionCitas);
       return;
     }
     if (index == 1) {
