@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Data/dashboard_data.dart';
 import 'Screen/DoctorHome/doctor_home_screen.dart';
 import 'Screen/Home/home_screen.dart';
 import 'Screen/Login/login_screen.dart';
@@ -12,6 +13,24 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
   final String rol = prefs.getString('rol') ?? 'Administrador';
+  final String usuario = prefs.getString('usuario') ?? '';
+
+  if (isLoggedIn) {
+    perfilUsuarioActual['rol'] = rol;
+    for (var u in listaUsuarios) {
+      if ((u['usuario'] as String).toLowerCase() == usuario.toLowerCase() ||
+          (u['rol'] as String).toLowerCase() == rol.toLowerCase()) {
+        perfilUsuarioActual['id'] = u['id'];
+        perfilUsuarioActual['nombre'] = u['nombre'];
+        perfilUsuarioActual['usuario'] = u['usuario'];
+        perfilUsuarioActual['rol'] = u['rol'];
+        perfilUsuarioActual['email'] = u['email'];
+        perfilUsuarioActual['telefono'] = u['telefono'];
+        perfilUsuarioActual['avatarLetra'] = (u['nombre'] as String).substring(0, 1);
+        break;
+      }
+    }
+  }
 
   runApp(MyApp(isLoggedIn: isLoggedIn, rol: rol));
 }
