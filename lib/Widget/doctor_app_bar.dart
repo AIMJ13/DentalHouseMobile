@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Theme/app_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../routes.dart';
 import 'dental_logo.dart';
 
 
@@ -21,7 +23,7 @@ class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      titleSpacing: 16,
+      titleSpacing: 0,
       title: const DentalLogo(),
       actions: [
         IconButton(
@@ -29,7 +31,7 @@ class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () {},
         ),
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.only(right: 8),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -54,6 +56,20 @@ class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
           ),
+        ),
+           IconButton(
+          icon: const Icon(Icons.logout, color: Colors.black54, size: 20),
+          tooltip: 'Cerrar Sesión',
+          onPressed: () async {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.clear();
+            if (!context.mounted) return;
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              Routes.login,
+              (route) => false,
+            );
+          },
         ),
       ],
     );
