@@ -115,7 +115,6 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
 
   void _onBottomNavTapped(BuildContext context, int index) {
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.home);
       return;
     }
     if (index == 1) {
@@ -226,24 +225,28 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
         titleSpacing: Navigator.canPop(context) ? 0 : 16,
         title: const DentalLogo(),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Colors.blue[700],
-                  child: const Text('R', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(width: 6),
-                Text('Recepcionista', style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold)),
-              ],
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.pushNamed(context, Routes.perfil),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.blue[700],
+                    child: const Text('R', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 6),
+                  Text('Recepcionista', style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
           ),
           IconButton(

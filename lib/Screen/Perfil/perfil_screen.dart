@@ -158,7 +158,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Widget build(BuildContext context) {
     final bool esAdmin = (perfilUsuarioActual['rol'] as String? ?? '') == 'Administrador';
     final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-    final int indexNav = (rol == 'Doctor') ? 3 : 4;
+    final int indexNav = (rol == 'Recepcionista') ? -1 : ((rol == 'Doctor') ? 3 : 4);
 
     return PopScope(
       canPop: !_mostrarGestionUsuarios,
@@ -464,8 +464,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
       rolColor = Colors.teal[700]!;
       rolFondo = Colors.teal[50]!;
     } else if (rol == 'Recepcionista') {
-      rolColor = Colors.amber[900]!;
-      rolFondo = Colors.amber[50]!;
+      rolColor = Colors.blue[800]!;
+      rolFondo = Colors.blue[50]!;
     }
 
     return InkWell(

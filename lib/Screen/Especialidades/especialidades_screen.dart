@@ -26,23 +26,23 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
 
     if (rol == 'Recepcionista') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        Navigator.pushReplacementNamed(context, Routes.recepcionCitas);
         return;
       }
       if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
+        Navigator.pushReplacementNamed(context, Routes.recepcionPacientes);
         return;
       }
       if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.pacientes);
+        Navigator.pushReplacementNamed(context, Routes.recepcionEspecialidades);
         return;
       }
       if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.servicios);
+        Navigator.pushReplacementNamed(context, Routes.recepcionDoctores);
         return;
       }
       if (index == 4) {
-        mostrarMenuMas(context);
+        Navigator.pushReplacementNamed(context, Routes.recepcionServicios);
         return;
       }
       return;
@@ -73,11 +73,11 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
   List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
+        BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
         BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
       ];
     }
     return const [

@@ -14,13 +14,16 @@ class CustomBottomNav extends StatelessWidget {
   });
 
   void _defaultOnTap(BuildContext context, int index) {
-    if (index == currentIndex) {
-      if (index == 4 || (perfilUsuarioActual['rol'] == 'Doctor' && index == 3)) {
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+
+    if (currentIndex >= 0 && index == currentIndex) {
+      if (rol == 'Administrador' && index == 4) {
+        mostrarMenuMas(context);
+      } else if (rol == 'Doctor' && index == 3) {
         mostrarMenuMas(context);
       }
       return;
     }
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
 
     if (rol == 'Doctor') {
       if (index == 0) {
@@ -44,23 +47,23 @@ class CustomBottomNav extends StatelessWidget {
 
     if (rol == 'Recepcionista') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        Navigator.pushReplacementNamed(context, Routes.recepcionCitas);
         return;
       }
       if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
+        Navigator.pushReplacementNamed(context, Routes.recepcionPacientes);
         return;
       }
       if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.pacientes);
+        Navigator.pushReplacementNamed(context, Routes.recepcionEspecialidades);
         return;
       }
       if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.servicios);
+        Navigator.pushReplacementNamed(context, Routes.recepcionDoctores);
         return;
       }
       if (index == 4) {
-        mostrarMenuMas(context);
+        Navigator.pushReplacementNamed(context, Routes.recepcionServicios);
         return;
       }
       return;
@@ -99,11 +102,11 @@ class CustomBottomNav extends StatelessWidget {
     }
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
+        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
+        BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
         BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
       ];
     }
     return const [
@@ -119,7 +122,8 @@ class CustomBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
     final items = _obtenerItemsNavegacion(rol);
-    final int safeIndex = (currentIndex >= 0 && currentIndex < items.length) ? currentIndex : 0;
+    final bool tieneSeleccion = currentIndex >= 0 && currentIndex < items.length;
+    final int safeIndex = tieneSeleccion ? currentIndex : 0;
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -137,9 +141,12 @@ class CustomBottomNav extends StatelessWidget {
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: Colors.blue[700],
+        selectedItemColor: tieneSeleccion ? Colors.blue[700] : Colors.grey[600],
         unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+        selectedLabelStyle: TextStyle(
+          fontSize: 11,
+          fontWeight: tieneSeleccion ? FontWeight.bold : FontWeight.normal,
+        ),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         items: items,
       ),

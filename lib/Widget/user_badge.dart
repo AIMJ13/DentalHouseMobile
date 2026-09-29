@@ -28,9 +28,9 @@ class UserBadge extends StatelessWidget {
       avatarColor = Colors.teal[700]!;
       textoColor = Colors.teal[800]!;
     } else if (rolActual == 'Recepcionista') {
-      fondoColor = Colors.amber[50]!;
-      avatarColor = Colors.amber[800]!;
-      textoColor = Colors.amber[900]!;
+      fondoColor = Colors.blue[50]!;
+      avatarColor = Colors.blue[700]!;
+      textoColor = Colors.blue[800]!;
     }
 
     VoidCallback? accionTap;

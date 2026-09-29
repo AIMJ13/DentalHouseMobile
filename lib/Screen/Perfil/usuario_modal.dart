@@ -120,8 +120,8 @@ class _UsuarioModalState extends State<UsuarioModal> {
       rolColor = Colors.teal[700]!;
       rolFondo = Colors.teal[50]!;
     } else if (rol == 'Recepcionista') {
-      rolColor = Colors.amber[900]!;
-      rolFondo = Colors.amber[50]!;
+      rolColor = Colors.blue[800]!;
+      rolFondo = Colors.blue[50]!;
     }
 
     return CustomBottomModal(
