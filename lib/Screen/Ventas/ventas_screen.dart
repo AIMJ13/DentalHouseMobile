@@ -3,6 +3,7 @@ import '../../Data/dashboard_data.dart';
 import '../../Widget/custom_bottom_nav.dart';
 import '../../Widget/dental_logo.dart';
 import '../../Widget/user_badge.dart';
+import 'venta_detalle_modal.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -106,8 +107,18 @@ class _VentasScreenState extends State<VentasScreen> {
     });
   }
 
+  void _abrirDetalleVenta(Map<String, dynamic> venta) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return VentaDetalleModal(venta: venta);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtradas = _obtenerVentasFiltradas();
     final metricas = _calcularMetricas();
 
     return Scaffold(
@@ -294,15 +305,54 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'HISTORIAL DE VENTAS',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-                letterSpacing: 0.5,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'HISTORIAL DE VENTAS',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  '${filtradas.length} registradas',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
             ),
+            const SizedBox(height: 12),
+            if (filtradas.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.receipt_outlined, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'No se encontraron ventas',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Intenta ajustar los filtros de búsqueda o fecha.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            else
+              for (var venta in filtradas)
+                _buildVentaCard(venta),
           ],
         ),
       ),
@@ -347,6 +397,151 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildVentaCard(Map<String, dynamic> venta) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _abrirDetalleVenta(venta),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    venta['codigo'] ?? venta['id'] ?? '',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 13,
+                      color: Colors.grey[500],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      venta['fecha'] ?? '',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.person_outline,
+                    color: Colors.blue[700],
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              venta['paciente'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            venta['total'] ?? '',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              venta['doctor'] ?? '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (venta['cita'] != null && venta['cita'].toString().isNotEmpty) ...[
+                            Text(
+                              ' • ',
+                              style: TextStyle(color: Colors.grey[400]),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: Colors.teal[50],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Cita: ${venta['cita']}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
