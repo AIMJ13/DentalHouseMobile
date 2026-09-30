@@ -144,64 +144,86 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBarraItem({
-    required String label,
-    required String valor,
-    required double porcentaje,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-              Text(valor, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue[700])),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: porcentaje,
-              minHeight: 6,
-              backgroundColor: Colors.grey[200],
-              color: Colors.blue[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSeccionEstadistica({
+  Widget _buildCuadroDestacado({
     required String titulo,
-    required String etiqueta,
-    required List<Widget> children,
+    required String nombre,
+    required String valor,
+    required String subtitulo,
+    required IconData icono,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(titulo, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
-              Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-            ],
-          ),
-          const SizedBox(height: 14),
-          ...children,
-        ],
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    titulo,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(icono, size: 14, color: Colors.blue[700]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              nombre,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              valor,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[700],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                subtitulo,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.green[700],
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -331,53 +353,97 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            _buildSeccionEstadistica(
-              titulo: 'INGRESOS POR DOCTOR',
-              etiqueta: 'Córdobas (C\$)',
-              children: [
-                for (var doc in doctoresTop)
-                  _buildBarraItem(
-                    label: doc['nombre'],
-                    valor: doc['monto'],
-                    porcentaje: doc['porcentaje'],
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Estadísticas y Destacados',
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Resumen de especialidades, doctores y servicios',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.blue[200]!),
+                        ),
+                        child: Text(
+                          '• Métricas',
+                          style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
                   ),
-              ],
-            ),
-            _buildSeccionEstadistica(
-              titulo: 'SERVICIOS MÁS VENDIDOS',
-              etiqueta: 'Cant. unidades',
-              children: [
-                for (var serv in serviciosTop)
-                  _buildBarraItem(
-                    label: serv['nombre'],
-                    valor: serv['monto'],
-                    porcentaje: serv['porcentaje'],
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _buildCuadroDestacado(
+                        titulo: 'Doctor Destacado',
+                        nombre: doctoresTop.isNotEmpty ? doctoresTop[0]['nombre'] as String : 'Sin datos',
+                        valor: doctoresTop.isNotEmpty ? doctoresTop[0]['monto'] as String : 'C\$ 0.00',
+                        subtitulo: doctoresTop.isNotEmpty
+                            ? '${((doctoresTop[0]['porcentaje'] as double? ?? 0.85) * 100).round()}% participación'
+                            : '0%',
+                        icono: Icons.person_outline,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildCuadroDestacado(
+                        titulo: 'Servicio Top',
+                        nombre: serviciosTop.isNotEmpty ? serviciosTop[0]['nombre'] as String : 'Sin datos',
+                        valor: serviciosTop.isNotEmpty ? serviciosTop[0]['monto'] as String : 'C\$ 0.00',
+                        subtitulo: serviciosTop.isNotEmpty
+                            ? '${((serviciosTop[0]['porcentaje'] as double? ?? 0.80) * 100).round()}% demanda'
+                            : '0%',
+                        icono: Icons.medical_services_outlined,
+                      ),
+                    ],
                   ),
-              ],
-            ),
-            _buildSeccionEstadistica(
-              titulo: 'ESPECIALIDADES MÁS RENTABLES',
-              etiqueta: 'Facturación (C\$)',
-              children: [
-                for (var esp in especialidadesTop)
-                  _buildBarraItem(
-                    label: esp['nombre'],
-                    valor: esp['monto'],
-                    porcentaje: esp['porcentaje'],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildCuadroDestacado(
+                        titulo: 'Especialidad Principal',
+                        nombre: especialidadesTop.isNotEmpty ? especialidadesTop[0]['nombre'] as String : 'Sin datos',
+                        valor: especialidadesTop.isNotEmpty ? especialidadesTop[0]['monto'] as String : 'C\$ 0.00',
+                        subtitulo: especialidadesTop.isNotEmpty
+                            ? '${((especialidadesTop[0]['porcentaje'] as double? ?? 0.75) * 100).round()}% facturación'
+                            : '0%',
+                        icono: Icons.bookmark_outline,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildCuadroDestacado(
+                        titulo: 'Ingreso Mensual',
+                        nombre: ingresosMensuales.isNotEmpty ? ingresosMensuales[0]['mes'] as String : 'Sin datos',
+                        valor: ingresosMensuales.isNotEmpty ? ingresosMensuales[0]['monto'] as String : 'C\$ 0.00',
+                        subtitulo: ingresosMensuales.isNotEmpty
+                            ? '${((ingresosMensuales[0]['porcentaje'] as double? ?? 0.90) * 100).round()}% meta'
+                            : '0%',
+                        icono: Icons.calendar_today_outlined,
+                      ),
+                    ],
                   ),
-              ],
-            ),
-            _buildSeccionEstadistica(
-              titulo: 'INGRESOS MENSUALES',
-              etiqueta: 'Año actual (C\$)',
-              children: [
-                for (var mes in ingresosMensuales)
-                  _buildBarraItem(
-                    label: mes['mes'],
-                    valor: mes['monto'],
-                    porcentaje: mes['porcentaje'],
-                  ),
-              ],
+                ],
+              ),
             ),
             Container(
               margin: const EdgeInsets.only(top: 16),
