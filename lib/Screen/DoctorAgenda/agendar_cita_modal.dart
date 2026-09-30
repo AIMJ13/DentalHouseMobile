@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import '../../Data/pacientes_data.dart';
 
 class AgendarCitaDialog extends StatefulWidget {
-  const AgendarCitaDialog({super.key});
+  final bool esEdicion;
+  final Map<String, String>? citaExistente;
+  final void Function(Map<String, String> datos)? onGuardar;
+
+  const AgendarCitaDialog({
+    super.key,
+    this.esEdicion = false,
+    this.citaExistente,
+    this.onGuardar,
+  });
 
   @override
   State<AgendarCitaDialog> createState() => _AgendarCitaDialogState();
@@ -11,6 +20,7 @@ class AgendarCitaDialog extends StatefulWidget {
 class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
   String? _pacienteSeleccionado;
   String? _doctorSeleccionado;
+  String _estadoSeleccionado = 'Programada';
   final TextEditingController _fechaController = TextEditingController();
   final TextEditingController _horaController = TextEditingController();
   final TextEditingController _motivoController = TextEditingController();
@@ -22,12 +32,45 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
     'Dr. Maykol Hernández',
   ];
 
+  final List<String> _estados = const [
+    'Programada',
+    'Completada',
+    'Cancelada',
+    'No asistió',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final c = widget.citaExistente;
+    if (c != null) {
+      _pacienteSeleccionado = c['paciente'];
+      _doctorSeleccionado = c['doctor'];
+      _estadoSeleccionado = c['estado'] ?? 'Programada';
+      _fechaController.text = c['fecha'] ?? '';
+      _horaController.text = c['hora'] ?? '';
+      _motivoController.text = c['motivo'] ?? '';
+    }
+  }
+
   @override
   void dispose() {
     _fechaController.dispose();
     _horaController.dispose();
     _motivoController.dispose();
     super.dispose();
+  }
+
+  void _guardar() {
+    widget.onGuardar?.call({
+      'paciente': _pacienteSeleccionado ?? '',
+      'doctor': _doctorSeleccionado ?? '',
+      'estado': widget.esEdicion ? _estadoSeleccionado : 'Programada',
+      'fecha': _fechaController.text,
+      'hora': _horaController.text,
+      'motivo': _motivoController.text,
+    });
+    Navigator.of(context).pop();
   }
 
   @override
@@ -47,9 +90,9 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Agendar Cita',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    widget.esEdicion ? 'Editar Cita' : 'Agendar Cita',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -57,16 +100,18 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                   ),
                 ],
               ),
-              const Text(
-                'Complete los datos de la cita.',
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+              Text(
+                widget.esEdicion
+                    ? 'Modifique los datos de la cita registrada.'
+                    : 'Complete los datos de la cita.',
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
               ),
               const SizedBox(height: 16),
 
               const Text('Paciente', style: TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                initialValue: _pacienteSeleccionado,
+                initialValue: nombresPacientes.contains(_pacienteSeleccionado) ? _pacienteSeleccionado : null,
                 isExpanded: true,
                 hint: const Text('Seleccione un paciente'),
                 decoration: InputDecoration(
@@ -76,16 +121,14 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                 items: nombresPacientes
                     .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                     .toList(),
-                onChanged: (valor) {
-                  setState(() => _pacienteSeleccionado = valor);
-                },
+                onChanged: (valor) => setState(() => _pacienteSeleccionado = valor),
               ),
               const SizedBox(height: 16),
 
               const Text('Doctor', style: TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                initialValue: _doctorSeleccionado,
+                initialValue: _doctores.contains(_doctorSeleccionado) ? _doctorSeleccionado : null,
                 isExpanded: true,
                 hint: const Text('Seleccione un doctor'),
                 decoration: InputDecoration(
@@ -95,9 +138,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                 items: _doctores
                     .map((d) => DropdownMenuItem(value: d, child: Text(d)))
                     .toList(),
-                onChanged: (valor) {
-                  setState(() => _doctorSeleccionado = valor);
-                },
+                onChanged: (valor) => setState(() => _doctorSeleccionado = valor),
               ),
               const SizedBox(height: 16),
 
@@ -178,8 +219,29 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                   contentPadding: const EdgeInsets.all(12),
                 ),
               ),
-              const SizedBox(height: 20),
 
+              
+              if (widget.esEdicion) ...[
+                const SizedBox(height: 16),
+                const Text('Estado', style: TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<String>(
+                  initialValue: _estados.contains(_estadoSeleccionado) ? _estadoSeleccionado : 'Programada',
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  items: _estados
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                  onChanged: (valor) {
+                    setState(() => _estadoSeleccionado = valor ?? 'Programada');
+                  },
+                ),
+              ],
+
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -188,12 +250,10 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'Guardar Cita',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  onPressed: _guardar,
+                  child: Text(
+                    widget.esEdicion ? 'Guardar Cambios' : 'Guardar Cita',
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ),

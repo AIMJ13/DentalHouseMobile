@@ -33,7 +33,7 @@ const List<Map<String, String>> pacientesRegistrados = [
   },
   {
     'codigo': 'PAC-004',
-    'nombre': 'Mirell Raquel',
+    'nombre': 'Miurell Raquel',
     'telefono': '809-555-1004',
     'nacimiento': '05/12/1995',
     'estado': 'Activo',
@@ -44,6 +44,14 @@ const List<Map<String, String>> pacientesRegistrados = [
     'nombre': 'Wilfredo Josue',
     'telefono': '809-555-1005',
     'nacimiento': '18/02/1988',
+    'estado': 'Activo',
+    'estadoTipo': 'success',
+  },
+  {
+    'codigo': 'PAC-006',
+    'nombre': 'Carlos Morales', 
+    'telefono': '809-555-1006',
+    'nacimiento': '12/07/1992',
     'estado': 'Activo',
     'estadoTipo': 'success',
   },

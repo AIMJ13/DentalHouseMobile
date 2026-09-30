@@ -42,7 +42,7 @@ const List<Map<String, String>> citasRegistradas = [
     'paciente': 'Roman Rosales',
     'pacienteId': '2',
     'motivo': 'Ortodoncia',
-    'doctor': 'Dra. Maria González',
+    'doctor': 'Dra. María González',
     'fecha': '6/06/2026',
     'hora': '10:00 AM',
     'accionTexto': 'Cancelar',
