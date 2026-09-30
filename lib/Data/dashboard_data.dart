@@ -414,3 +414,95 @@ List<Map<String, dynamic>> listaCitas = [
     'estado': 'Completada',
   },
 ];
+
+const Map<String, dynamic> metricasVentas = {
+  'total': '4',
+  'hoy': '0',
+  'general': 'C\$ 8,550',
+  'promedio': 'C\$ 152.68',
+};
+
+List<Map<String, dynamic>> listaVentas = [
+  {
+    'id': 'VTA-001',
+    'codigo': 'VTA-001',
+    'paciente': 'Miurell Raquel',
+    'pacienteId': '4',
+    'doctor': 'Dr. Olinda Perez',
+    'cita': 'CIT-001',
+    'fecha': '14/06/2026',
+    'servicio': 'Extracción Simple x200',
+    'total': 'C\$5,000.00',
+    'totalNumero': 5000.0,
+    'servicios': [
+      {
+        'nombre': 'Extracción Simple',
+        'cantidad': 200,
+        'precio': 'C\$5,000.00',
+      },
+    ],
+  },
+  {
+    'id': 'VTA-002',
+    'codigo': 'VTA-002',
+    'paciente': 'Miurell Raquel',
+    'pacienteId': '4',
+    'doctor': 'Dr. Olinda Perez',
+    'cita': 'CIT-001',
+    'fecha': '14/06/2026',
+    'servicio': 'Extracción Simple x2',
+    'total': 'C\$50.00',
+    'totalNumero': 50.0,
+    'servicios': [
+      {
+        'nombre': 'Extracción Simple',
+        'cantidad': 2,
+        'precio': 'C\$50.00',
+      },
+    ],
+  },
+  {
+    'id': 'VTA-052',
+    'codigo': 'VTA-052',
+    'paciente': 'Miurell Raquel',
+    'pacienteId': '4',
+    'doctor': 'Dr. Olinda Perez',
+    'cita': 'CIT-001',
+    'fecha': '15/06/2026',
+    'servicio': 'Extracción Simple x1',
+    'total': 'C\$25.00',
+    'totalNumero': 25.0,
+    'servicios': [
+      {
+        'nombre': 'Extracción Simple',
+        'cantidad': 1,
+        'precio': 'C\$25.00',
+      },
+    ],
+  },
+  {
+    'id': 'VTA-105',
+    'codigo': 'VTA-105',
+    'paciente': 'Wilfredo Josue',
+    'pacienteId': '5',
+    'doctor': 'Fabio Reyes',
+    'cita': 'CIT-055',
+    'fecha': '26/06/2026',
+    'servicio': 'Limpieza Dental x1 (+1)',
+    'total': 'C\$900.00',
+    'totalNumero': 900.0,
+    'servicios': [
+      {
+        'nombre': 'Limpieza Dental',
+        'cantidad': 1,
+        'precio': 'C\$450.00',
+      },
+      {
+        'nombre': 'Endodoncia',
+        'cantidad': 1,
+        'precio': 'C\$450.00',
+      },
+    ],
+  },
+];
+
