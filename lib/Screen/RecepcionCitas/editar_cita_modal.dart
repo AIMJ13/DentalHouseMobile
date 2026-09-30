@@ -61,7 +61,7 @@ class _EditarCitaDialogState extends State<EditarCitaDialog> {
       return;
     }
 
-      Navigator.of(context).pop();
+    Navigator.of(context).pop();
     widget.onGuardar?.call(motivo, fecha, hora);
   }
 
