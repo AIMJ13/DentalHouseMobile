@@ -9,8 +9,6 @@ import '../../Widget/cita_registrada_card.dart';
 import '../../Widget/status_badge.dart';
 import '../../Widget/custom_text_field.dart';
 import 'agendar_cita_modal.dart';
-import '../RecepcionCitas/editar_cita_modal.dart';
-import '../RecepcionCitas/recepcion_citas_screen.dart' show Cita;
 
 class AgendaCitasScreen extends StatefulWidget {
   const AgendaCitasScreen({super.key});
@@ -27,6 +25,7 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
 
   String _busqueda = '';
   String _estadoFiltro = 'Todos';
+  String _doctorFiltro = 'Todos';
   DateTime? _fechaSeleccionada;
 
   @override
@@ -47,7 +46,6 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
     super.dispose();
   }
 
-
   StatusType _tipoDesdeEstado(String estado) {
     switch (estado) {
       case 'Programada':
@@ -63,60 +61,11 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
     }
   }
 
-  String _accionTextoPara(String estado) {
-    switch (estado) {
-      case 'Programada':
-        return 'Cancelar';
-      case 'Cancelada':
-        return 'Reactivar';
-      case 'No asistió':
-        return 'Reagendar';
-      default:
-        return 'Cancelar';
-    }
+  List<String> get _doctoresDisponibles {
+    final nombres = _citas.map((c) => c['doctor']!).toSet().toList();
+    nombres.sort();
+    return ['Todos', ...nombres];
   }
-
-  Color _accionColorPara(String estado) {
-    switch (estado) {
-      case 'Programada':
-        return AppColors.danger;
-      case 'Cancelada':
-        return AppColors.success;
-      default:
-        return Colors.white;
-    }
-  }
-
-  Color _accionTextColorPara(String estado) {
-    return _accionColorPara(estado) == Colors.white
-        ? AppColors.textDark
-        : Colors.white;
-  }
-
-
-  void _cambiarEstado(String codigo, String nuevoEstado) {
-    setState(() {
-      final index = _citas.indexWhere((c) => c['codigo'] == codigo);
-      if (index != -1) {
-        _citas[index]['estado'] = nuevoEstado;
-      }
-    });
-  }
-
-  void _onAccionSecundaria(String codigo, String estadoActual) {
-    switch (estadoActual) {
-      case 'Programada':
-        _cambiarEstado(codigo, 'Cancelada');
-        break;
-      case 'Cancelada':
-        _cambiarEstado(codigo, 'Programada');
-        break;
-      case 'No asistió':
-        _cambiarEstado(codigo, 'Programada');
-        break;
-    }
-  }
-
 
   bool _mismaFecha(String fechaTexto, DateTime fecha) {
     final partes = fechaTexto.split('/');
@@ -148,8 +97,60 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
       _busquedaController.clear();
       _fechaController.clear();
       _estadoFiltro = 'Todos';
+      _doctorFiltro = 'Todos';
       _fechaSeleccionada = null;
     });
+  }
+
+  void _abrirNuevaCita() {
+    showDialog(
+      context: context,
+      builder: (context) => AgendarCitaDialog(
+        esEdicion: false,
+        onGuardar: (datos) {
+          setState(() {
+            final numero = _citas.length + 1;
+            _citas.add({
+              'codigo': 'CIT-${numero.toString().padLeft(3, '0')}',
+              'paciente': datos['paciente']!,
+              'pacienteId': '-',
+              'motivo': datos['motivo']!,
+              'doctor': datos['doctor']!,
+              'fecha': datos['fecha']!,
+              'hora': datos['hora']!,
+              'estado': datos['estado']!,
+            });
+          });
+        },
+      ),
+    );
+  }
+
+  void _abrirEditarCita(String codigo) {
+    final index = _citas.indexWhere((c) => c['codigo'] == codigo);
+    if (index == -1) return;
+    final citaActual = _citas[index];
+
+    showDialog(
+      context: context,
+      builder: (context) => AgendarCitaDialog(
+        esEdicion: true,
+        citaExistente: citaActual,
+        onGuardar: (datos) {
+          setState(() {
+            _citas[index] = {
+              ...citaActual,
+              'paciente': datos['paciente']!,
+              'doctor': datos['doctor']!,
+              'fecha': datos['fecha']!,
+              'hora': datos['hora']!,
+              'motivo': datos['motivo']!,
+              'estado': datos['estado']!,
+            };
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -157,12 +158,14 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
     final citasFiltradas = _citas.where((c) {
       final coincideEstado =
           _estadoFiltro == 'Todos' || c['estado'] == _estadoFiltro;
+      final coincideDoctor =
+          _doctorFiltro == 'Todos' || c['doctor'] == _doctorFiltro;
       final texto = _busqueda.toLowerCase();
       final coincideBusqueda = c['paciente']!.toLowerCase().contains(texto) ||
           c['motivo']!.toLowerCase().contains(texto);
       final coincideFecha = _fechaSeleccionada == null ||
           _mismaFecha(c['fecha']!, _fechaSeleccionada!);
-      return coincideEstado && coincideBusqueda && coincideFecha;
+      return coincideEstado && coincideDoctor && coincideBusqueda && coincideFecha;
     }).toList();
 
     final resumen = [
@@ -259,6 +262,7 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: _estadoFiltro,
+                    isExpanded: true,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -294,23 +298,33 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey[300]!),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _doctorFiltro,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Todos los doctores',
-                            style: TextStyle(color: AppColors.textGrey)),
-                        Icon(Icons.keyboard_arrow_down,
-                            color: AppColors.textGrey),
-                      ],
-                    ),
+                    items: _doctoresDisponibles
+                        .map((doc) => DropdownMenuItem(
+                              value: doc,
+                              child: Text(
+                                doc == 'Todos' ? 'Todos los doctores' : doc,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (valor) {
+                      setState(() {
+                        _doctorFiltro = valor ?? 'Todos';
+                      });
+                    },
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -368,41 +382,17 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
                 ),
               ),
             ...citasFiltradas.map((c) {
-              final estadoActual = c['estado']!;
               return CitaRegistradaCard(
                 codigo: c['codigo']!,
-                estado: estadoActual,
-                estadoTipo: _tipoDesdeEstado(estadoActual),
+                estado: c['estado']!,
+                estadoTipo: _tipoDesdeEstado(c['estado']!),
                 paciente: c['paciente']!,
                 pacienteId: c['pacienteId']!,
                 motivo: c['motivo']!,
                 doctor: c['doctor']!,
                 fecha: c['fecha']!,
                 hora: c['hora']!,
-                accionSecundariaTexto: _accionTextoPara(estadoActual),
-                accionSecundariaColor: _accionColorPara(estadoActual),
-                accionSecundariaTextColor: _accionTextColorPara(estadoActual),
-                accionTerciariaTexto:
-                    estadoActual == 'Programada' ? 'Completar' : null,
-                onAccionTerciaria: estadoActual == 'Programada'
-                    ? () => _cambiarEstado(c['codigo']!, 'Completada')
-                    : null,
-                onEditar: () {
-                  final cita = Cita(
-                    codigo: c['codigo']!,
-                    paciente: c['paciente']!,
-                    motivo: c['motivo']!,
-                    doctor: c['doctor']!,
-                    fechaHora: '${c['fecha']} • ${c['hora']}',
-                    estado: estadoActual,
-                  );
-                  showDialog(
-                    context: context,
-                    builder: (context) => EditarCitaDialog(cita: cita),
-                  );
-                },
-                onAccionSecundaria: () =>
-                    _onAccionSecundaria(c['codigo']!, estadoActual),
+                onTap: () => _abrirEditarCita(c['codigo']!),
               );
             }),
           ],
@@ -410,12 +400,7 @@ class _AgendaCitasScreenState extends State<AgendaCitasScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const AgendarCitaDialog(),
-          );
-        },
+        onPressed: _abrirNuevaCita,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: const DoctorBottomNav(currentIndex: 1),
