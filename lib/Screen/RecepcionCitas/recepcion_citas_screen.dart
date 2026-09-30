@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Widget/dental_logo.dart';
+import '../../Widget/custom_bottom_nav.dart';
 import '../../routes.dart';
-import 'editar_cita_modal.dart';
-import 'agendar_cita_modal.dart';
+import '../Citas/cita_modal.dart';
 
 class Cita {
   final String codigo;
@@ -42,113 +42,78 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
   String _filtroDoctor = 'Todos';
   String _filtroEstado = 'Todos';
 
-  final List<Cita> _citas = [
-    Cita(
-      codigo: 'CIT-001',
-      paciente: 'Miurell Raquel',
-      motivo: 'Consulta general',
-      doctor: 'Dra. Olinda Pérez',
-      fecha: '06/06/2025',
-      hora: '09:30 AM',
-      estado: 'No asistió',
-    ),
-    Cita(
-      codigo: 'CIT-002',
-      paciente: 'Lester Palacio',
-      motivo: 'Limpieza dental',
-      doctor: 'Dr. Fabio Reyes',
-      fecha: '01/06/2026',
-      hora: '08:00 AM',
-      estado: 'Cancelada',
-    ),
-    Cita(
-      codigo: 'CIT-003',
-      paciente: 'Roman Rosales',
-      motivo: 'Ortodoncia',
-      doctor: 'Dra. María González',
-      fecha: '06/06/2025',
-      hora: '10:00 AM',
-      estado: 'Programada',
-    ),
+  final List<Map<String, dynamic>> _citas = [
+    {
+      'codigo': 'CIT-001',
+      'paciente': 'Miurell Raquel',
+      'pacienteId': '4',
+      'motivo': 'Consulta general',
+      'doctor': 'Dra. Olinda Pérez',
+      'fecha': '06/06/2025',
+      'hora': '09:30 AM',
+      'estado': 'No asistió',
+    },
+    {
+      'codigo': 'CIT-002',
+      'paciente': 'Lester Palacio',
+      'pacienteId': '1',
+      'motivo': 'Limpieza dental',
+      'doctor': 'Dr. Fabio Reyes',
+      'fecha': '01/06/2026',
+      'hora': '08:00 AM',
+      'estado': 'Cancelada',
+    },
+    {
+      'codigo': 'CIT-003',
+      'paciente': 'Roman Rosales',
+      'pacienteId': '2',
+      'motivo': 'Ortodoncia',
+      'doctor': 'Dra. María González',
+      'fecha': '06/06/2025',
+      'hora': '10:00 AM',
+      'estado': 'Programada',
+    },
   ];
 
   List<String> get _doctoresDisponibles {
-    final nombres = _citas.map((c) => c.doctor).toSet().toList();
+    final nombres = _citas.map((c) => c['doctor'] as String).toSet().toList();
     nombres.sort();
     return ['Todos', ...nombres];
   }
 
   List<String> get _estadosDisponibles {
-    final estados = _citas.map((c) => c.estado).toSet().toList();
+    final estados = _citas.map((c) => c['estado'] as String).toSet().toList();
     estados.sort();
     return ['Todos', ...estados];
   }
 
-  List<Cita> get _citasFiltradas {
+  List<Map<String, dynamic>> get _citasFiltradas {
     final query = _searchController.text.toLowerCase().trim();
     return _citas.where((c) {
-      final coincideBusqueda = query.isEmpty ||
-          c.paciente.toLowerCase().contains(query) ||
-          c.motivo.toLowerCase().contains(query);
-      final coincideDoctor = _filtroDoctor == 'Todos' || c.doctor == _filtroDoctor;
-      final coincideEstado = _filtroEstado == 'Todos' || c.estado == _filtroEstado;
+      final paciente = (c['paciente'] as String).toLowerCase();
+      final motivo = (c['motivo'] as String).toLowerCase();
+      final coincideBusqueda = query.isEmpty || paciente.contains(query) || motivo.contains(query);
+      final coincideDoctor = _filtroDoctor == 'Todos' || c['doctor'] == _filtroDoctor;
+      final coincideEstado = _filtroEstado == 'Todos' || c['estado'] == _filtroEstado;
       return coincideBusqueda && coincideDoctor && coincideEstado;
     }).toList();
   }
 
-  /// Devuelve un mensaje de error si ya existe otra cita activa con el mismo
-  /// doctor en la misma fecha/hora, o null si no hay choque.
-  String? _validarChoqueHorario({
-    required Cita citaActual,
-    required String nuevaFecha,
-    required String nuevaHora,
+  /// true si hay otra cita activa del mismo doctor en la misma fecha/hora.
+  bool _hayChoqueHorario({
+    required String codigoActual,
+    required String doctor,
+    required String fecha,
+    required String hora,
   }) {
     for (var c in _citas) {
-      if (c.codigo == citaActual.codigo) continue;
-      if (c.estado == 'Cancelada') continue;
-      if (c.doctor == citaActual.doctor && c.fecha == nuevaFecha && c.hora == nuevaHora) {
-        return 'El doctor ${citaActual.doctor} ya tiene una cita el $nuevaFecha a las $nuevaHora.';
+      if (c['codigo'] == codigoActual) continue;
+      if (c['estado'] == 'Cancelada') continue;
+      if (c['doctor'] == doctor && c['fecha'] == fecha && c['hora'] == hora) {
+        return true;
       }
     }
-    return null;
-  }
-
-  void _onBottomNavTapped(BuildContext context, int index) {
-    if (index == 0) {
-      return;
-    }
-    if (index == 1) {
-      Navigator.pushReplacementNamed(context, Routes.recepcionPacientes);
-      return;
-    }
-    if (index == 2) {
-      Navigator.pushReplacementNamed(context, Routes.recepcionEspecialidades);
-      return;
-    }
-    if (index == 3) {
-      Navigator.pushReplacementNamed(context, Routes.recepcionDoctores);
-      return;
-    }
-    if (index == 4) {
-      Navigator.pushReplacementNamed(context, Routes.recepcionServicios);
-      return;
-    }
-  }
-
-  List<BottomNavigationBarItem> _obtenerItemsNavegacion() {
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
-      BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-      BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
-      BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-    ];
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+    return false;
   }
 
   Color _colorEstado(String estado) {
@@ -166,29 +131,74 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
     }
   }
 
-  void _abrirEditarCita(Cita cita, {bool esReagendar = false}) {
+  void _abrirModalCita({Map<String, dynamic>? cita}) {
     showDialog(
       context: context,
-      builder: (context) => EditarCitaDialog(
-        cita: cita,
-        esReagendar: esReagendar,
-        validarChoque: (fecha, hora) => _validarChoqueHorario(
-          citaActual: cita,
-          nuevaFecha: fecha,
-          nuevaHora: hora,
-        ),
-        onGuardar: (motivo, fecha, hora) {
+      builder: (context) => CitaModal(
+        id: cita?['codigo'] as String?,
+        codigo: cita?['codigo'] as String?,
+        paciente: cita?['paciente'] as String?,
+        pacienteId: cita?['pacienteId'] as String?,
+        motivo: cita?['motivo'] as String?,
+        doctor: cita?['doctor'] as String?,
+        fecha: cita?['fecha'] as String?,
+        hora: cita?['hora'] as String?,
+        estado: cita?['estado'] as String?,
+        onGuardar: ({
+          required String paciente,
+          required String pacienteId,
+          required String motivo,
+          required String doctor,
+          required String fecha,
+          required String hora,
+          required String estado,
+        }) {
+          final codigoActual = cita?['codigo'] as String? ?? '';
+          if (estado != 'Cancelada' &&
+              _hayChoqueHorario(codigoActual: codigoActual, doctor: doctor, fecha: fecha, hora: hora)) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Choque de horario'),
+                content: Text('El doctor $doctor ya tiene una cita el $fecha a las $hora. Los cambios no se guardaron.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Entendido'),
+                  ),
+                ],
+              ),
+            );
+            return;
+          }
+
           setState(() {
-            cita.motivo = motivo;
-            cita.fecha = fecha;
-            cita.hora = hora;
-            if (esReagendar) {
-              cita.estado = 'Programada';
+            if (cita != null) {
+              cita['paciente'] = paciente;
+              cita['pacienteId'] = pacienteId;
+              cita['motivo'] = motivo;
+              cita['doctor'] = doctor;
+              cita['fecha'] = fecha;
+              cita['hora'] = hora;
+              cita['estado'] = estado;
+            } else {
+              final nuevoCodigo = 'CIT-00${_citas.length + 1}';
+              _citas.insert(0, {
+                'codigo': nuevoCodigo,
+                'paciente': paciente,
+                'pacienteId': pacienteId,
+                'motivo': motivo,
+                'doctor': doctor,
+                'fecha': fecha,
+                'hora': hora,
+                'estado': estado,
+              });
             }
           });
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(esReagendar ? 'Cita reagendada correctamente' : 'Cita actualizada correctamente'),
+              content: Text(cita != null ? 'Cita actualizada correctamente' : 'Cita agendada correctamente'),
               backgroundColor: Colors.green,
             ),
           );
@@ -197,13 +207,10 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
     );
   }
 
-  void _cancelarCita(Cita cita) {
-    setState(() {
-      cita.estado = 'Cancelada';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cita cancelada'), backgroundColor: Colors.red),
-    );
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -216,13 +223,7 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        titleSpacing: Navigator.canPop(context) ? 0 : 16,
+        titleSpacing: 16,
         title: const DentalLogo(),
         actions: [
           InkWell(
@@ -289,22 +290,22 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                 _buildBadge('Total', _citas.length.toString(), Colors.black87),
                 _buildBadge(
                   'Programadas',
-                  _citas.where((c) => c.estado == 'Programada').length.toString(),
+                  _citas.where((c) => c['estado'] == 'Programada').length.toString(),
                   Colors.blue,
                 ),
                 _buildBadge(
                   'Completadas',
-                  _citas.where((c) => c.estado == 'Completada').length.toString(),
+                  _citas.where((c) => c['estado'] == 'Completada').length.toString(),
                   Colors.green,
                 ),
                 _buildBadge(
                   'Canceladas',
-                  _citas.where((c) => c.estado == 'Cancelada').length.toString(),
+                  _citas.where((c) => c['estado'] == 'Cancelada').length.toString(),
                   Colors.red,
                 ),
                 _buildBadge(
                   'No asistió',
-                  _citas.where((c) => c.estado == 'No asistió').length.toString(),
+                  _citas.where((c) => c['estado'] == 'No asistió').length.toString(),
                   Colors.grey,
                 ),
               ],
@@ -316,9 +317,7 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
               decoration: InputDecoration(
                 hintText: 'Buscar por paciente o motivo...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
             const SizedBox(height: 12),
@@ -329,26 +328,17 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                     initialValue: _filtroDoctor,
                     isExpanded: true,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     items: [
                       for (var doc in _doctoresDisponibles)
                         DropdownMenuItem(
                           value: doc,
-                          child: Text(
-                            doc == 'Todos' ? 'Todos los doctores' : doc,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: Text(doc == 'Todos' ? 'Todos los doctores' : doc, overflow: TextOverflow.ellipsis),
                         ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _filtroDoctor = value ?? 'Todos';
-                      });
-                    },
+                    onChanged: (value) => setState(() => _filtroDoctor = value ?? 'Todos'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -357,26 +347,17 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                     initialValue: _filtroEstado,
                     isExpanded: true,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     items: [
                       for (var est in _estadosDisponibles)
                         DropdownMenuItem(
                           value: est,
-                          child: Text(
-                            est == 'Todos' ? 'Todos los estados' : est,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: Text(est == 'Todos' ? 'Todos los estados' : est, overflow: TextOverflow.ellipsis),
                         ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _filtroEstado = value ?? 'Todos';
-                      });
-                    },
+                    onChanged: (value) => setState(() => _filtroEstado = value ?? 'Todos'),
                   ),
                 ),
               ],
@@ -389,10 +370,7 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                   'CITAS REGISTRADAS',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54),
                 ),
-                Text(
-                  '${citasFiltradas.length} mostradas',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
+                Text('${citasFiltradas.length} mostradas', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
               ],
             ),
             const SizedBox(height: 8),
@@ -404,10 +382,7 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                         children: [
                           Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
                           const SizedBox(height: 8),
-                          Text(
-                            'No se encontraron citas',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                          ),
+                          Text('No se encontraron citas', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
                         ],
                       ),
                     )
@@ -415,98 +390,60 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
                       itemCount: citasFiltradas.length,
                       itemBuilder: (context, index) {
                         final cita = citasFiltradas[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: const BorderSide(color: Color(0xFFE0E0E0)),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      cita.codigo,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black54,
-                                        fontSize: 12,
+                        final estado = cita['estado'] as String;
+                        return InkWell(
+                          onTap: () => _abrirModalCita(cita: cita),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: const BorderSide(color: Color(0xFFE0E0E0)),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        cita['codigo'] as String,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 12),
                                       ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: _colorEstado(cita.estado).withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        cita.estado,
-                                        style: TextStyle(
-                                          color: _colorEstado(cita.estado),
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: _colorEstado(estado).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(20),
                                         ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                const Text(
-                                  'PACIENTE',
-                                  style: TextStyle(fontSize: 10, color: Colors.black45),
-                                ),
-                                Text(
-                                  cita.paciente,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                ),
-                                Text(
-                                  cita.motivo,
-                                  style: const TextStyle(color: Colors.black54, fontSize: 13),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'DOCTOR: ${cita.doctor}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.black54),
-                                ),
-                                Text(
-                                  cita.fechaHora,
-                                  style: const TextStyle(fontSize: 12, color: Colors.black54),
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton(
-                                        onPressed: () => _abrirEditarCita(cita),
-                                        child: const Text('Editar'),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: cita.estado == 'Cancelada' ? Colors.blue : Colors.red,
-                                        ),
-                                        onPressed: () {
-                                          if (cita.estado == 'Cancelada') {
-                                            _abrirEditarCita(cita, esReagendar: true);
-                                          } else {
-                                            _cancelarCita(cita);
-                                          }
-                                        },
                                         child: Text(
-                                          cita.estado == 'Cancelada' ? 'Reagendar' : 'Cancelar',
-                                          style: const TextStyle(color: Colors.white),
+                                          estado,
+                                          style: TextStyle(color: _colorEstado(estado), fontSize: 11, fontWeight: FontWeight.w600),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const Text('PACIENTE', style: TextStyle(fontSize: 10, color: Colors.black45)),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          cita['paciente'] as String,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.grey[400]),
+                                    ],
+                                  ),
+                                  Text(cita['motivo'] as String, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+                                  const SizedBox(height: 4),
+                                  Text('DOCTOR: ${cita['doctor']}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                  Text('${cita['fecha']} • ${cita['hora']}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -517,46 +454,19 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const AgendarCitaModal(),
-          );
-        },
+        onPressed: () => _abrirModalCita(),
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: 0,
-          onTap: (index) => _onBottomNavTapped(context, index),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue[700],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(),
-        ),
-      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
 
   Widget _buildBadge(String label, String count, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '$label: $count',
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text('$label: $count', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
     );
   }
 }
