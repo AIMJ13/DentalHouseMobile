@@ -79,7 +79,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
         pacientesRegistrados.map((p) => p['nombre']!).toList();
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
@@ -87,26 +87,52 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
+              
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.esEdicion ? 'Editar Cita' : 'Agendar Cita',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.calendar_month, color: Colors.blue),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.esEdicion ? 'Editar Cita' : 'Agendar Cita',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.esEdicion
+                              ? 'Modifique los datos de la cita registrada.'
+                              : 'Complete los datos para registrar una nueva cita',
+                          style: const TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                    ),
                   ),
                 ],
               ),
-              Text(
-                widget.esEdicion
-                    ? 'Modifique los datos de la cita registrada.'
-                    : 'Complete los datos de la cita.',
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               const Text('Paciente', style: TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
@@ -115,7 +141,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                 isExpanded: true,
                 hint: const Text('Seleccione un paciente'),
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 items: nombresPacientes
@@ -132,7 +158,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                 isExpanded: true,
                 hint: const Text('Seleccione un doctor'),
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 items: _doctores
@@ -156,7 +182,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                           decoration: InputDecoration(
                             hintText: 'dd/mm/aaaa',
                             suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
                           onTap: () async {
@@ -188,7 +214,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                           decoration: InputDecoration(
                             hintText: '--:--',
                             suffixIcon: const Icon(Icons.access_time, size: 18),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
                           onTap: () async {
@@ -208,19 +234,18 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
               ),
               const SizedBox(height: 16),
 
-              const Text('Motivo de la cita', style: TextStyle(fontWeight: FontWeight.w500)),
+              const Text('Motivo / Tratamiento', style: TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
               TextField(
                 controller: _motivoController,
-                maxLines: 3,
+                maxLines: 2,
                 decoration: InputDecoration(
-                  hintText: 'Ejemplo: Consulta general, dolor dental, control...',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  hintText: 'Describa el motivo o tratamiento...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   contentPadding: const EdgeInsets.all(12),
                 ),
               ),
 
-              
               if (widget.esEdicion) ...[
                 const SizedBox(height: 16),
                 const Text('Estado', style: TextStyle(fontWeight: FontWeight.w500)),
@@ -229,7 +254,7 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                   initialValue: _estados.contains(_estadoSeleccionado) ? _estadoSeleccionado : 'Programada',
                   isExpanded: true,
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   items: _estados
@@ -241,21 +266,36 @@ class _AgendarCitaDialogState extends State<AgendarCitaDialog> {
                 ),
               ],
 
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancelar', style: TextStyle(color: Colors.black87, fontSize: 16)),
+                    ),
                   ),
-                  onPressed: _guardar,
-                  child: Text(
-                    widget.esEdicion ? 'Guardar Cambios' : 'Guardar Cita',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: _guardar,
+                      child: Text(
+                        widget.esEdicion ? 'Guardar Cambios' : 'Agendar Cita',
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
