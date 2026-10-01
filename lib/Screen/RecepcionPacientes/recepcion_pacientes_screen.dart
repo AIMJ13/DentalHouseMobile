@@ -1,0 +1,435 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../Data/dashboard_data.dart';
+import '../../Widget/dental_logo.dart';
+import '../../Widget/custom_bottom_nav.dart';
+import '../../routes.dart';
+import 'recepcion_paciente_modal.dart';
+
+class RecepcionPacientesScreen extends StatefulWidget {
+  const RecepcionPacientesScreen({super.key});
+
+  @override
+  State<RecepcionPacientesScreen> createState() => _RecepcionPacientesScreenState();
+}
+
+class _RecepcionPacientesScreenState extends State<RecepcionPacientesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  List<Map<String, dynamic>> _obtenerPacientesFiltrados() {
+    final query = _searchController.text.toLowerCase().trim();
+    List<Map<String, dynamic>> filtrados = [];
+    for (var pac in listaPacientes) {
+      final nombreCompleto = '${pac['nombre']} ${pac['apellido']}'.toLowerCase();
+      final id = (pac['id'] as String).toLowerCase();
+      final telefono = (pac['telefono'] as String).toLowerCase();
+      final coincide = query.isEmpty ||
+          nombreCompleto.contains(query) ||
+          id.contains(query) ||
+          telefono.contains(query);
+      if (!coincide) continue;
+      filtrados.add(pac);
+    }
+    return filtrados;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int total = listaPacientes.length;
+    int activos = 0;
+    int inactivos = 0;
+    for (var pac in listaPacientes) {
+      if (pac['activo'] == true) {
+        activos++;
+      } else {
+        inactivos++;
+      }
+    }
+
+    final pacientesFiltrados = _obtenerPacientesFiltrados();
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: const DentalLogo(),
+        actions: [
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.pushNamed(context, Routes.perfil),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.blue[700],
+                    child: const Text('R', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 6),
+                  Text('Recepcionista', style: TextStyle(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black54, size: 20),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(context, Routes.login, (route) => false);
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.people_alt_outlined, color: Colors.blue[700], size: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Gestión de Pacientes',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Administra la información clínica y de contacto de los pacientes.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) {
+                  setState(() {});
+                },
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                  hintText: 'Buscar paciente por nombre...',
+                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' $total'),
+                  _buildSeparadorVertical(),
+                  _buildMetricaItem(Colors.green[600]!, 'Activos:', ' $activos'),
+                  _buildSeparadorVertical(),
+                  _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' $inactivos'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'DIRECTORIO DE PACIENTES',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  '${pacientesFiltrados.length} mostrados',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (pacientesFiltrados.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(32),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                    Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No se encontraron pacientes',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            if (pacientesFiltrados.isNotEmpty)
+              for (var pac in pacientesFiltrados) _buildPacienteCard(pac),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _abrirModalPaciente(),
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
+    );
+  }
+
+  Widget _buildSeparadorVertical() {
+    return Container(height: 14, width: 1, color: Colors.grey[300]);
+  }
+
+  Widget _buildMetricaItem(Color puntoColor, String etiqueta, String valor) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: puntoColor, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+        Text(
+          valor,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadgeId(String id) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(6)),
+      child: Text(
+        id,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green[700]),
+      ),
+    );
+  }
+
+  Widget _buildBadgeEstado(bool activo) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: activo ? Colors.green[50] : Colors.red[50],
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: activo ? Colors.green[600] : Colors.red[600],
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            activo ? 'Activo' : 'Inactivo',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: activo ? Colors.green[700] : Colors.red[700],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgesHeader(String id, bool activo) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [_buildBadgeId(id), _buildBadgeEstado(activo)],
+    );
+  }
+
+  Widget _buildAvatarPaciente(bool activo, {double tamano = 44, double iconoTamano = 24}) {
+    return Container(
+      width: tamano,
+      height: tamano,
+      decoration: BoxDecoration(
+        color: activo ? Colors.blue[50] : Colors.red[50],
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Icon(
+          Icons.person_outline,
+          color: activo ? Colors.blue[600] : Colors.red[400],
+          size: iconoTamano,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPacienteCard(Map<String, dynamic> paciente) {
+    final id = paciente['id'] as String;
+    final nombre = paciente['nombre'] as String;
+    final apellido = paciente['apellido'] as String;
+    final telefono = paciente['telefono'] as String;
+    final direccion = paciente['direccion'] as String;
+    final fechaNacimiento = paciente['fechaNacimiento'] as String;
+    final activo = paciente['activo'] as bool;
+
+    return InkWell(
+      onTap: () => _abrirModalPaciente(paciente: paciente),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBadgesHeader(id, activo),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAvatarPaciente(activo),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$nombre $apellido',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(Icons.phone_outlined, size: 13, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '$telefono   •   $direccion',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Nacimiento: $fechaNacimiento',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _abrirModalPaciente({Map<String, dynamic>? paciente}) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return RecepcionPacienteModal(
+          id: paciente?['id'] as String?,
+          nombre: paciente?['nombre'] as String?,
+          apellido: paciente?['apellido'] as String?,
+          telefono: paciente?['telefono'] as String?,
+          direccion: paciente?['direccion'] as String?,
+          fechaNacimiento: paciente?['fechaNacimiento'] as String?,
+          activo: (paciente?['activo'] as bool?) ?? true,
+          onGuardar: (nombre, apellido, telefono, direccion, fechaNacimiento, activo) {
+            setState(() {
+              if (paciente != null) {
+                final id = paciente['id'];
+                for (var pac in listaPacientes) {
+                  if (pac['id'] == id) {
+                    pac['nombre'] = nombre;
+                    pac['apellido'] = apellido;
+                    pac['telefono'] = telefono;
+                    pac['direccion'] = direccion;
+                    pac['fechaNacimiento'] = fechaNacimiento;
+                    pac['activo'] = activo;
+                    break;
+                  }
+                }
+              } else {
+                final nuevoId = 'PAC-00${listaPacientes.length + 1}';
+                listaPacientes.insert(0, {
+                  'id': nuevoId,
+                  'nombre': nombre,
+                  'apellido': apellido,
+                  'telefono': telefono,
+                  'direccion': direccion,
+                  'fechaNacimiento': fechaNacimiento,
+                  'activo': activo,
+                });
+              }
+            });
+          },
+        );
+      },
+    );
+  }
+}
