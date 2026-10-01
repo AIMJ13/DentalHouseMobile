@@ -7,7 +7,6 @@ import '../../Widget/stats_summary_row.dart';
 import '../../Widget/section_header.dart';
 import '../../Widget/paciente_card.dart';
 import '../../Widget/paciente_form_dialog.dart';
-import '../../Widget/confirmar_dialog.dart';
 import '../../Widget/status_badge.dart';
 import '../../Widget/custom_text_field.dart';
 
@@ -20,6 +19,8 @@ class GestionPacientesScreen extends StatefulWidget {
 }
 
 class _GestionPacientesScreenState extends State<GestionPacientesScreen> {
+  late List<Map<String, String>> _pacientes;
+
   final TextEditingController _busquedaController = TextEditingController();
   String _busqueda = '';
   String _estadoFiltro = 'Todos';
@@ -27,6 +28,8 @@ class _GestionPacientesScreenState extends State<GestionPacientesScreen> {
   @override
   void initState() {
     super.initState();
+    _pacientes =
+        pacientesRegistrados.map((p) => Map<String, String>.from(p)).toList();
     _busquedaController.addListener(() {
       setState(() {
         _busqueda = _busquedaController.text;
@@ -40,27 +43,85 @@ class _GestionPacientesScreenState extends State<GestionPacientesScreen> {
     super.dispose();
   }
 
-  StatusType _tipoDesde(String? valor) {
-    switch (valor) {
-      case 'success':
-        return StatusType.success;
-      case 'danger':
-        return StatusType.danger;
-      default:
-        return StatusType.neutral;
-    }
+  StatusType _tipoDesdeEstado(String estado) {
+    return estado.toLowerCase() == 'activo'
+        ? StatusType.success
+        : StatusType.danger;
+  }
+
+  void _abrirNuevoPaciente() {
+    showPacienteFormDialog(
+      context,
+      esEdicion: false,
+      onGuardar: (datos) {
+        setState(() {
+          final numero = _pacientes.length + 1;
+          _pacientes.add({
+            'codigo': 'PAC-${numero.toString().padLeft(3, '0')}',
+            'nombre': '${datos['nombre']} ${datos['apellido']}'.trim(),
+            'telefono': datos['telefono']!,
+            'nacimiento': datos['nacimiento']!,
+            'estado': datos['estado']!,
+            'estadoTipo': datos['estado'] == 'Activo' ? 'success' : 'danger',
+          });
+        });
+      },
+    );
+  }
+
+  void _abrirEditarPaciente(String codigo) {
+    final index = _pacientes.indexWhere((p) => p['codigo'] == codigo);
+    if (index == -1) return;
+    final actual = _pacientes[index];
+    final partesNombre = actual['nombre']!.split(' ');
+
+    showPacienteFormDialog(
+      context,
+      esEdicion: true,
+      nombreInicial: partesNombre.first,
+      apellidoInicial:
+          partesNombre.length > 1 ? partesNombre.sublist(1).join(' ') : '',
+      telefonoInicial: actual['telefono'],
+      nacimientoInicial: actual['nacimiento'],
+      estadoInicial: actual['estado'],
+      onGuardar: (datos) {
+        setState(() {
+          _pacientes[index] = {
+            ...actual,
+            'nombre': '${datos['nombre']} ${datos['apellido']}'.trim(),
+            'telefono': datos['telefono']!,
+            'nacimiento': datos['nacimiento']!,
+            'estado': datos['estado']!,
+            'estadoTipo': datos['estado'] == 'Activo' ? 'success' : 'danger',
+          };
+        });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filtramos la lista según el estado elegido y el texto buscado.
-    final pacientesFiltrados = pacientesRegistrados.where((p) {
+    final pacientesFiltrados = _pacientes.where((p) {
       final coincideEstado =
           _estadoFiltro == 'Todos' || p['estado'] == _estadoFiltro;
       final coincideBusqueda =
           p['nombre']!.toLowerCase().contains(_busqueda.toLowerCase());
       return coincideEstado && coincideBusqueda;
     }).toList();
+
+    final resumen = [
+      {'etiqueta': 'Total', 'valor': _pacientes.length.toString(), 'tipo': 'neutral'},
+      {
+        'etiqueta': 'Activos',
+        'valor': _pacientes.where((p) => p['estado'] == 'Activo').length.toString(),
+        'tipo': 'success',
+      },
+      {
+        'etiqueta': 'Inactivos',
+        'valor': _pacientes.where((p) => p['estado'] == 'Inactivo').length.toString(),
+        'tipo': 'danger',
+      },
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -78,7 +139,7 @@ class _GestionPacientesScreenState extends State<GestionPacientesScreen> {
               style: TextStyle(fontSize: 12, color: AppColors.textGrey),
             ),
             const SizedBox(height: 14),
-            StatsSummaryRow(items: resumenPacientesItems),
+            StatsSummaryRow(items: resumen),
             const SizedBox(height: 16),
             CustomTextField(
               hintText: 'Buscar paciente por nombre...',
@@ -131,32 +192,8 @@ class _GestionPacientesScreenState extends State<GestionPacientesScreen> {
                 telefono: p['telefono']!,
                 nacimiento: p['nacimiento']!,
                 estado: p['estado']!,
-                estadoTipo: _tipoDesde(p['estadoTipo']),
-                onEditar: () {
-                  showPacienteFormDialog(
-                    context,
-                    esEdicion: true,
-                    nombreInicial: p['nombre']!.split(' ').first,
-                    telefonoInicial: p['telefono'],
-                    nacimientoInicial: p['nacimiento'],
-                    estadoInicial: p['estado'],
-                  );
-                },
-                onCambiarEstado: () {
-                  final bool esActivo = p['estado']!.toLowerCase() == 'activo';
-                  showConfirmarDialog(
-                    context,
-                    titulo: esActivo
-                        ? '¿Desactivar Paciente?'
-                        : '¿Activar Paciente?',
-                    mensaje:
-                        '¿Estás seguro de que deseas ${esActivo ? 'desactivar' : 'activar'} '
-                        'al paciente "${p['nombre']}" (${p['codigo']})?',
-                    textoConfirmar: esActivo ? 'Sí, Desactivar' : 'Sí, Activar',
-                    colorConfirmar:
-                        esActivo ? AppColors.danger : AppColors.success,
-                  );
-                },
+                estadoTipo: _tipoDesdeEstado(p['estado']!),
+                onTap: () => _abrirEditarPaciente(p['codigo']!),
               ),
             ),
           ],
@@ -164,9 +201,7 @@ class _GestionPacientesScreenState extends State<GestionPacientesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () {
-          showPacienteFormDialog(context, esEdicion: false);
-        },
+        onPressed: _abrirNuevoPaciente,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: const DoctorBottomNav(currentIndex: 2),
