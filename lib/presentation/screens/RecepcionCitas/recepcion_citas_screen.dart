@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Widget/dental_logo.dart';
-import '../../Widget/custom_bottom_nav.dart';
-import '../../routes.dart';
+import '../../widgets/dental_logo.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../../../routes.dart';
 import '../Citas/cita_modal.dart';
 
 class Cita {
@@ -99,7 +99,6 @@ class _RecepcionCitasScreenState extends State<RecepcionCitasScreen> {
     }).toList();
   }
 
-  /// true si hay otra cita activa del mismo doctor en la misma fecha/hora.
   bool _hayChoqueHorario({
     required String codigoActual,
     required String doctor,

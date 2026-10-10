@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/dental_logo.dart';
-import '../../Widget/custom_bottom_nav.dart';
-import '../../routes.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/dental_logo.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../../../routes.dart';
 import 'recepcion_paciente_modal.dart';
 
 class RecepcionPacientesScreen extends StatefulWidget {

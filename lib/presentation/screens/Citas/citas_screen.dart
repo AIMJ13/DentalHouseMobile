@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/custom_bottom_nav.dart';
-import '../../Widget/dental_logo.dart';
-import '../../Widget/user_badge.dart';
+﻿import 'package:flutter/material.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../../widgets/dental_logo.dart';
+import '../../widgets/user_badge.dart';
 import 'cita_modal.dart';
 
 class CitasScreen extends StatefulWidget {
@@ -234,7 +234,6 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Métricas (siguiendo el estándar de servicios_screen)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
@@ -261,7 +260,6 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Buscador
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -282,7 +280,6 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Filtros Fila 1: Fecha y Estado
             Row(
               children: [
                 Expanded(
@@ -332,7 +329,6 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 10),
 
-            // Filtros Fila 2: Doctor, Hoy, Limpiar
             Row(
               children: [
                 _buildDropdownFiltro(
@@ -366,7 +362,6 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 18),
 
-            // Encabezado de Citas Registradas
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -379,7 +374,6 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Listado de Tarjetas
             if (citasMostradas.isEmpty)
               Center(
                 child: Padding(

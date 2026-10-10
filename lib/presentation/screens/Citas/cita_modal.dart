@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/confirm_dialog.dart';
-import '../../Widget/custom_bottom_modal.dart';
-import '../../Widget/custom_select_modal.dart';
-import '../../Widget/custom_text_field.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/confirm_dialog.dart';
+import '../../widgets/custom_bottom_modal.dart';
+import '../../widgets/custom_select_modal.dart';
+import '../../widgets/custom_text_field.dart';
 
 class CitaModal extends StatefulWidget {
   final String? id;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Theme/app_colors.dart';
+import '../../core/constant/app_colors.dart';
 
 class StatsSummaryRow extends StatelessWidget {
   final List<Map<String, String>> items;

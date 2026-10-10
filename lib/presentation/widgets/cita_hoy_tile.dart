@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'status_badge.dart';
-import '../Theme/app_colors.dart';
+import '../../core/constant/app_colors.dart';
 
 class CitaHoyTile extends StatelessWidget {
   final String nombre;

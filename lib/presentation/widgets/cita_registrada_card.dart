@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Theme/app_colors.dart';
+import '../../core/constant/app_colors.dart';
 import 'status_badge.dart';
 
 class CitaRegistradaCard extends StatelessWidget {

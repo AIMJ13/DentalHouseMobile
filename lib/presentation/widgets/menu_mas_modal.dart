@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Data/dashboard_data.dart';
-import '../routes.dart';
+import '../../data/dashboard_data.dart';
+import '../../routes.dart';
 
 void mostrarMenuMas(BuildContext context) {
   final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';

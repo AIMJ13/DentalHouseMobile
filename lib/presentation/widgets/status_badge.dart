@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Theme/app_colors.dart';
+import '../../core/constant/app_colors.dart';
 
 enum StatusType { success, info, warning, danger, neutral }
 

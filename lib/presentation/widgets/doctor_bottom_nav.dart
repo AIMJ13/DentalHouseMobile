@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../Theme/app_colors.dart';
-import '../routes.dart';
+import '../../core/constant/app_colors.dart';
+import '../../routes.dart';
 
 class DoctorBottomNav extends StatelessWidget {
   final int currentIndex;

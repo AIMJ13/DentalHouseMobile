@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/dental_logo.dart';
-import '../../Widget/menu_mas_modal.dart';
-import '../../Widget/user_badge.dart';
-import '../../routes.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/dental_logo.dart';
+import '../../widgets/menu_mas_modal.dart';
+import '../../widgets/user_badge.dart';
+import '../../../routes.dart';
 import 'paciente_modal.dart';
 
 class PacientesScreen extends StatefulWidget {

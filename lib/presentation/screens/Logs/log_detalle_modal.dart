@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../Widget/custom_button.dart';
+import '../../widgets/custom_button.dart';
 
 class LogDetalleModal extends StatelessWidget {
   final Map<String, dynamic> log;

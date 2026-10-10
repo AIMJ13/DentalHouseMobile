@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/custom_button.dart';
-import '../../Widget/custom_text_field.dart';
-import '../../Widget/dental_logo.dart';
-import '../../routes.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/dental_logo.dart';
+import '../../../routes.dart';
+import '../../../core/di/service_locator.dart';
+import '../../providers/login_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,6 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    sl<LoginProvider>().login();
 
     final inputUsuario = _usuarioController.text.trim().toLowerCase();
     final inputPassword = _passwordController.text.trim();

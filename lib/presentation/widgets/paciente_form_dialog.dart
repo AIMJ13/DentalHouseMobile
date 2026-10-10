@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'custom_text_field.dart';
 
 Future<void> showPacienteFormDialog(
@@ -34,7 +34,6 @@ Future<void> showPacienteFormDialog(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // NUEVO ENCABEZADO ESTILO ADMINISTRADOR
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../Data/pacientes_data.dart';
-import '../../Theme/app_colors.dart';
-import '../../Widget/doctor_app_bar.dart';
-import '../../Widget/doctor_bottom_nav.dart';
-import '../../Widget/stats_summary_row.dart';
-import '../../Widget/section_header.dart';
-import '../../Widget/paciente_card.dart';
-import '../../Widget/paciente_form_dialog.dart';
-import '../../Widget/status_badge.dart';
-import '../../Widget/custom_text_field.dart';
+import '../../../data/pacientes_data.dart';
+import '../../../core/constant/app_colors.dart';
+import '../../widgets/doctor_app_bar.dart';
+import '../../widgets/doctor_bottom_nav.dart';
+import '../../widgets/stats_summary_row.dart';
+import '../../widgets/section_header.dart';
+import '../../widgets/paciente_card.dart';
+import '../../widgets/paciente_form_dialog.dart';
+import '../../widgets/status_badge.dart';
+import '../../widgets/custom_text_field.dart';
 
 class GestionPacientesScreen extends StatefulWidget {
   const GestionPacientesScreen({super.key});

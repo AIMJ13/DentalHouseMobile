@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/dental_logo.dart';
-import '../../routes.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/dental_logo.dart';
+import '../../../routes.dart';
 
 class RecepcionServiciosScreen extends StatefulWidget {
   const RecepcionServiciosScreen({super.key});

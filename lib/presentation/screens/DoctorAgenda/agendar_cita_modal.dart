@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../Data/pacientes_data.dart';
+import '../../../data/pacientes_data.dart';
 
 class AgendarCitaDialog extends StatefulWidget {
   final bool esEdicion;

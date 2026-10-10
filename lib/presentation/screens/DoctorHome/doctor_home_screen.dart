@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../Data/doctor_home_data.dart';
-import '../../Theme/app_colors.dart';
-import '../../Widget/rendimiento_card.dart';
-import '../../Widget/paciente_reciente_tile.dart';
-import '../../Widget/cita_hoy_tile.dart';
-import '../../Widget/status_badge.dart';
-import '../../Widget/section_header.dart';
-import '../../Widget/doctor_bottom_nav.dart';
-import '../../Widget/doctor_app_bar.dart';
-import '../../Widget/stats_summary_row.dart';
+import '../../../data/doctor_home_data.dart';
+import '../../../core/constant/app_colors.dart';
+import '../../widgets/rendimiento_card.dart';
+import '../../widgets/paciente_reciente_tile.dart';
+import '../../widgets/cita_hoy_tile.dart';
+import '../../widgets/status_badge.dart';
+import '../../widgets/section_header.dart';
+import '../../widgets/doctor_bottom_nav.dart';
+import '../../widgets/doctor_app_bar.dart';
+import '../../widgets/stats_summary_row.dart';
 
 class DoctorHomeScreen extends StatelessWidget {
   const DoctorHomeScreen({super.key});

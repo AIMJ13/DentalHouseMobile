@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/custom_bottom_nav.dart';
-import '../../Widget/dental_logo.dart';
-import '../../Widget/user_badge.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../../widgets/dental_logo.dart';
+import '../../widgets/user_badge.dart';
 import 'servicio_modal.dart';
 
 class ServiciosScreen extends StatefulWidget {

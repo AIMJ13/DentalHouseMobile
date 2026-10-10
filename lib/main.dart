@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Data/dashboard_data.dart';
-import 'Screen/DoctorHome/doctor_home_screen.dart';
-import 'Screen/Home/home_screen.dart';
-import 'Screen/Login/login_screen.dart';
-import 'Screen/RecepcionCitas/recepcion_citas_screen.dart';
+import 'data/dashboard_data.dart';
+import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
+import 'presentation/screens/Home/home_screen.dart';
+import 'presentation/screens/Login/login_screen.dart';
+import 'presentation/screens/RecepcionCitas/recepcion_citas_screen.dart';
+import 'core/di/service_locator.dart';
 import 'routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  configure();
 
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;

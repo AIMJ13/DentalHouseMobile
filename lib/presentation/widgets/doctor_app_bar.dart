@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Theme/app_colors.dart';
-import '../routes.dart';
+import '../../core/constant/app_colors.dart';
+import '../../routes.dart';
 import 'dental_logo.dart';
 
 class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {

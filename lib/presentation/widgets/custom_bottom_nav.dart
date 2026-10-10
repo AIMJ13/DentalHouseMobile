@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../Data/dashboard_data.dart';
-import '../routes.dart';
+import '../../data/dashboard_data.dart';
+import '../../routes.dart';
 import 'menu_mas_modal.dart';
 
 class CustomBottomNav extends StatelessWidget {

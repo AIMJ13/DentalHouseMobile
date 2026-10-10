@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../Data/dashboard_data.dart';
-import '../../Widget/custom_bottom_nav.dart';
-import '../../Widget/custom_button.dart';
-import '../../Widget/custom_text_field.dart';
-import '../../Widget/dental_logo.dart';
-import '../../Widget/user_badge.dart';
+import '../../../data/dashboard_data.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/dental_logo.dart';
+import '../../widgets/user_badge.dart';
 import 'usuario_modal.dart';
 
 class PerfilScreen extends StatefulWidget {

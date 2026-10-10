@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../Widget/custom_bottom_modal.dart';
-import '../../Widget/custom_text_field.dart';
-import '../../Widget/estado_toggle.dart';
+import '../../widgets/custom_bottom_modal.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/estado_toggle.dart';
 
 class EspecialidadModal extends StatefulWidget {
   final String? id;
