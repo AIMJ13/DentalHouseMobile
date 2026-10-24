@@ -17,30 +17,28 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activas', 'Inactivas'];
-  final int _currentIndex = 4;
 
   void _onBottomNavTapped(int index) {
     final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
 
     if (rol == 'Recepcionista') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionCitas);
+        Navigator.pushReplacementNamed(context, Routes.citas);
         return;
       }
       if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionPacientes);
+        Navigator.pushReplacementNamed(context, Routes.pacientes);
         return;
       }
       if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionEspecialidades);
         return;
       }
       if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionDoctores);
+        Navigator.pushReplacementNamed(context, Routes.doctores);
         return;
       }
       if (index == 4) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionServicios);
+        Navigator.pushReplacementNamed(context, Routes.servicios);
         return;
       }
       return;
@@ -71,7 +69,7 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
   List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
         BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
@@ -111,7 +109,8 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool esAdmin = (perfilUsuarioActual['rol'] as String? ?? '') == 'Administrador';
+    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final bool esAdmin = rol == 'Administrador';
 
     int total = listaEspecialidades.length;
     int activas = 0;
@@ -295,7 +294,7 @@ class _EspecialidadesScreenState extends State<EspecialidadesScreen> {
           highlightColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: (rol == 'Recepcionista') ? 2 : 4,
           onTap: _onBottomNavTapped,
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,

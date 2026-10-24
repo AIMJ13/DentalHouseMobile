@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (rol == 'Doctor') {
           Navigator.pushNamedAndRemoveUntil(context, Routes.doctorHome, (route) => false);
         } else if (rol == 'Recepcionista') {
-          Navigator.pushNamedAndRemoveUntil(context, Routes.recepcionCitas, (route) => false);
+          Navigator.pushNamedAndRemoveUntil(context, Routes.citas, (route) => false);
         } else {
           Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
         }

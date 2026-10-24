@@ -3,10 +3,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'core/di/service_locator.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/screens/Citas/citas_screen.dart';
 import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
 import 'presentation/screens/Home/home_screen.dart';
 import 'presentation/screens/Login/login_screen.dart';
-import 'presentation/screens/RecepcionCitas/recepcion_citas_screen.dart';
 import 'routes.dart';
 
 void main() async {
@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
               return const DoctorHomeScreen();
             }
             if (roles.contains('Recepcionista')) {
-              return const RecepcionCitasScreen();
+              return const CitasScreen();
             }
             return const HomeScreen();
           },

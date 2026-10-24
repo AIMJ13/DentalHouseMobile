@@ -19,7 +19,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
 
     if (rol == 'Doctor') {
-      if (index == 0) return;
+      if (index == 0) {
+        Navigator.pushNamed(context, Routes.doctorHome);
+        return;
+      }
       if (index == 1) {
         Navigator.pushNamed(context, Routes.citas);
         return;
@@ -37,23 +40,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (rol == 'Recepcionista') {
       if (index == 0) {
-        Navigator.pushNamed(context, Routes.recepcionCitas);
+        Navigator.pushNamed(context, Routes.citas);
         return;
       }
       if (index == 1) {
-        Navigator.pushNamed(context, Routes.recepcionPacientes);
+        Navigator.pushNamed(context, Routes.pacientes);
         return;
       }
       if (index == 2) {
-        Navigator.pushNamed(context, Routes.recepcionEspecialidades);
+        Navigator.pushNamed(context, Routes.especialidades);
         return;
       }
       if (index == 3) {
-        Navigator.pushNamed(context, Routes.recepcionDoctores);
+        Navigator.pushNamed(context, Routes.doctores);
         return;
       }
       if (index == 4) {
-        Navigator.pushNamed(context, Routes.recepcionServicios);
+        Navigator.pushNamed(context, Routes.servicios);
         return;
       }
       return;
@@ -88,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
         BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),

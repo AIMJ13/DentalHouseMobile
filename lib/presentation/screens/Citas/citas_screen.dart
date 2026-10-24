@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../data/dashboard_data.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
@@ -403,7 +403,11 @@ class _CitasScreenState extends State<CitasScreen> {
             )
           : null,
       bottomNavigationBar: CustomBottomNav(
-        currentIndex: (rol == 'Recepcionista' || rol == 'Doctor') ? 1 : 3,
+        currentIndex: (rol == 'Recepcionista')
+            ? 0
+            : (rol == 'Doctor')
+                ? 1
+                : 3,
       ),
     );
   }
