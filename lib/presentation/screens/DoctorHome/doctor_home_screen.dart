@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../data/doctor_home_data.dart';
 import '../../../core/constant/app_colors.dart';
 import '../../widgets/rendimiento_card.dart';
@@ -31,7 +32,8 @@ class DoctorHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nombreDoctor = perfilUsuarioActual['nombre']?.toString() ?? 'Dr. Morales';
+    final auth = context.watch<AuthProvider>();
+    final nombreDoctor = auth.userName.isNotEmpty ? auth.userName : 'Dr. Morales';
 
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/errors/app_exceptions.dart';
-import '../../data/dashboard_data.dart';
 import '../../data/models/token_model.dart';
 import '../../data/repositories/token_repository.dart';
 import '../../services/auth_service.dart';
@@ -26,24 +25,13 @@ class AuthProvider extends ChangeNotifier {
     if (_token != null && _token!.roles.isNotEmpty) {
       return _token!.roles.first;
     }
-    final rolPerfil = perfilUsuarioActual['rol'] as String? ?? '';
-    if (rolPerfil.isNotEmpty) {
-      return rolPerfil;
-    }
     return '';
   }
 
-  void _syncPerfil(TokenModel token) {
-    final rol = token.roles.isNotEmpty ? token.roles.first : 'Administrador';
-    perfilUsuarioActual['id'] = token.id;
-    perfilUsuarioActual['nombre'] = token.userName;
-    perfilUsuarioActual['usuario'] = token.userName;
-    perfilUsuarioActual['rol'] = rol;
-    perfilUsuarioActual['email'] = token.email;
-    perfilUsuarioActual['avatarLetra'] = token.userName.isNotEmpty
-        ? token.userName.substring(0, 1).toUpperCase()
-        : 'U';
-  }
+  String get userName => _token?.userName ?? '';
+  String get email => _token?.email ?? '';
+  int get userId => _token?.id ?? 0;
+  String get avatarLetra => userName.isNotEmpty ? userName.substring(0, 1).toUpperCase() : 'U';
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
@@ -53,7 +41,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       final tokenModel = await _authService.login(email, password);
       await _tokenRepository.saveToken(tokenModel);
-      _syncPerfil(tokenModel);
       _token = tokenModel;
       _isLoading = false;
       notifyListeners();
@@ -75,21 +62,12 @@ class AuthProvider extends ChangeNotifier {
     await _tokenRepository.removeToken();
     _token = null;
     _errorMessage = null;
-    perfilUsuarioActual['id'] = '';
-    perfilUsuarioActual['nombre'] = '';
-    perfilUsuarioActual['usuario'] = '';
-    perfilUsuarioActual['rol'] = '';
-    perfilUsuarioActual['email'] = '';
-    perfilUsuarioActual['avatarLetra'] = '';
     notifyListeners();
   }
 
   Future<void> checkAuthStatus() async {
     _isLoading = true;
     _token = await _tokenRepository.getToken();
-    if (_token != null) {
-      _syncPerfil(_token!);
-    }
     _isLoading = false;
     notifyListeners();
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constant/app_colors.dart';
-import '../../data/dashboard_data.dart';
 import '../../routes.dart';
 import '../providers/auth_provider.dart';
 import 'dental_logo.dart';
@@ -14,9 +13,9 @@ class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final doctorNombre = perfilUsuarioActual['nombre']?.toString() ?? 'Doctor';
-    final doctorInicial = perfilUsuarioActual['avatarLetra']?.toString() ??
-        (doctorNombre.isNotEmpty ? doctorNombre.substring(0, 1).toUpperCase() : 'D');
+    final auth = context.watch<AuthProvider>();
+    final doctorNombre = auth.userName.isNotEmpty ? auth.userName : 'Doctor';
+    final doctorInicial = auth.avatarLetra;
 
     return AppBar(
       backgroundColor: Colors.white,

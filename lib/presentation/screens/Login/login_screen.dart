@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../data/dashboard_data.dart';
 import '../../../routes.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
@@ -42,14 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (token != null) {
         final roles = token.roles;
         final String rol = roles.isNotEmpty ? roles.first : 'Administrador';
-        perfilUsuarioActual['id'] = token.id;
-        perfilUsuarioActual['nombre'] = token.userName;
-        perfilUsuarioActual['usuario'] = token.userName;
-        perfilUsuarioActual['rol'] = rol;
-        perfilUsuarioActual['email'] = token.email;
-        perfilUsuarioActual['avatarLetra'] = token.userName.isNotEmpty
-            ? token.userName.substring(0, 1).toUpperCase()
-            : 'U';
 
         if (rol == 'Doctor') {
           Navigator.pushNamedAndRemoveUntil(context, Routes.doctorHome, (route) => false);

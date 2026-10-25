@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
 import '../../routes.dart';
+import '../providers/auth_provider.dart';
 
 class UserBadge extends StatelessWidget {
   final bool habilitado;
@@ -14,8 +15,9 @@ class UserBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rolActual = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-    final letra = perfilUsuarioActual['avatarLetra'] as String? ?? rolActual.substring(0, 1);
+    final auth = context.watch<AuthProvider>();
+    final rolActual = auth.currentRole;
+    final letra = auth.avatarLetra;
     final bool estaEnPerfil = ModalRoute.of(context)?.settings.name == Routes.perfil;
     final bool puedeNavegar = habilitado && !estaEnPerfil;
 
@@ -67,7 +69,7 @@ class UserBadge extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              rolActual,
+              rolActual.isNotEmpty ? rolActual : 'Usuario',
               style: TextStyle(
                 fontSize: 12,
                 color: textoColor,
