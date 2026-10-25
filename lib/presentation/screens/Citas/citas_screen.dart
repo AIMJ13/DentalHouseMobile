@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../data/dashboard_data.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
@@ -178,7 +180,7 @@ class _CitasScreenState extends State<CitasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
     final bool esAdmin = rol == 'Administrador';
     final metricas = _calcularMetricas();
     final citasMostradas = _obtenerCitasFiltradas();
@@ -394,14 +396,12 @@ class _CitasScreenState extends State<CitasScreen> {
           ],
         ),
       ),
-      floatingActionButton: (esAdmin || rol == 'Recepcionista')
-          ? FloatingActionButton(
-              onPressed: () => _abrirModalCita(),
-              backgroundColor: Colors.blue[700],
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _abrirModalCita(),
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
       bottomNavigationBar: CustomBottomNav(
         currentIndex: (rol == 'Recepcionista')
             ? 0

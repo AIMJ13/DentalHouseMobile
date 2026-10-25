@@ -285,14 +285,12 @@ class _PacientesScreenState extends State<PacientesScreen> {
           ],
         ),
       ),
-      floatingActionButton: (rol == 'Administrador' || rol == 'Recepcionista')
-          ? FloatingActionButton(
-              onPressed: () => _abrirModalPaciente(),
-              backgroundColor: Colors.blue[700],
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _abrirModalPaciente(),
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           splashColor: Colors.transparent,
@@ -433,12 +431,9 @@ class _PacientesScreenState extends State<PacientesScreen> {
     final fechaNacimiento = paciente['fechaNacimiento'] as String;
     final activo = paciente['activo'] as bool;
 
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-    final bool puedeEditar = rol == 'Administrador' || rol == 'Recepcionista';
-
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: puedeEditar ? () => _abrirModalPaciente(paciente: paciente) : null,
+      onTap: () => _abrirModalPaciente(paciente: paciente),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
