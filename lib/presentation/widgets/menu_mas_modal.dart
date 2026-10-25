@@ -1,10 +1,10 @@
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/dashboard_data.dart';
 import '../../routes.dart';
 
 void mostrarMenuMas(BuildContext context) {
-  final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+  final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
   final bool esAdmin = rol == 'Administrador';
   final bool esRecepcionista = rol == 'Recepcionista';
 
@@ -131,8 +131,7 @@ void mostrarMenuMas(BuildContext context) {
                 title: 'Cerrar Sesión',
                 subtitle: 'Salir del sistema',
                 onTap: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.clear();
+                  await context.read<AuthProvider>().logout();
                   if (!context.mounted) return;
                   Navigator.pop(modalContext);
                   Navigator.pushNamedAndRemoveUntil(context, Routes.login, (route) => false);

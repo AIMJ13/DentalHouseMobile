@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
 import '../../routes.dart';
+import '../providers/auth_provider.dart';
 import 'menu_mas_modal.dart';
 
 class CustomBottomNav extends StatelessWidget {
@@ -14,7 +15,7 @@ class CustomBottomNav extends StatelessWidget {
   });
 
   void _defaultOnTap(BuildContext context, int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
 
     if (currentIndex >= 0 && index == currentIndex) {
       if (rol == 'Administrador' && index == 4) {
@@ -120,7 +121,7 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
     final items = _obtenerItemsNavegacion(rol);
     final bool tieneSeleccion = currentIndex >= 0 && currentIndex < items.length;
     final int safeIndex = tieneSeleccion ? currentIndex : 0;
