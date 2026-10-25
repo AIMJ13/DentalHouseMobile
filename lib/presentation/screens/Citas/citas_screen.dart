@@ -222,7 +222,7 @@ class _CitasScreenState extends State<CitasScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        esAdmin
+                        (esAdmin || rol == 'Recepcionista')
                             ? 'Administra las citas registradas entre pacientes y doctores.'
                             : 'Consulta de citas programadas en la clínica.',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -394,7 +394,7 @@ class _CitasScreenState extends State<CitasScreen> {
           ],
         ),
       ),
-      floatingActionButton: esAdmin
+      floatingActionButton: (esAdmin || rol == 'Recepcionista')
           ? FloatingActionButton(
               onPressed: () => _abrirModalCita(),
               backgroundColor: Colors.blue[700],
@@ -516,7 +516,7 @@ class _CitasScreenState extends State<CitasScreen> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: esAdmin ? () => _abrirModalCita(cita) : null,
+      onTap: () => _abrirModalCita(cita),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
