@@ -7,6 +7,7 @@ import 'presentation/screens/Citas/citas_screen.dart';
 import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
 import 'presentation/screens/Home/home_screen.dart';
 import 'presentation/screens/Login/login_screen.dart';
+import 'presentation/widgets/loading_view.dart';
 import 'routes.dart';
 
 void main() async {
@@ -37,15 +38,13 @@ class MyApp extends StatelessWidget {
         ),
         home: Consumer<AuthProvider>(
           builder: (context, auth, _) {
-            if (auth.isLoading) {
+            if (auth.authStatus == AuthStatus.unknown || (auth.isLoading && !auth.isAuthenticated)) {
               return const Scaffold(
                 backgroundColor: Colors.white,
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                body: LoadingView(message: 'Comprobando sesión...'),
               );
             }
-            if (!auth.isAuthenticated) {
+            if (auth.authStatus == AuthStatus.unauthenticated || !auth.isAuthenticated) {
               return const LoginScreen();
             }
             final rol = auth.currentRole;

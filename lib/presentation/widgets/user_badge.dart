@@ -15,9 +15,8 @@ class UserBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final rolActual = auth.currentRole;
-    final letra = auth.avatarLetra;
+    final rolActual = context.select<AuthProvider, String>((auth) => auth.currentRole);
+    final letra = context.select<AuthProvider, String>((auth) => auth.avatarLetra);
     final bool estaEnPerfil = ModalRoute.of(context)?.settings.name == Routes.perfil;
     final bool puedeNavegar = habilitado && !estaEnPerfil;
 

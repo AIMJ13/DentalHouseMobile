@@ -4,11 +4,16 @@ import '../../data/models/token_model.dart';
 import '../../data/repositories/token_repository.dart';
 import '../../services/auth_service.dart';
 
+enum AuthStatus { unknown, authenticated, unauthenticated }
+
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
   final TokenRepository _tokenRepository;
 
   AuthProvider(this._authService, this._tokenRepository);
+
+  AuthStatus _authStatus = AuthStatus.unknown;
+  AuthStatus get authStatus => _authStatus;
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -19,7 +24,7 @@ class AuthProvider extends ChangeNotifier {
   TokenModel? _token;
   TokenModel? get token => _token;
 
-  bool get isAuthenticated => _token != null;
+  bool get isAuthenticated => _authStatus == AuthStatus.authenticated;
 
   String get currentRole {
     if (_token != null && _token!.roles.isNotEmpty) {
@@ -42,19 +47,19 @@ class AuthProvider extends ChangeNotifier {
       final tokenModel = await _authService.login(email, password);
       await _tokenRepository.saveToken(tokenModel);
       _token = tokenModel;
-      _isLoading = false;
-      notifyListeners();
+      _authStatus = AuthStatus.authenticated;
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
-      _isLoading = false;
-      notifyListeners();
+      _authStatus = AuthStatus.unauthenticated;
       return false;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Ocurrió un error inesperado al iniciar sesión';
+      _authStatus = AuthStatus.unauthenticated;
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
@@ -62,13 +67,28 @@ class AuthProvider extends ChangeNotifier {
     await _tokenRepository.removeToken();
     _token = null;
     _errorMessage = null;
+    _authStatus = AuthStatus.unauthenticated;
     notifyListeners();
   }
 
   Future<void> checkAuthStatus() async {
     _isLoading = true;
-    _token = await _tokenRepository.getToken();
-    _isLoading = false;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      _token = await _tokenRepository.getToken();
+      if (_token != null) {
+        _authStatus = AuthStatus.authenticated;
+      } else {
+        _authStatus = AuthStatus.unauthenticated;
+      }
+    } catch (_) {
+      _errorMessage = 'Ocurrió un error al comprobar la sesión';
+      _authStatus = AuthStatus.unauthenticated;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }
