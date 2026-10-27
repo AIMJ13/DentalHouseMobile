@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../data/models/log_model.dart';
 import '../../providers/log_provider.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_view.dart';
 import '../../widgets/user_badge.dart';
+import 'log_detalle_modal.dart';
 
 class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
@@ -41,6 +43,13 @@ class _LogsScreenState extends State<LogsScreen> {
   void _limpiarFiltros() {
     _searchController.clear();
     context.read<LogProvider>().clearFilters();
+  }
+
+  void _abrirModalDetalle(LogModel log) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => LogDetalleModal(log: log),
+    );
   }
 
   @override
@@ -128,7 +137,9 @@ class _LogsScreenState extends State<LogsScreen> {
                   'No se encontraron registros de eventos.',
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
-              ),
+              )
+            else
+              for (var log in logs) _buildLogCard(log),
           ],
         ),
       ),
@@ -355,6 +366,175 @@ class _LogsScreenState extends State<LogsScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLogCard(LogModel log) {
+    final bool esFallo = !log.isSuccess;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  log.code,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  log.module,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                log.formattedDate,
+                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: Colors.blue[50],
+                child: Text(
+                  log.initial,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      log.userName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (log.userRole != null && log.userRole!.isNotEmpty)
+                      Text(
+                        log.userRole!,
+                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: esFallo ? Colors.red[50] : Colors.green[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  log.status,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: esFallo ? Colors.red[700] : Colors.green[700],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: esFallo ? Colors.red[50] : Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: esFallo ? Colors.red[100]! : Colors.grey[200]!,
+              ),
+            ),
+            child: Text(
+              log.description,
+              style: TextStyle(
+                fontSize: 12,
+                color: esFallo ? Colors.red[800] : Colors.black87,
+                height: 1.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'IP: ${log.ipAddress}',
+                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+              ),
+              InkWell(
+                onTap: () => _abrirModalDetalle(log),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.visibility_outlined, size: 14, color: Colors.blue[700]),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Ver Detalle',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.blue[700],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
