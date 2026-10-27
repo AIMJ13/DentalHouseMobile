@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
+import '../../providers/log_provider.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_view.dart';
 import '../../widgets/user_badge.dart';
-import 'log_detalle_modal.dart';
 
 class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
@@ -14,97 +16,45 @@ class LogsScreen extends StatefulWidget {
 
 class _LogsScreenState extends State<LogsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _usuarioController = TextEditingController();
-
-  String _estadoFiltro = 'Todos';
-  String _moduloFiltro = 'Todos los módulos';
-  String _accionFiltro = 'Todas las acciones';
   bool _filtrosExpandidos = false;
-  int _paginaActual = 1;
-  final int _porPagina = 5;
 
-  final List<String> _modulos = ['Todos los módulos', 'Citas', 'Servicios', 'Seguridad', 'Doctores', 'Ventas'];
-  final List<String> _acciones = ['Todas las acciones', 'Información', 'Modificación', 'Advertencia', 'Auditoría'];
+  final List<String> _modulos = [
+    'Todos los módulos',
+    'Autenticación',
+    'Pacientes',
+    'Citas',
+    'Doctores',
+    'Facturación',
+    'Usuarios',
+    'Servicios',
+    'General',
+  ];
 
-  void _limpiarFiltros() {
-    setState(() {
-      _searchController.clear();
-      _usuarioController.clear();
-      _estadoFiltro = 'Todos';
-      _moduloFiltro = 'Todos los módulos';
-      _accionFiltro = 'Todas las acciones';
-      _paginaActual = 1;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LogProvider>().fetchLogs();
     });
   }
 
-  List<Map<String, dynamic>> _obtenerLogsFiltrados() {
-    final query = _searchController.text.toLowerCase().trim();
-    final usuarioQuery = _usuarioController.text.toLowerCase().trim();
-    List<Map<String, dynamic>> filtrados = [];
-
-    for (var log in listaLogs) {
-      final desc = (log['descripcion'] as String).toLowerCase();
-      final usr = (log['usuario'] as String).toLowerCase();
-      final id = (log['id'] as String).toLowerCase();
-      final ip = (log['ip'] as String).toLowerCase();
-      final tipo = (log['tipo'] as String).toLowerCase();
-
-      final coincide = query.isEmpty ||
-          desc.contains(query) ||
-          usr.contains(query) ||
-          id.contains(query) ||
-          ip.contains(query) ||
-          tipo.contains(query);
-
-      if (!coincide) continue;
-      if (usuarioQuery.isNotEmpty && !usr.contains(usuarioQuery)) continue;
-      if (_estadoFiltro == 'Éxito' && log['estado'] != 'Éxito') continue;
-      if (_estadoFiltro == 'Error' && log['estado'] != 'Error') continue;
-      if (_moduloFiltro != 'Todos los módulos' && log['modulo'] != _moduloFiltro) continue;
-      if (_accionFiltro != 'Todas las acciones' && log['tipo'] != _accionFiltro) continue;
-
-      filtrados.add(log);
-    }
-    return filtrados;
-  }
-
-  void _abrirModalDetalle(Map<String, dynamic> log) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => LogDetalleModal(log: log),
-    );
-  }
-
-  MaterialColor _colorEtiqueta(String valor) {
-    if (valor == 'Modificación') return Colors.amber;
-    if (valor == 'Advertencia' || valor == 'Seguridad' || valor == 'SYS') return Colors.red;
-    if (valor == 'Auditoría' || valor == 'Doctores') return Colors.purple;
-    if (valor == 'Ventas' || valor == 'AT' || valor == 'Información') return Colors.teal;
-    return Colors.blue;
+  void _limpiarFiltros() {
+    _searchController.clear();
+    context.read<LogProvider>().clearFilters();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _usuarioController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final logsFiltrados = _obtenerLogsFiltrados();
-    final totalPaginas = logsFiltrados.isEmpty ? 1 : ((logsFiltrados.length - 1) ~/ _porPagina) + 1;
-    if (_paginaActual > totalPaginas) {
-      _paginaActual = totalPaginas;
-    }
-    final int inicio = (_paginaActual - 1) * _porPagina;
-    final int fin = (inicio + _porPagina < logsFiltrados.length) ? inicio + _porPagina : logsFiltrados.length;
-    final List<Map<String, dynamic>> logsPaginados = [];
-    if (inicio < logsFiltrados.length) {
-      for (int i = inicio; i < fin; i++) {
-        logsPaginados.add(logsFiltrados[i]);
-      }
-    }
+    final logProvider = context.watch<LogProvider>();
+    final logs = logProvider.logs;
+    final totalRegistros = logProvider.totalRecords;
+    final errorMessage = logProvider.errorMessage;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -119,49 +69,68 @@ class _LogsScreenState extends State<LogsScreen> {
           UserBadge(),
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 80.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildEncabezado(),
+            const SizedBox(height: 16),
+            _buildPanelFiltros(logProvider),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildEncabezado(),
-                const SizedBox(height: 16),
-                _buildPanelFiltros(),
-                const SizedBox(height: 16),
-                _buildBarraMetricas(),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('HISTORIAL DE EVENTOS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
-                      child: Text('${logsFiltrados.length} mostrados', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue[700])),
-                    ),
-                  ],
+                Text(
+                  'HISTORIAL DE AUDITORÍA',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                if (logsPaginados.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    alignment: Alignment.center,
-                    child: Text('No se encontraron registros de eventos.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-                  )
-                else
-                  for (var log in logsPaginados) _buildLogCard(log),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$totalRegistros registros',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[700],
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-          Positioned(
-            bottom: 12,
-            left: 16,
-            right: 16,
-            child: _buildPaginacionFlotante(totalPaginas, logsFiltrados.length),
-          ),
-        ],
+            const SizedBox(height: 12),
+            if (logProvider.viewStatus == ViewStatus.loading)
+              const Padding(
+                padding: EdgeInsets.all(40),
+                child: LoadingView(message: 'Cargando registros de auditoría...'),
+              )
+            else if (logProvider.viewStatus == ViewStatus.error && logs.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: ErrorView(
+                  message: errorMessage ?? 'Error al cargar registros de auditoría',
+                  onRetry: () => logProvider.fetchLogs(),
+                ),
+              )
+            else if (logs.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(24),
+                alignment: Alignment.center,
+                child: Text(
+                  'No se encontraron registros de eventos.',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+              ),
+          ],
+        ),
       ),
       bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
@@ -172,17 +141,30 @@ class _LogsScreenState extends State<LogsScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(12)),
-          child: Icon(Icons.terminal, color: Colors.blue[700], size: 28),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(Icons.history_outlined, color: Colors.blue[700], size: 28),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Registro de Actividad', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const Text(
+                'Auditoría del Sistema',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text('Historial de eventos, auditoría de accesos y cambios en la clínica.', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Text(
+                'Historial de eventos y cambios registrados en la clínica.',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
             ],
           ),
         ),
@@ -190,7 +172,7 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Widget _buildPanelFiltros() {
+  Widget _buildPanelFiltros(LogProvider logProvider) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -215,8 +197,15 @@ class _LogsScreenState extends State<LogsScreen> {
                 ),
                 Row(
                   children: [
-                    Text(_filtrosExpandidos ? 'Ocultar' : 'Mostrar filtros', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.blue[700])),
-                    Icon(_filtrosExpandidos ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.blue[700], size: 20),
+                    Text(
+                      _filtrosExpandidos ? 'Ocultar' : 'Mostrar filtros',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.blue[700]),
+                    ),
+                    Icon(
+                      _filtrosExpandidos ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: Colors.blue[700],
+                      size: 20,
+                    ),
                   ],
                 ),
               ],
@@ -224,60 +213,56 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
           if (_filtrosExpandidos) ...[
             const SizedBox(height: 14),
-            _buildInputText(_searchController, 'Buscar por descripción, usuario, IP o acción...', Icons.search),
+            _buildInputText(
+              _searchController,
+              'Buscar por usuario o descripción...',
+              Icons.search,
+              (val) => logProvider.setSearchTerm(val),
+            ),
             const SizedBox(height: 12),
-            Text('ESTADO (ISSUCCESS)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+            Text('ESTADO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
-                  _buildEstadoPill('Todos', null),
-                  _buildEstadoPill('Éxito', Colors.green[600]),
-                  _buildEstadoPill('Error', Colors.red[600]),
+                  _buildEstadoPill('Todos', null, logProvider),
+                  _buildEstadoPill('Éxito', Colors.green, logProvider),
+                  _buildEstadoPill('Error', Colors.red, logProvider),
                 ],
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _buildCampoFecha('DESDE (FECHA)', '06/22/2026')),
-                const SizedBox(width: 10),
-                Expanded(child: _buildCampoFecha('HASTA (FECHA)', '06/23/2026')),
-              ],
+            _buildCampoDropdown(
+              'MÓDULO',
+              logProvider.selectedModule,
+              _modulos,
+              (val) {
+                if (val != null) logProvider.setModule(val);
+              },
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _buildCampoDropdown('MÓDULO', _moduloFiltro, _modulos, (val) {
-                  if (val != null) setState(() => _moduloFiltro = val);
-                })),
-                const SizedBox(width: 10),
-                Expanded(child: _buildCampoDropdown('TIPO DE ACCIÓN', _accionFiltro, _acciones, (val) {
-                  if (val != null) setState(() => _accionFiltro = val);
-                })),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text('USUARIO (USERNAME)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
-            const SizedBox(height: 6),
-            _buildInputText(_usuarioController, 'Ej. admin, Dr. Morales...', Icons.person_outline),
             const SizedBox(height: 14),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
                   onPressed: _limpiarFiltros,
-                  style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey[300]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey[300]!),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                   child: Text('Limpiar', style: TextStyle(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
-                  onPressed: () => setState(() {}),
+                  onPressed: () => logProvider.fetchLogs(resetPage: true),
                   icon: const Icon(Icons.filter_alt, size: 16, color: Colors.white),
-                  label: const Text('Aplicar Filtros', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                  label: const Text('Aplicar', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[700],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                 ),
               ],
             ),
@@ -287,12 +272,16 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Widget _buildInputText(TextEditingController controller, String hint, IconData icon) {
+  Widget _buildInputText(TextEditingController controller, String hint, IconData icon, ValueChanged<String> onChanged) {
     return Container(
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[300]!)),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: TextField(
         controller: controller,
-        onChanged: (_) => setState(() {}),
+        onChanged: onChanged,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, size: 18, color: Colors.grey[500]),
           hintText: hint,
@@ -304,127 +293,42 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Widget _buildBarraMetricas() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildMetrica(Colors.amber[700]!, 'Total:', '${metricasLogs['total']}'),
-          _buildMetrica(Colors.green[600]!, 'Éxito:', '${metricasLogs['exito']}'),
-          _buildMetrica(Colors.orange[800]!, 'Avisos:', '${metricasLogs['avisos']}'),
-          _buildMetrica(Colors.red[600]!, 'Error:', '${metricasLogs['error']}'),
-        ],
-      ),
-    );
-  }
+  Widget _buildCampoDropdown(String titulo, String valor, List<String> opciones, ValueChanged<String?> onChanged) {
+    final String valorValido = opciones.contains(valor) ? valor : opciones.first;
 
-  Widget _buildMetrica(Color punto, String etiqueta, String valor) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(width: 7, height: 7, decoration: BoxDecoration(color: punto, shape: BoxShape.circle)),
-        const SizedBox(width: 4),
-        Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-        const SizedBox(width: 2),
-        Text(valor, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+        Text(titulo, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: valorValido,
+              isExpanded: true,
+              icon: const Icon(Icons.arrow_drop_down, size: 18),
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              onChanged: onChanged,
+              items: [for (var opc in opciones) DropdownMenuItem(value: opc, child: Text(opc, overflow: TextOverflow.ellipsis))],
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildChip(String texto, Color fondo, Color textoColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: fondo, borderRadius: BorderRadius.circular(6)),
-      child: Text(texto, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textoColor)),
-    );
-  }
-
-  Widget _buildLogCard(Map<String, dynamic> log) {
-    final tipo = log['tipo'] as String;
-    final modulo = log['modulo'] as String;
-    final pTipo = _colorEtiqueta(tipo);
-    final pMod = _colorEtiqueta(modulo);
-    final pAva = _colorEtiqueta(log['iniciales'] as String);
-    final bool esAlerta = log['esAlerta'] == true;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _buildChip(log['id'] as String, Colors.grey[100]!, Colors.grey[800]!),
-              const SizedBox(width: 8),
-              _buildChip(tipo, pTipo[50]!, pTipo == Colors.amber ? Colors.amber[800]! : pTipo[700]!),
-              const Spacer(),
-              Text(log['fecha'] as String, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: pAva[50],
-                child: Text(log['iniciales'] as String, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: pAva[700])),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(log['usuario'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), overflow: TextOverflow.ellipsis),
-              ),
-              _buildChip('Módulo: $modulo', pMod[50]!, pMod[700]!),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (esAlerta)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.red[100]!)),
-              child: Text(log['descripcion'] as String, style: TextStyle(fontSize: 12, color: Colors.red[700], height: 1.3)),
-            )
-          else
-            Text(log['descripcion'] as String, style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.3)),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: InkWell(
-              onTap: () => _abrirModalDetalle(log),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.visibility_outlined, size: 14, color: Colors.blue[700]),
-                    const SizedBox(width: 4),
-                    Text('Ver Detalle', style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEstadoPill(String label, Color? dotColor) {
-    final bool seleccionado = _estadoFiltro == label;
+  Widget _buildEstadoPill(String label, Color? dotColor, LogProvider logProvider) {
+    final bool seleccionado = logProvider.selectedStatus == label;
 
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _estadoFiltro = label),
+        onTap: () => logProvider.setStatus(label),
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 6),
@@ -451,135 +355,6 @@ class _LogsScreenState extends State<LogsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCampoFecha(String titulo, String fecha) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(titulo, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[300]!)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(fecha, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-              Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[500]),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCampoDropdown(String titulo, String valor, List<String> opciones, ValueChanged<String?> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(titulo, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[300]!)),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: valor,
-              isExpanded: true,
-              icon: const Icon(Icons.arrow_drop_down, size: 18),
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
-              onChanged: onChanged,
-              items: [for (var opc in opciones) DropdownMenuItem(value: opc, child: Text(opc, overflow: TextOverflow.ellipsis))],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaginacionFlotante(int totalPaginas, int totalRegistros) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          InkWell(
-            onTap: _paginaActual > 1
-                ? () => setState(() => _paginaActual--)
-                : null,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _paginaActual > 1 ? Colors.blue[50] : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.chevron_left,
-                    size: 16,
-                    color: _paginaActual > 1 ? Colors.blue[700] : Colors.grey[400],
-                  ),
-                  Text(
-                    'Anterior',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: _paginaActual > 1 ? Colors.blue[700] : Colors.grey[400],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Text(
-            'Pág $_paginaActual de $totalPaginas ($totalRegistros)',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          InkWell(
-            onTap: _paginaActual < totalPaginas
-                ? () => setState(() => _paginaActual++)
-                : null,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _paginaActual < totalPaginas ? Colors.blue[50] : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'Siguiente',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: _paginaActual < totalPaginas ? Colors.blue[700] : Colors.grey[400],
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    size: 16,
-                    color: _paginaActual < totalPaginas ? Colors.blue[700] : Colors.grey[400],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
