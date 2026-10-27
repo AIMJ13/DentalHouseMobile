@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../../core/constant/app_colors.dart';
 import '../../routes.dart';
+import '../providers/auth_provider.dart';
 import 'dental_logo.dart';
 
 class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String doctorInicial;
-  final String doctorNombre;
-
-  const DoctorAppBar({
-    super.key,
-    this.doctorInicial = 'M',
-    this.doctorNombre = 'Dr. Morales',
-  });
+  const DoctorAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final doctorNombre = auth.userName.isNotEmpty ? auth.userName : 'Doctor';
+    final doctorInicial = auth.avatarLetra;
+
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -56,8 +54,7 @@ class DoctorAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.logout, color: Colors.black54, size: 20),
           tooltip: 'Cerrar Sesión',
           onPressed: () async {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.clear();
+            await context.read<AuthProvider>().logout();
             if (!context.mounted) return;
             Navigator.pushNamedAndRemoveUntil(
               context,

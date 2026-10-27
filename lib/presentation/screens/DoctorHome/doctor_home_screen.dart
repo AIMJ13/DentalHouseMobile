@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../data/doctor_home_data.dart';
 import '../../../core/constant/app_colors.dart';
 import '../../widgets/rendimiento_card.dart';
@@ -6,7 +8,7 @@ import '../../widgets/paciente_reciente_tile.dart';
 import '../../widgets/cita_hoy_tile.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/section_header.dart';
-import '../../widgets/doctor_bottom_nav.dart';
+import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/doctor_app_bar.dart';
 import '../../widgets/stats_summary_row.dart';
 
@@ -30,11 +32,12 @@ class DoctorHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final nombreDoctor = auth.userName.isNotEmpty ? auth.userName : 'Dr. Morales';
+
     return Scaffold(
       backgroundColor: AppColors.background,
-
-              appBar: const DoctorAppBar(),
-
+      appBar: const DoctorAppBar(),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -51,27 +54,26 @@ class DoctorHomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 13, color: AppColors.textGrey),
+              text: TextSpan(
+                style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
                 children: [
-                  TextSpan(text: 'Bienvenido de nuevo, '),
+                  const TextSpan(text: 'Bienvenido de nuevo, '),
                   TextSpan(
-                    text: 'Dr. Morales',
-                    style: TextStyle(
+                    text: nombreDoctor,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
                     ),
                   ),
-                  TextSpan(
-                    text:
-                        '. Aquí puedes visualizar tus citas e indicaciones clave.',
+                  const TextSpan(
+                    text: '. Aquí puedes visualizar tus citas e indicaciones clave.',
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             StatsSummaryRow(items: resumenDiarioDoctor),
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
             RendimientoCard(
               stats: rendimientoDoctor,
               badgeText: 'En Consulta',
@@ -108,12 +110,10 @@ class DoctorHomeScreen extends StatelessWidget {
                 estadoTipo: _tipoDesde(c['estadoTipo']),
               ),
             ),
-           
           ],
         ),
       ),
-       bottomNavigationBar: const DoctorBottomNav(currentIndex: 0),
-      
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
 }

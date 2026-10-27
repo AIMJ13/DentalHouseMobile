@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/dashboard_data.dart';
-import '../../widgets/custom_button.dart';
+import 'package:provider/provider.dart';
+import '../../../routes.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/dental_logo.dart';
-import '../../../routes.dart';
-import '../../../core/di/service_locator.dart';
-import '../../providers/login_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,79 +25,31 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _iniciarSesion() async {
+  Future<void> _iniciarSesion() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    sl<LoginProvider>().login();
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.login(
+      _usuarioController.text,
+      _passwordController.text,
+    );
 
-    final inputUsuario = _usuarioController.text.trim().toLowerCase();
-    final inputPassword = _passwordController.text.trim();
+    if (success && mounted) {
+      final token = authProvider.token;
+      if (token != null) {
+        final roles = token.roles;
+        final String rol = roles.isNotEmpty ? roles.first : 'Administrador';
 
-    Map<String, dynamic>? usuarioValido;
-    for (var u in listaUsuarios) {
-      final usr = (u['usuario'] as String).toLowerCase();
-      final email = (u['email'] as String).toLowerCase();
-      if (usr == inputUsuario || email == inputUsuario) {
-        usuarioValido = u;
-        break;
+        if (rol == 'Doctor') {
+          Navigator.pushNamedAndRemoveUntil(context, Routes.doctorHome, (route) => false);
+        } else if (rol == 'Recepcionista') {
+          Navigator.pushNamedAndRemoveUntil(context, Routes.citas, (route) => false);
+        } else {
+          Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
+        }
       }
-    }
-
-    if (usuarioValido == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Usuario o correo no registrado en el sistema'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final passwordGuardada = usuarioValido['password'] as String? ?? '123456';
-    if (passwordGuardada != inputPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Contraseña incorrecta'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final bool estaActivo = usuarioValido['activo'] as bool? ?? false;
-    if (!estaActivo) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Esta cuenta está inactiva. Contacta al administrador.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    perfilUsuarioActual['id'] = usuarioValido['id'];
-    perfilUsuarioActual['nombre'] = usuarioValido['nombre'];
-    perfilUsuarioActual['usuario'] = usuarioValido['usuario'];
-    perfilUsuarioActual['rol'] = usuarioValido['rol'];
-    perfilUsuarioActual['email'] = usuarioValido['email'];
-    perfilUsuarioActual['telefono'] = usuarioValido['telefono'];
-    perfilUsuarioActual['avatarLetra'] = (usuarioValido['nombre'] as String).substring(0, 1);
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', true);
-    await prefs.setString('rol', usuarioValido['rol'] as String);
-    await prefs.setString('usuario', usuarioValido['usuario'] as String);
-
-    final String rol = (usuarioValido['rol'] as String?) ?? 'Administrador';
-    if (!mounted) return;
-    if (rol == 'Doctor') {
-      Navigator.pushNamedAndRemoveUntil(context, Routes.doctorHome, (route) => false);
-    } else if (rol == 'Recepcionista') {
-      Navigator.pushNamedAndRemoveUntil(context, Routes.recepcionCitas, (route) => false);
-    } else {
-      Navigator.pushNamedAndRemoveUntil(context, Routes.home, (route) => false);
     }
   }
 
@@ -145,10 +94,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) {
+                          if (auth.errorMessage == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red[200]!),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    auth.errorMessage!,
+                                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                       CustomTextField(
-                        label: 'Usuario',
-                        hintText: 'admin, freyes o mizael.recepcion',
+                        label: 'Usuario o Correo',
+                        hintText: 'Ingresa tu usuario o correo',
                         controller: _usuarioController,
                         prefixIcon: const Icon(
                           Icons.person_outline,
@@ -156,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Ingresa tu usuario';
+                            return 'Ingresa tu usuario o correo';
                           }
                           return null;
                         },
@@ -188,16 +165,47 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Ingresa tu contraseña';
                           }
-                          if (value.length < 6) {
-                            return 'Mínimo 6 caracteres';
+                          if (value.length < 5) {
+                            return 'Mínimo 5 caracteres';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
-                      CustomButton(
-                        text: 'Iniciar Sesión',
-                        onPressed: _iniciarSesion,
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) {
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: auth.isLoading ? null : _iniciarSesion,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: auth.isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Iniciar Sesión',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

@@ -210,7 +210,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
             )
           : null,
       bottomNavigationBar: CustomBottomNav(
-        currentIndex: (rol == 'Recepcionista') ? 3 : 1,
+        currentIndex: (rol == 'Recepcionista') ? 4 : 1,
       ),
     );
   }

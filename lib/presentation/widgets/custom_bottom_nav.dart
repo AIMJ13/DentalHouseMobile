@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
 import '../../routes.dart';
+import '../providers/auth_provider.dart';
 import 'menu_mas_modal.dart';
 
 class CustomBottomNav extends StatelessWidget {
@@ -14,7 +15,7 @@ class CustomBottomNav extends StatelessWidget {
   });
 
   void _defaultOnTap(BuildContext context, int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
 
     if (currentIndex >= 0 && index == currentIndex) {
       if (rol == 'Administrador' && index == 4) {
@@ -27,7 +28,7 @@ class CustomBottomNav extends StatelessWidget {
 
     if (rol == 'Doctor') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        Navigator.pushReplacementNamed(context, Routes.doctorHome);
         return;
       }
       if (index == 1) {
@@ -47,23 +48,23 @@ class CustomBottomNav extends StatelessWidget {
 
     if (rol == 'Recepcionista') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionCitas);
+        Navigator.pushReplacementNamed(context, Routes.citas);
         return;
       }
       if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionPacientes);
+        Navigator.pushReplacementNamed(context, Routes.pacientes);
         return;
       }
       if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionEspecialidades);
+        Navigator.pushReplacementNamed(context, Routes.especialidades);
         return;
       }
       if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionDoctores);
+        Navigator.pushReplacementNamed(context, Routes.doctores);
         return;
       }
       if (index == 4) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionServicios);
+        Navigator.pushReplacementNamed(context, Routes.servicios);
         return;
       }
       return;
@@ -102,7 +103,7 @@ class CustomBottomNav extends StatelessWidget {
     }
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
         BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
@@ -120,7 +121,7 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
     final items = _obtenerItemsNavegacion(rol);
     final bool tieneSeleccion = currentIndex >= 0 && currentIndex < items.length;
     final int safeIndex = tieneSeleccion ? currentIndex : 0;

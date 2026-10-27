@@ -228,7 +228,9 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             )
           : null,
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: (perfilUsuarioActual['rol'] == 'Recepcionista') ? 3 : 4,
+      ),
     );
   }
 

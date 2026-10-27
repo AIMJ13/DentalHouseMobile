@@ -1,3 +1,4 @@
+import '../data/models/user_model.dart';
 import '../data/repositories/user_repository.dart';
 
 class UserService {
@@ -5,5 +6,11 @@ class UserService {
 
   UserService(this.repo);
 
-  void callRepo() => repo.callApiClient();
+  Future<dynamic> getAll() async {
+    return await repo.getAll();
+  }
+
+  Future<UserModel> getById(int id) async {
+    return await repo.getById(id);
+  }
 }

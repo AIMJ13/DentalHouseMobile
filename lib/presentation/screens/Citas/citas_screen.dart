@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../data/dashboard_data.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
@@ -178,7 +180,7 @@ class _CitasScreenState extends State<CitasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
     final bool esAdmin = rol == 'Administrador';
     final metricas = _calcularMetricas();
     final citasMostradas = _obtenerCitasFiltradas();
@@ -222,7 +224,7 @@ class _CitasScreenState extends State<CitasScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        esAdmin
+                        (esAdmin || rol == 'Recepcionista')
                             ? 'Administra las citas registradas entre pacientes y doctores.'
                             : 'Consulta de citas programadas en la clínica.',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -394,16 +396,18 @@ class _CitasScreenState extends State<CitasScreen> {
           ],
         ),
       ),
-      floatingActionButton: esAdmin
-          ? FloatingActionButton(
-              onPressed: () => _abrirModalCita(),
-              backgroundColor: Colors.blue[700],
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _abrirModalCita(),
+        backgroundColor: Colors.blue[700],
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
       bottomNavigationBar: CustomBottomNav(
-        currentIndex: (rol == 'Recepcionista' || rol == 'Doctor') ? 1 : 3,
+        currentIndex: (rol == 'Recepcionista')
+            ? 0
+            : (rol == 'Doctor')
+                ? 1
+                : 3,
       ),
     );
   }
@@ -512,7 +516,7 @@ class _CitasScreenState extends State<CitasScreen> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: esAdmin ? () => _abrirModalCita(cita) : null,
+      onTap: () => _abrirModalCita(cita),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

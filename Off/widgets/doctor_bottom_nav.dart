@@ -14,10 +14,10 @@ class DoctorBottomNav extends StatelessWidget {
         Navigator.pushReplacementNamed(context, Routes.doctorHome);
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, Routes.doctorAgenda);
+        Navigator.pushReplacementNamed(context, Routes.citas);
         break;
       case 2:
-        Navigator.pushReplacementNamed(context, Routes.doctorPacientes);
+        Navigator.pushReplacementNamed(context, Routes.pacientes);
         break;
     }
   }

@@ -21,7 +21,7 @@ class _PacientesScreenState extends State<PacientesScreen> {
 
     if (rol == 'Doctor') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        Navigator.pushReplacementNamed(context, Routes.doctorHome);
         return;
       }
       if (index == 1) {
@@ -40,23 +40,22 @@ class _PacientesScreenState extends State<PacientesScreen> {
 
     if (rol == 'Recepcionista') {
       if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionCitas);
+        Navigator.pushReplacementNamed(context, Routes.citas);
         return;
       }
       if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionPacientes);
         return;
       }
       if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionEspecialidades);
+        Navigator.pushReplacementNamed(context, Routes.especialidades);
         return;
       }
       if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionDoctores);
+        Navigator.pushReplacementNamed(context, Routes.doctores);
         return;
       }
       if (index == 4) {
-        Navigator.pushReplacementNamed(context, Routes.recepcionServicios);
+        Navigator.pushReplacementNamed(context, Routes.servicios);
         return;
       }
       return;
@@ -95,7 +94,7 @@ class _PacientesScreenState extends State<PacientesScreen> {
     }
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
         BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
@@ -139,7 +138,9 @@ class _PacientesScreenState extends State<PacientesScreen> {
     final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
 
     int navIndex = 4;
-    if (rol == 'Doctor' || rol == 'Recepcionista') {
+    if (rol == 'Recepcionista') {
+      navIndex = 1;
+    } else if (rol == 'Doctor') {
       navIndex = 2;
     }
 
