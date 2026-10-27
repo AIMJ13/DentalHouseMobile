@@ -11,6 +11,7 @@ class ApiConstants {
   static const String loginEndpoint = '/Auth/login';
   static const String profileEndpoint = '/Auth/profile';
   static const String usersEndpoint = '/Users';
+  static const String logsEndpoint = '/Logs';
 
   static const Duration timeoutDuration = Duration(seconds: 30);
 }

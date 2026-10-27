@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'core/di/service_locator.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/log_provider.dart';
 import 'presentation/screens/Citas/citas_screen.dart';
 import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
 import 'presentation/screens/Home/home_screen.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => sl<AuthProvider>()..checkAuthStatus()),
+        ChangeNotifierProvider(create: (_) => sl<LogProvider>()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
