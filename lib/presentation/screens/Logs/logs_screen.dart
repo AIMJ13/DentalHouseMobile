@@ -62,7 +62,9 @@ class _LogsScreenState extends State<LogsScreen> {
   Widget build(BuildContext context) {
     final logProvider = context.watch<LogProvider>();
     final logs = logProvider.logs;
+    final totalPaginas = logProvider.totalPages;
     final totalRegistros = logProvider.totalRecords;
+    final paginaActual = logProvider.currentPage;
     final errorMessage = logProvider.errorMessage;
 
     return Scaffold(
@@ -78,70 +80,80 @@ class _LogsScreenState extends State<LogsScreen> {
           UserBadge(),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildEncabezado(),
-            const SizedBox(height: 16),
-            _buildPanelFiltros(logProvider),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 80.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'HISTORIAL DE AUDITORÍA',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '$totalRegistros registros',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[700],
+                _buildEncabezado(),
+                const SizedBox(height: 16),
+                _buildPanelFiltros(logProvider),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'HISTORIAL DE AUDITORÍA',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
                     ),
-                  ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$totalRegistros registros',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
+                if (logProvider.viewStatus == ViewStatus.loading)
+                  const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: LoadingView(message: 'Cargando registros de auditoría...'),
+                  )
+                else if (logProvider.viewStatus == ViewStatus.error && logs.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: ErrorView(
+                      message: errorMessage ?? 'Error al cargar registros de auditoría',
+                      onRetry: () => logProvider.fetchLogs(),
+                    ),
+                  )
+                else if (logs.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'No se encontraron registros de eventos.',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    ),
+                  )
+                else
+                  for (var log in logs) _buildLogCard(log),
               ],
             ),
-            const SizedBox(height: 12),
-            if (logProvider.viewStatus == ViewStatus.loading)
-              const Padding(
-                padding: EdgeInsets.all(40),
-                child: LoadingView(message: 'Cargando registros de auditoría...'),
-              )
-            else if (logProvider.viewStatus == ViewStatus.error && logs.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: ErrorView(
-                  message: errorMessage ?? 'Error al cargar registros de auditoría',
-                  onRetry: () => logProvider.fetchLogs(),
-                ),
-              )
-            else if (logs.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(24),
-                alignment: Alignment.center,
-                child: Text(
-                  'No se encontraron registros de eventos.',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                ),
-              )
-            else
-              for (var log in logs) _buildLogCard(log),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 12,
+            left: 16,
+            right: 16,
+            child: _buildPaginacionFlotante(logProvider, totalPaginas, totalRegistros, paginaActual),
+          ),
+        ],
       ),
       bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
     );
@@ -334,42 +346,6 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Widget _buildEstadoPill(String label, Color? dotColor, LogProvider logProvider) {
-    final bool seleccionado = logProvider.selectedStatus == label;
-
-    return Expanded(
-      child: InkWell(
-        onTap: () => logProvider.setStatus(label),
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: seleccionado ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: seleccionado ? Border.all(color: Colors.grey[300]!) : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (dotColor != null) ...[
-                Container(width: 6, height: 6, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
-                  color: seleccionado ? (dotColor ?? Colors.blue[700]) : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildLogCard(LogModel log) {
     final bool esFallo = !log.isSuccess;
 
@@ -534,6 +510,86 @@ class _LogsScreenState extends State<LogsScreen> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEstadoPill(String label, Color? dotColor, LogProvider logProvider) {
+    final bool seleccionado = logProvider.selectedStatus == label;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => logProvider.setStatus(label),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: seleccionado ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: seleccionado ? Border.all(color: Colors.grey[300]!) : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (dotColor != null) ...[
+                Container(width: 6, height: 6, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
+                  color: seleccionado ? (dotColor ?? Colors.blue[700]) : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBotonNav(String texto, IconData icono, bool habilitado, VoidCallback? onTap, {bool iconoIzquierda = true}) {
+    final color = habilitado ? Colors.blue[700] : Colors.grey[400];
+    return InkWell(
+      onTap: habilitado ? onTap : null,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: habilitado ? Colors.blue[50] : Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            if (iconoIzquierda) Icon(icono, size: 16, color: color),
+            Text(texto, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+            if (!iconoIzquierda) Icon(icono, size: 16, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaginacionFlotante(LogProvider logProvider, int totalPaginas, int totalRegistros, int paginaActual) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildBotonNav('Anterior', Icons.chevron_left, paginaActual > 1, () => logProvider.changePage(paginaActual - 1)),
+          Text(
+            'Pág $paginaActual de $totalPaginas ($totalRegistros)',
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+          ),
+          _buildBotonNav('Siguiente', Icons.chevron_right, paginaActual < totalPaginas, () => logProvider.changePage(paginaActual + 1), iconoIzquierda: false),
         ],
       ),
     );
