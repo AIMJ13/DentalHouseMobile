@@ -1,111 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
-import '../../widgets/menu_mas_modal.dart';
 import '../../widgets/user_badge.dart';
-import '../../../routes.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final int _currentIndex = 0;
-
-  void _onBottomNavTapped(int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-
-    if (rol == 'Doctor') {
-      if (index == 0) {
-        Navigator.pushNamed(context, Routes.doctorHome);
-        return;
-      }
-      if (index == 1) {
-        Navigator.pushNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 2) {
-        Navigator.pushNamed(context, Routes.pacientes);
-        return;
-      }
-      if (index == 3) {
-        mostrarMenuMas(context);
-        return;
-      }
-      return;
-    }
-
-    if (rol == 'Recepcionista') {
-      if (index == 0) {
-        Navigator.pushNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 1) {
-        Navigator.pushNamed(context, Routes.pacientes);
-        return;
-      }
-      if (index == 2) {
-        Navigator.pushNamed(context, Routes.especialidades);
-        return;
-      }
-      if (index == 3) {
-        Navigator.pushNamed(context, Routes.doctores);
-        return;
-      }
-      if (index == 4) {
-        Navigator.pushNamed(context, Routes.servicios);
-        return;
-      }
-      return;
-    }
-
-    if (index == 0) return;
-    if (index == 1) {
-      Navigator.pushNamed(context, Routes.servicios);
-      return;
-    }
-    if (index == 2) {
-      Navigator.pushNamed(context, Routes.ventas);
-      return;
-    }
-    if (index == 3) {
-      Navigator.pushNamed(context, Routes.citas);
-      return;
-    }
-    if (index == 4) {
-      mostrarMenuMas(context);
-    }
-  }
-
-  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
-    if (rol == 'Doctor') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-      ];
-    }
-    if (rol == 'Recepcionista') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      ];
-    }
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-    ];
-  }
 
   Widget _buildMetricaCard({
     required String titulo,
@@ -233,6 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final nombreUsuario = auth.userName.isNotEmpty ? auth.userName : 'Usuario';
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -281,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Bienvenido de nuevo, ${perfilUsuarioActual['nombre'] ?? 'Usuario'}. Aquí puedes visualizar los indicadores clave.',
+              'Bienvenido de nuevo, $nombreUsuario. Aquí puedes visualizar los indicadores clave.',
               style: TextStyle(fontSize: 13, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
@@ -324,15 +228,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _buildMetricaCard(
                         titulo: 'Ingresos Totales',
-                        valor: metricasRendimiento['ingresos'],
-                        subtitulo: metricasRendimiento['ingresosMeta'],
+                        valor: r'C$ 0.00',
+                        subtitulo: 'Sin meta activa',
                         esBadge: true,
                       ),
                       const SizedBox(width: 12),
                       _buildMetricaCard(
                         titulo: 'Total Ventas',
-                        valor: metricasRendimiento['ventas'],
-                        subtitulo: metricasRendimiento['ventasSub'],
+                        valor: '0',
+                        subtitulo: '0 operaciones',
                       ),
                     ],
                   ),
@@ -341,14 +245,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _buildMetricaCard(
                         titulo: 'Servicios Vendidos',
-                        valor: metricasRendimiento['servicios'],
-                        subtitulo: metricasRendimiento['serviciosSub'],
+                        valor: '0',
+                        subtitulo: '0 atenciones',
                       ),
                       const SizedBox(width: 12),
                       _buildMetricaCard(
                         titulo: 'Promedio / Venta',
-                        valor: metricasRendimiento['promedio'],
-                        subtitulo: metricasRendimiento['promedioSub'],
+                        valor: r'C$ 0.00',
+                        subtitulo: '0 por venta',
                         esBadge: true,
                       ),
                     ],
@@ -402,21 +306,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _buildCuadroDestacado(
                         titulo: 'Doctor Destacado',
-                        nombre: doctoresTop.isNotEmpty ? doctoresTop[0]['nombre'] as String : 'Sin datos',
-                        valor: doctoresTop.isNotEmpty ? doctoresTop[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: doctoresTop.isNotEmpty
-                            ? '${((doctoresTop[0]['porcentaje'] as double? ?? 0.85) * 100).round()}% participación'
-                            : '0%',
+                        nombre: 'Sin datos',
+                        valor: r'C$ 0.00',
+                        subtitulo: '0% participación',
                         icono: Icons.person_outline,
                       ),
                       const SizedBox(width: 12),
                       _buildCuadroDestacado(
                         titulo: 'Servicio Top',
-                        nombre: serviciosTop.isNotEmpty ? serviciosTop[0]['nombre'] as String : 'Sin datos',
-                        valor: serviciosTop.isNotEmpty ? serviciosTop[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: serviciosTop.isNotEmpty
-                            ? '${((serviciosTop[0]['porcentaje'] as double? ?? 0.80) * 100).round()}% demanda'
-                            : '0%',
+                        nombre: 'Sin datos',
+                        valor: r'C$ 0.00',
+                        subtitulo: '0% demanda',
                         icono: Icons.medical_services_outlined,
                       ),
                     ],
@@ -426,21 +326,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _buildCuadroDestacado(
                         titulo: 'Especialidad Principal',
-                        nombre: especialidadesTop.isNotEmpty ? especialidadesTop[0]['nombre'] as String : 'Sin datos',
-                        valor: especialidadesTop.isNotEmpty ? especialidadesTop[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: especialidadesTop.isNotEmpty
-                            ? '${((especialidadesTop[0]['porcentaje'] as double? ?? 0.75) * 100).round()}% facturación'
-                            : '0%',
+                        nombre: 'Sin datos',
+                        valor: r'C$ 0.00',
+                        subtitulo: '0% facturación',
                         icono: Icons.bookmark_outline,
                       ),
                       const SizedBox(width: 12),
                       _buildCuadroDestacado(
                         titulo: 'Ingreso Mensual',
-                        nombre: ingresosMensuales.isNotEmpty ? ingresosMensuales[0]['mes'] as String : 'Sin datos',
-                        valor: ingresosMensuales.isNotEmpty ? ingresosMensuales[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: ingresosMensuales.isNotEmpty
-                            ? '${((ingresosMensuales[0]['porcentaje'] as double? ?? 0.90) * 100).round()}% meta'
-                            : '0%',
+                        nombre: 'Sin datos',
+                        valor: r'C$ 0.00',
+                        subtitulo: '0% meta',
                         icono: Icons.calendar_today_outlined,
                       ),
                     ],
@@ -470,78 +366,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  for (var cita in ultimasCitas)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Column(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    cita['paciente'],
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green[50],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      cita['estado'],
-                                      style: TextStyle(fontSize: 10, color: Colors.green[700], fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                cita['servicio'],
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
+                          Icon(Icons.event_busy_outlined, size: 36, color: Colors.grey[400]),
+                          const SizedBox(height: 8),
                           Text(
-                            cita['monto'],
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                            'No hay citas registradas recientemente',
+                            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                           ),
                         ],
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onBottomNavTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue[700],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(perfilUsuarioActual['rol'] as String? ?? 'Administrador'),
-        ),
-      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
 }
