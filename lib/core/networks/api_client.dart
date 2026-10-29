@@ -2,13 +2,16 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../../data/repositories/token_repository.dart';
 import '../constant/api_constants.dart';
 import '../errors/app_exceptions.dart';
 
 class ApiClient {
   final http.Client _client;
+  final TokenRepository? tokenRepository;
 
-  ApiClient({http.Client? client}) : _client = client ?? http.Client();
+  ApiClient({http.Client? client, this.tokenRepository})
+      : _client = client ?? http.Client();
 
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(method: 'GET', path: path, query: query);
@@ -40,6 +43,14 @@ class ApiClient {
     if (body != null) {
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(body);
+    }
+
+    final repo = tokenRepository;
+    if (repo != null) {
+      final token = await repo.getToken();
+      if (token != null && token.accessToken.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer ${token.accessToken}';
+      }
     }
 
     if (customHeaders != null) {
@@ -85,7 +96,7 @@ class ApiClient {
       final msg = responseBody is Map ? (responseBody['message'] ?? 'Datos no válidos') : 'Datos no válidos';
       throw ValidationException(msg.toString());
     } else if (statusCode == 401) {
-      throw const UnauthorizedException('Credenciales incorrectas');
+      throw const UnauthorizedException('Credenciales incorrectas o sesión expirada');
     } else if (statusCode == 403) {
       throw const ForbiddenException('Acceso denegado');
     } else if (statusCode == 404) {
