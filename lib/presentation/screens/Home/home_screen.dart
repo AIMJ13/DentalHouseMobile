@@ -1,5 +1,9 @@
+
 import 'package:flutter/material.dart';
+
 import '../../../data/dashboard_data.dart';
+import '../../../core/di/service_locator.dart';
+import '../../../services/sales_service.dart';
 import '../../widgets/dental_logo.dart';
 import '../../widgets/menu_mas_modal.dart';
 import '../../widgets/user_badge.dart';
@@ -15,8 +19,72 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final int _currentIndex = 0;
 
+  bool _cargandoVentas = true;
+  String? _errorVentas;
+
+  double _ingresos = 0;
+  int _totalVentas = 0;
+  int _serviciosVendidos = 0;
+  double _promedioVenta = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarVentas();
+  }
+
+  Future<void> _cargarVentas() async {
+    try {
+      final sales = await sl<SalesService>().getAllSales();
+
+      double ingresos = 0;
+      int servicios = 0;
+
+      for (final venta in sales) {
+        ingresos +=
+            (num.tryParse('${venta['totalAmount']}') ?? 0).toDouble();
+
+        final detalles = venta['details'];
+
+        if (detalles is List) {
+          for (final detalle in detalles) {
+            if (detalle is Map) {
+              servicios +=
+                  (num.tryParse('${detalle['quantity']}') ?? 0).toInt();
+            }
+          }
+        }
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _ingresos = ingresos;
+        _totalVentas = sales.length;
+        _serviciosVendidos = servicios;
+        _promedioVenta =
+            sales.isEmpty ? 0 : ingresos / sales.length;
+
+        _cargandoVentas = false;
+        _errorVentas = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _cargandoVentas = false;
+        _errorVentas = 'No se pudieron cargar las ventas.';
+      });
+    }
+  }
+
+ String _formatearMoneda(double valor) {
+  return 'C\$ ${valor.toStringAsFixed(2)}';
+}
+
   void _onBottomNavTapped(int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final String rol =
+        perfilUsuarioActual['rol'] as String? ?? 'Administrador';
 
     if (rol == 'Doctor') {
       if (index == 0) {
@@ -63,18 +131,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (index == 0) return;
+
     if (index == 1) {
       Navigator.pushNamed(context, Routes.servicios);
       return;
     }
+
     if (index == 2) {
       Navigator.pushNamed(context, Routes.ventas);
       return;
     }
+
     if (index == 3) {
       Navigator.pushNamed(context, Routes.citas);
       return;
     }
+
     if (index == 4) {
       mostrarMenuMas(context);
     }
@@ -83,27 +155,71 @@ class _HomeScreenState extends State<HomeScreen> {
   List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
     if (rol == 'Doctor') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bar_chart_outlined),
+          label: 'Más',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month_outlined),
+          label: 'Citas',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people_outline),
+          label: 'Pacientes',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.more_horiz),
+          label: 'Más',
+        ),
       ];
     }
+
     if (rol == 'Recepcionista') {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month_outlined),
+          label: 'Citas',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people_outline),
+          label: 'Pacientes',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bookmark_outline),
+          label: 'Especialidades',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: 'Doctores',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings_outlined),
+          label: 'Servicios',
+        ),
       ];
     }
+
     return const [
-      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.bar_chart_outlined),
+        label: 'Resumen',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.settings_outlined),
+        label: 'Servicios',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.receipt_long_outlined),
+        label: 'Ventas',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.calendar_month_outlined),
+        label: 'Citas',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.more_horiz),
+        label: 'Más',
+      ),
     ];
   }
 
@@ -124,23 +240,52 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(titulo, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+            Text(
+              titulo,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[600],
+              ),
+            ),
             const SizedBox(height: 6),
-            Text(valor, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              valor,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
             const SizedBox(height: 6),
             esBadge
                 ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green[50],
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       subtitulo,
-                      style: TextStyle(fontSize: 10, color: Colors.green[700], fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   )
-                : Text(subtitulo, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                : Text(
+                    subtitulo,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
           ],
         ),
       ),
@@ -185,7 +330,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.blue[50],
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Icon(icono, size: 14, color: Colors.blue[700]),
+                  child: Icon(
+                    icono,
+                    size: 14,
+                    color: Colors.blue[700],
+                  ),
                 ),
               ],
             ),
@@ -207,10 +356,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[700],
               ),
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 2,
+              ),
               decoration: BoxDecoration(
                 color: Colors.green[50],
                 borderRadius: BorderRadius.circular(6),
@@ -247,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -255,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Panel Principal',
+                  'Panel principal',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -263,7 +416,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue[50],
                     borderRadius: BorderRadius.circular(12),
@@ -282,82 +438,15 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 6),
             Text(
               'Bienvenido de nuevo, ${perfilUsuarioActual['nombre'] ?? 'Usuario'}. Aquí puedes visualizar los indicadores clave.',
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+              ),
             ),
             const SizedBox(height: 16),
+
+            // Indicadores de rendimiento
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Rendimiento', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                          Text('Indicadores clave de la clínica', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.green[200]!),
-                        ),
-                        child: Text(
-                          '• Publicado',
-                          style: TextStyle(fontSize: 11, color: Colors.green[700], fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _buildMetricaCard(
-                        titulo: 'Ingresos Totales',
-                        valor: metricasRendimiento['ingresos'],
-                        subtitulo: metricasRendimiento['ingresosMeta'],
-                        esBadge: true,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildMetricaCard(
-                        titulo: 'Total Ventas',
-                        valor: metricasRendimiento['ventas'],
-                        subtitulo: metricasRendimiento['ventasSub'],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _buildMetricaCard(
-                        titulo: 'Servicios Vendidos',
-                        valor: metricasRendimiento['servicios'],
-                        subtitulo: metricasRendimiento['serviciosSub'],
-                      ),
-                      const SizedBox(width: 12),
-                      _buildMetricaCard(
-                        titulo: 'Promedio / Venta',
-                        valor: metricasRendimiento['promedio'],
-                        subtitulo: metricasRendimiento['promedioSub'],
-                        esBadge: true,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -374,25 +463,50 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Estadísticas y Destacados',
-                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                            'Rendimiento',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
-                            'Resumen de especialidades, doctores y servicios',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            'Indicadores clave de la clínica',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: _errorVentas == null
+                              ? Colors.green[50]
+                              : Colors.orange[50],
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.blue[200]!),
+                          border: Border.all(
+                            color: _errorVentas == null
+                                ? Colors.green[200]!
+                                : Colors.orange[200]!,
+                          ),
                         ),
                         child: Text(
-                          '• Métricas',
-                          style: TextStyle(fontSize: 11, color: Colors.blue[700], fontWeight: FontWeight.bold),
+                          _cargandoVentas
+                              ? 'Cargando'
+                              : _errorVentas != null
+                                  ? 'Sin conexión'
+                                  : 'API conectada',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: _errorVentas == null
+                                ? Colors.green[700]
+                                : Colors.orange[700],
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -400,54 +514,99 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      _buildCuadroDestacado(
-                        titulo: 'Doctor Destacado',
-                        nombre: doctoresTop.isNotEmpty ? doctoresTop[0]['nombre'] as String : 'Sin datos',
-                        valor: doctoresTop.isNotEmpty ? doctoresTop[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: doctoresTop.isNotEmpty
-                            ? '${((doctoresTop[0]['porcentaje'] as double? ?? 0.85) * 100).round()}% participación'
-                            : '0%',
-                        icono: Icons.person_outline,
+                      _buildMetricaCard(
+                        titulo: 'Ingresos totales',
+                        valor: _cargandoVentas
+                            ? 'Cargando...'
+                            : _errorVentas != null
+                                ? 'No disponible'
+                                : _formatearMoneda(_ingresos),
+                        subtitulo: _cargandoVentas
+                            ? 'Consultando API'
+                            : _errorVentas != null
+                                ? 'Error de conexión'
+                                : 'Ingresos registrados',
+                        esBadge: true,
                       ),
                       const SizedBox(width: 12),
-                      _buildCuadroDestacado(
-                        titulo: 'Servicio Top',
-                        nombre: serviciosTop.isNotEmpty ? serviciosTop[0]['nombre'] as String : 'Sin datos',
-                        valor: serviciosTop.isNotEmpty ? serviciosTop[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: serviciosTop.isNotEmpty
-                            ? '${((serviciosTop[0]['porcentaje'] as double? ?? 0.80) * 100).round()}% demanda'
-                            : '0%',
-                        icono: Icons.medical_services_outlined,
+                      _buildMetricaCard(
+                        titulo: 'Total ventas',
+                        valor: _cargandoVentas
+                            ? '...'
+                            : _errorVentas != null
+                                ? '--'
+                                : '$_totalVentas',
+                        subtitulo: _cargandoVentas
+                            ? 'Consultando API'
+                            : _errorVentas != null
+                                ? 'No disponible'
+                                : 'Ventas registradas',
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _buildCuadroDestacado(
-                        titulo: 'Especialidad Principal',
-                        nombre: especialidadesTop.isNotEmpty ? especialidadesTop[0]['nombre'] as String : 'Sin datos',
-                        valor: especialidadesTop.isNotEmpty ? especialidadesTop[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: especialidadesTop.isNotEmpty
-                            ? '${((especialidadesTop[0]['porcentaje'] as double? ?? 0.75) * 100).round()}% facturación'
-                            : '0%',
-                        icono: Icons.bookmark_outline,
+                      _buildMetricaCard(
+                        titulo: 'Servicios vendidos',
+                        valor: _cargandoVentas
+                            ? '...'
+                            : _errorVentas != null
+                                ? '--'
+                                : '$_serviciosVendidos',
+                        subtitulo: _cargandoVentas
+                            ? 'Consultando API'
+                            : _errorVentas != null
+                                ? 'No disponible'
+                                : 'Unidades registradas',
                       ),
                       const SizedBox(width: 12),
-                      _buildCuadroDestacado(
-                        titulo: 'Ingreso Mensual',
-                        nombre: ingresosMensuales.isNotEmpty ? ingresosMensuales[0]['mes'] as String : 'Sin datos',
-                        valor: ingresosMensuales.isNotEmpty ? ingresosMensuales[0]['monto'] as String : 'C\$ 0.00',
-                        subtitulo: ingresosMensuales.isNotEmpty
-                            ? '${((ingresosMensuales[0]['porcentaje'] as double? ?? 0.90) * 100).round()}% meta'
-                            : '0%',
-                        icono: Icons.calendar_today_outlined,
+                      _buildMetricaCard(
+                        titulo: 'Promedio / venta',
+                        valor: _cargandoVentas
+                            ? 'Cargando...'
+                            : _errorVentas != null
+                                ? 'No disponible'
+                                : _formatearMoneda(_promedioVenta),
+                        subtitulo: _cargandoVentas
+                            ? 'Consultando API'
+                            : _errorVentas != null
+                                ? 'No disponible'
+                                : 'Promedio registrado',
+                        esBadge: true,
                       ),
                     ],
                   ),
+                  if (_errorVentas != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _errorVentas!,
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontSize: 12,
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _cargandoVentas = true;
+                            _errorVentas = null;
+                          });
+                          _cargarVentas();
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Reintentar'),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
+
+            // Estadísticas y destacados.
+            // Estos apartados siguen usando los datos locales existentes.
             Container(
               margin: const EdgeInsets.only(top: 16),
               padding: const EdgeInsets.all(16),
@@ -462,15 +621,153 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'ÚLTIMAS CITAS ATENDIDAS',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Estadísticas y destacados',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Resumen de especialidades, doctores y servicios',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      Text('Actividad reciente', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.blue[200]!),
+                        ),
+                        child: Text(
+                          'Métricas',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.blue[700],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _buildCuadroDestacado(
+                        titulo: 'Doctor destacado',
+                        nombre: doctoresTop.isNotEmpty
+                            ? doctoresTop[0]['nombre'] as String
+                            : 'Sin datos',
+                        valor: doctoresTop.isNotEmpty
+                            ? doctoresTop[0]['monto'] as String
+                            : 'C\$ 0.00',
+                        subtitulo: doctoresTop.isNotEmpty
+                            ? '${((doctoresTop[0]['porcentaje'] as num? ?? 0.85) * 100).round()}% participación'
+                            : '0%',
+                        icono: Icons.person_outline,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildCuadroDestacado(
+                        titulo: 'Servicio destacado',
+                        nombre: serviciosTop.isNotEmpty
+                            ? serviciosTop[0]['nombre'] as String
+                            : 'Sin datos',
+                        valor: serviciosTop.isNotEmpty
+                            ? serviciosTop[0]['monto'] as String
+                            : 'C\$ 0.00',
+                        subtitulo: serviciosTop.isNotEmpty
+                            ? '${((serviciosTop[0]['porcentaje'] as num? ?? 0.80) * 100).round()}% demanda'
+                            : '0%',
+                        icono: Icons.medical_services_outlined,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  for (var cita in ultimasCitas)
+                  Row(
+                    children: [
+                      _buildCuadroDestacado(
+                        titulo: 'Especialidad principal',
+                        nombre: especialidadesTop.isNotEmpty
+                            ? especialidadesTop[0]['nombre'] as String
+                            : 'Sin datos',
+                        valor: especialidadesTop.isNotEmpty
+                            ? especialidadesTop[0]['monto'] as String
+                            : 'C\$ 0.00',
+                        subtitulo: especialidadesTop.isNotEmpty
+                            ? '${((especialidadesTop[0]['porcentaje'] as num? ?? 0.75) * 100).round()}% facturación'
+                            : '0%',
+                        icono: Icons.bookmark_outline,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildCuadroDestacado(
+                        titulo: 'Ingreso mensual',
+                        nombre: ingresosMensuales.isNotEmpty
+                            ? ingresosMensuales[0]['mes'] as String
+                            : 'Sin datos',
+                        valor: ingresosMensuales.isNotEmpty
+                            ? ingresosMensuales[0]['monto'] as String
+                            : 'C\$ 0.00',
+                        subtitulo: ingresosMensuales.isNotEmpty
+                            ? '${((ingresosMensuales[0]['porcentaje'] as num? ?? 0.90) * 100).round()}% meta'
+                            : '0%',
+                        icono: Icons.calendar_today_outlined,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Últimas citas: datos locales hasta integrar el endpoint de citas.
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Últimas citas atendidas',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Actividad reciente',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  for (final cita in ultimasCitas)
                     Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(12),
@@ -480,41 +777,63 @@ class _HomeScreenState extends State<HomeScreen> {
                         border: Border.all(color: Colors.grey[200]!),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    cita['paciente'],
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green[50],
-                                      borderRadius: BorderRadius.circular(12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  crossAxisAlignment:
+                                      WrapCrossAlignment.center,
+                                  children: [
+                                    Text(
+                                      cita['paciente'] as String,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                    child: Text(
-                                      cita['estado'],
-                                      style: TextStyle(fontSize: 10, color: Colors.green[700], fontWeight: FontWeight.bold),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        cita['estado'] as String,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.green[700],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  cita['servicio'] as String,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                cita['servicio'],
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Text(
-                            cita['monto'],
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                            cita['monto'] as String,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[700],
+                            ),
                           ),
                         ],
                       ),
@@ -537,9 +856,14 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: Colors.blue[700],
           unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+          selectedLabelStyle: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(perfilUsuarioActual['rol'] as String? ?? 'Administrador'),
+          items: _obtenerItemsNavegacion(
+            perfilUsuarioActual['rol'] as String? ?? 'Administrador',
+          ),
         ),
       ),
     );

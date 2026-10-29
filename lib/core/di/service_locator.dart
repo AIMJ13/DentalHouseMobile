@@ -10,6 +10,8 @@ import '../../services/log_service.dart';
 import '../../services/user_service.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/providers/log_provider.dart';
+import '../../data/repositories/sales_repository.dart';
+import '../../services/sales_service.dart';
 
 final sl = GetIt.instance;
 
@@ -30,4 +32,10 @@ Future<void> setupServiceLocator() async {
 
   sl.registerFactory<AuthProvider>(() => AuthProvider(sl<AuthService>(), sl<TokenRepository>()));
   sl.registerFactory<LogProvider>(() => LogProvider(sl<LogService>()));
+
+  sl.registerLazySingleton<SalesRepository>(
+  () => SalesRepository(sl<ApiClient>()));
+
+sl.registerLazySingleton<SalesService>(
+  () => SalesService(sl<SalesRepository>()));
 }
