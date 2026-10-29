@@ -2,12 +2,14 @@ class UserModel {
   final int id;
   final String userName;
   final String email;
+  final bool state;
   final List<String> roles;
 
   UserModel({
     required this.id,
     required this.userName,
     required this.email,
+    this.state = true,
     required this.roles,
   });
 
@@ -16,7 +18,12 @@ class UserModel {
       id: json['id'] ?? 0,
       userName: json['userName'] ?? '',
       email: json['email'] ?? '',
-      roles: (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      state: json['state'] ?? true,
+      roles:
+          (json['roles'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
     );
   }
 
@@ -25,6 +32,7 @@ class UserModel {
       'id': id,
       'userName': userName,
       'email': email,
+      'state': state,
       'roles': roles,
     };
   }
