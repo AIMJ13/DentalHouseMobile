@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import '../../presentation/providers/user_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../networks/api_client.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -30,4 +31,5 @@ Future<void> setupServiceLocator() async {
 
   sl.registerFactory<AuthProvider>(() => AuthProvider(sl<AuthService>(), sl<TokenRepository>()));
   sl.registerFactory<LogProvider>(() => LogProvider(sl<LogService>()));
+    sl.registerFactory<UserProvider>(() => UserProvider(sl<UserService>()));
 }
