@@ -40,4 +40,17 @@ class UserRepository {
   Future<void> setState(int id, bool state) async {
     await client.patch('${ApiConstants.usersEndpoint}/$id/state?state=$state');
   }
+    Future<void> changePassword(String currentPassword, String newPassword) async {
+    await client.post(
+      ApiConstants.changePasswordEndpoint,
+      body: {'currentPassword': currentPassword, 'newPassword': newPassword},
+    );
+  }
+
+  Future<void> resetPassword(int id, String newPassword) async {
+    await client.post(
+      '${ApiConstants.usersEndpoint}/$id/reset-password',
+      body: {'newPassword': newPassword},
+    );
+  }
 }

@@ -83,4 +83,15 @@ class UserProvider extends ChangeNotifier {
     _roleFilter = filtro;
     notifyListeners();
   }
+  
+    Future<String?> changePassword(String actual, String nueva, String confirmar) async {
+    try {
+      await _service.changePassword(actual, nueva, confirmar);
+      return null;
+    } on AppException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'No se pudo cambiar la contraseña';
+    }
+  }
 }
