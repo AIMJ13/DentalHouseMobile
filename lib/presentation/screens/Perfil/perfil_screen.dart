@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../data/dashboard_data.dart';
 import '../../widgets/custom_bottom_nav.dart';
@@ -79,26 +80,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  void _cambiarClave() {
-    final actual = _claveActualController.text.trim();
-    final nueva = _claveNuevaController.text.trim();
-    final confirmar = _claveConfirmarController.text.trim();
+  Future<void> _cambiarClave() async {
+    final error = await context.read<UserProvider>().changePassword(
+          _claveActualController.text,
+          _claveNuevaController.text,
+          _claveConfirmarController.text,
+        );
+    if (!mounted) return;
 
-    if (actual.isEmpty || nueva.isEmpty || confirmar.isEmpty) {
+    if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa todos los campos de contraseña'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-    if (nueva != confirmar) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La nueva contraseña y la confirmación no coinciden'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-    if (nueva.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La contraseña debe tener al menos 6 caracteres'), backgroundColor: Colors.red),
+        SnackBar(content: Text(error), backgroundColor: Colors.red),
       );
       return;
     }
@@ -111,7 +103,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
       const SnackBar(content: Text('Contraseña actualizada con éxito'), backgroundColor: Colors.green),
     );
   }
-
   List<Map<String, dynamic>> _obtenerUsuariosFiltrados() {
     final query = _busquedaUsuarioController.text.trim().toLowerCase();
     List<Map<String, dynamic>> resultado = [];
