@@ -7,9 +7,11 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/log_repository.dart';
 import '../../data/repositories/token_repository.dart';
 import '../../data/repositories/user_repository.dart';
+import '../../data/repositories/service_repository.dart';
 import '../../services/auth_service.dart';
 import '../../services/log_service.dart';
 import '../../services/user_service.dart';
+import '../../services/service_service.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/providers/log_provider.dart';
 import '../../presentation/providers/user_provider.dart';
@@ -36,6 +38,9 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<LogRepository>(
     () => LogRepository(sl<ApiClient>()),
   );
+  sl.registerLazySingleton<ServiceRepository>(
+    () => ServiceRepository(sl<ApiClient>()),
+  );
 
   sl.registerLazySingleton<AuthService>(
     () => AuthService(sl<AuthRepository>()),
@@ -45,6 +50,9 @@ Future<void> setupServiceLocator() async {
   );
   sl.registerLazySingleton<LogService>(
     () => LogService(sl<LogRepository>()),
+  );
+  sl.registerLazySingleton<ServiceService>(
+    () => ServiceService(sl<ServiceRepository>()),
   );
 
   sl.registerFactory<AuthProvider>(
