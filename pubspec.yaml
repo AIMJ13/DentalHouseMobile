@@ -64,6 +64,7 @@ flutter:
 
   assets:
     - .env
+    - Asset/Images/
 
   fonts:
     - family: Outfit
