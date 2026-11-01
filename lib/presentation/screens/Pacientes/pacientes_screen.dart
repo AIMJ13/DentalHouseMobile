@@ -396,7 +396,7 @@ class _PacientesScreenState extends State<PacientesScreen> {
                 address: direccion,
                 birthDate: fechaNacimiento,
                 state: activo,
-                
+                previousState: paciente.isActive,
               );
             } else {
               exito = await provider.createPatient(

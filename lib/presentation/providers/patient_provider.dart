@@ -71,7 +71,6 @@ class PatientProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
   Future<bool> createPatient({
     required String firstName,
     required String lastName,
@@ -111,6 +110,7 @@ class PatientProvider extends ChangeNotifier {
     required String address,
     required String birthDate,
     required bool state,
+    bool? previousState,
   }) async {
     _errorMessage = null;
     try {
@@ -123,6 +123,11 @@ class PatientProvider extends ChangeNotifier {
         birthDate: birthDate,
         state: state,
       );
+
+      if (previousState == null || state != previousState) {
+        await _service.setState(id, state);
+      }
+
       await fetchPatients();
       return true;
     } on AppException catch (e) {
