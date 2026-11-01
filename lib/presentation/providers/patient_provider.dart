@@ -66,6 +66,11 @@ class PatientProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearSearch() {
+    _searchTerm = '';
+    notifyListeners();
+  }
+
 
   Future<bool> createPatient({
     required String firstName,

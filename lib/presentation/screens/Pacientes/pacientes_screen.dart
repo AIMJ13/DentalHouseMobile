@@ -27,7 +27,10 @@ class _PacientesScreenState extends State<PacientesScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<PatientProvider>().fetchPatients();
+        final provider = context.read<PatientProvider>();
+        provider.clearSearch();
+        _searchController.clear();
+        provider.fetchPatients();
       }
     });
   }
