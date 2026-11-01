@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors/app_exceptions.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/custom_bottom_modal.dart';
 import '../../widgets/custom_text_field.dart';
@@ -9,7 +10,9 @@ class ServicioModal extends StatefulWidget {
   final String? nombre;
   final String? costo;
   final bool activo;
-  final void Function(String nombre, String costo, bool activo)? onGuardar;
+
+  final Future<void> Function(String nombre, String costo, bool activo)?
+      onGuardar;
 
   const ServicioModal({
     super.key,
@@ -27,17 +30,20 @@ class ServicioModal extends StatefulWidget {
 class _ServicioModalState extends State<ServicioModal> {
   late final TextEditingController _nombreController;
   late final TextEditingController _costoController;
+
   late bool _esActivo;
-  bool _confirmadoDesactivar = false;
-  bool _confirmadoActivar = false;
+  bool _guardando = false;
 
   @override
   void initState() {
     super.initState();
+
     _nombreController = TextEditingController(text: widget.nombre ?? '');
-    String costoInicial = widget.costo ?? '';
-    costoInicial = costoInicial.replaceAll('C\$', '').trim();
-    _costoController = TextEditingController(text: costoInicial);
+
+    _costoController = TextEditingController(
+      text: (widget.costo ?? '').replaceAll('C\$', '').trim(),
+    );
+
     _esActivo = widget.activo;
   }
 
@@ -48,170 +54,140 @@ class _ServicioModalState extends State<ServicioModal> {
     super.dispose();
   }
 
+  Future<void> _cambiarEstado(bool nuevoEstado) async {
+    if (nuevoEstado == _esActivo) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return ConfirmDialog(
+          titulo: nuevoEstado ? 'Activar servicio' : 'Desactivar servicio',
+          subtitulo: nuevoEstado
+              ? 'Confirmación de activación'
+              : 'Confirmación de desactivación',
+          advertencia: nuevoEstado
+              ? 'El servicio estará disponible para su utilización.'
+              : 'El servicio dejará de estar disponible.',
+          contenido: Text(
+            nuevoEstado
+                ? '¿Deseás activar este servicio?'
+                : '¿Deseás desactivar este servicio?',
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+          textoConfirmar: nuevoEstado ? 'Activar' : 'Desactivar',
+          icono: nuevoEstado
+              ? Icons.check_circle_outline
+              : Icons.warning_amber_rounded,
+          colorIcono: nuevoEstado ? Colors.green : Colors.red,
+          colorBotonConfirmar: nuevoEstado ? Colors.green : Colors.red,
+          onConfirmar: () {
+            if (!mounted) return;
+
+            setState(() {
+              _esActivo = nuevoEstado;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _guardarServicio() async {
+    if (_guardando) return;
+
+    final nombre = _nombreController.text;
+    var costo = _costoController.text.trim();
+
+    if (costo.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Completá el costo del servicio.')),
+      );
+      return;
+    }
+
+    if (!costo.startsWith('C\$')) {
+      costo = 'C\$ $costo';
+    }
+
+    setState(() {
+      _guardando = true;
+    });
+
+    try {
+      await widget.onGuardar?.call(nombre, costo, _esActivo);
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      final mensaje = e is AppException
+          ? e.message
+          : 'No se pudo guardar el servicio. Verificá la conexión e intentá nuevamente.';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(mensaje),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _guardando = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomBottomModal(
-      icono: widget.id == null ? Icons.add_circle_outline : Icons.edit_outlined,
-      titulo: widget.id == null ? 'Añadir Servicio' : 'Editar Servicio',
-      badgeTexto: widget.id ?? 'NUEVO',
+      icono: widget.id == null
+          ? Icons.add_business_outlined
+          : Icons.edit_outlined,
+      titulo: widget.id == null ? 'Nuevo servicio' : 'Editar servicio',
+      badgeTexto: widget.id == null ? 'Nuevo' : 'Edición',
       subtitulo: widget.id == null
-          ? 'Ingresa los datos del nuevo servicio clínico.'
-          : 'Modifica la información y estado del servicio clínico.',
-      textoConfirmar: 'Guardar',
-      onConfirmar: () {
-        final nombre = _nombreController.text.trim();
-        var costo = _costoController.text.trim();
-        if (nombre.isEmpty || costo.isEmpty) return;
-        if (!costo.startsWith('C\$')) {
-          costo = 'C\$ $costo';
-        }
-        Navigator.pop(context);
-        if (widget.onGuardar != null) {
-          widget.onGuardar!(nombre, costo, _esActivo);
-        }
-      },
+          ? 'Registrá un nuevo servicio odontológico'
+          : 'Modificá la información del servicio',
       contenido: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Nombre del Servicio',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
-              ),
-              Text(
-                '*Requerido',
-                style: TextStyle(fontSize: 11, color: Colors.red),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
           CustomTextField(
-            hintText: 'Ej. Ortodoncia Correctiva',
             controller: _nombreController,
+            label: 'Nombre del servicio',
+            hintText: 'Ingrese el nombre del servicio',
           ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Costo del Servicio (Córdobas)',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
-              ),
-              Text(
-                '*Requerido',
-                style: TextStyle(fontSize: 11, color: Colors.red),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 16),
           CustomTextField(
-            hintText: '0.00',
             controller: _costoController,
+            label: 'Costo',
+            hintText: 'Ingrese el costo del servicio',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             prefixIcon: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              child: Text(
-                'C\$',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 14),
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  'C\$',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            widget.id == null ? 'Estado inicial' : 'Estado',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
-          ),
-          const SizedBox(height: 6),
-          EstadoToggle(
-            valor: _esActivo,
-            onChanged: (val) {
-              if (widget.id == null) {
-                setState(() => _esActivo = val);
-                return;
-              }
-              if (!val) {
-                if (!_confirmadoDesactivar) {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => ConfirmDialog(
-                      titulo: '¿Desactivar Servicio?',
-                      subtitulo: 'Confirmar cambio de estado',
-                      icono: Icons.warning_amber_rounded,
-                      colorIcono: Colors.red[600],
-                      colorFondoIcono: Colors.red[50],
-                      colorAdvertencia: Colors.red[800],
-                      colorFondoAdvertencia: Colors.red[50],
-                      colorBotonConfirmar: Colors.red[500],
-                      textoConfirmar: 'Sí, Desactivar',
-                      advertencia: 'El servicio pasará a estado Inactivo. No estará disponible para ser asignado a nuevas citas o consultas.',
-                      contenido: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Text(
-                          widget.nombre ?? 'Servicio',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ),
-                      onConfirmar: () {
-                        setState(() {
-                          _esActivo = false;
-                          _confirmadoDesactivar = true;
-                        });
-                      },
-                    ),
-                  );
-                } else {
-                  setState(() => _esActivo = false);
-                }
-              } else {
-                if (!_confirmadoActivar) {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => ConfirmDialog(
-                      titulo: '¿Activar Servicio?',
-                      subtitulo: 'Confirmar reactivación de servicio',
-                      icono: Icons.check_circle_outline,
-                      colorIcono: Colors.teal[700],
-                      colorFondoIcono: Colors.teal[50],
-                      colorAdvertencia: Colors.teal[800],
-                      colorFondoAdvertencia: Colors.teal[50],
-                      colorBotonConfirmar: Colors.teal[700],
-                      textoConfirmar: 'Sí, Activar',
-                      advertencia: 'El servicio pasará a estado Activo. Estará disponible para citas y ventas clínicas.',
-                      contenido: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Text(
-                          widget.nombre ?? 'Servicio',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ),
-                      onConfirmar: () {
-                        setState(() {
-                          _esActivo = true;
-                          _confirmadoActivar = true;
-                        });
-                      },
-                    ),
-                  );
-                } else {
-                  setState(() => _esActivo = true);
-                }
-              }
-            },
-          ),
+          const SizedBox(height: 16),
+          EstadoToggle(valor: _esActivo, onChanged: _cambiarEstado),
         ],
       ),
+      textoConfirmar: _guardando ? 'Guardando...' : 'Guardar',
+      onConfirmar: _guardarServicio,
     );
   }
 }
