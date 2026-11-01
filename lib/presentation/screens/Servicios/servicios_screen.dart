@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../../core/di/service_locator.dart';
 import '../../../data/models/service_model.dart';
-import '../../../services/service_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/service_provider.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
 import '../../widgets/user_badge.dart';
@@ -20,21 +18,17 @@ class ServiciosScreen extends StatefulWidget {
 class _ServiciosScreenState extends State<ServiciosScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final ServiceService _serviceService = sl<ServiceService>();
-
-  List<ServiceModel> _servicios = [];
-
-  String _filtroSeleccionado = 'Todos';
-
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos'];
-
-  bool _cargando = true;
-  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _cargarServicios();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ServiceProvider>().fetchServices();
+      }
+    });
   }
 
   @override
@@ -42,66 +36,6 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     _searchController.dispose();
     super.dispose();
   }
-
-  Future<void> _cargarServicios() async {
-    if (!mounted) return;
-
-    setState(() {
-      _cargando = true;
-      _error = null;
-    });
-
-    try {
-      final servicios = await _serviceService.getServices();
-
-      if (!mounted) return;
-
-      setState(() {
-        _servicios = servicios;
-        _cargando = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _cargando = false;
-        _error =
-            'No se pudieron cargar los servicios. Revisá tu conexión e intentá nuevamente.';
-      });
-    }
-  }
-
-  List<ServiceModel> _obtenerServiciosFiltrados() {
-    final query = _searchController.text.toLowerCase().trim();
-
-    return _servicios.where((servicio) {
-      final nombre = servicio.serviceName.toLowerCase();
-      final id = servicio.serviceId.toString();
-
-      final coincideBusqueda =
-          query.isEmpty || nombre.contains(query) || id.contains(query);
-
-      if (!coincideBusqueda) return false;
-
-      if (_filtroSeleccionado == 'Activos' && !servicio.state) {
-        return false;
-      }
-
-      if (_filtroSeleccionado == 'Inactivos' && servicio.state) {
-        return false;
-      }
-
-      return true;
-    }).toList();
-  }
-
-  int get _totalServicios => _servicios.length;
-
-  int get _totalActivos =>
-      _servicios.where((servicio) => servicio.state).length;
-
-  int get _totalInactivos =>
-      _servicios.where((servicio) => !servicio.state).length;
 
   String _normalizarCosto(String costo) {
     return costo.replaceFirst(RegExp(r'^C\$\s*'), '').trim();
@@ -114,30 +48,24 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     required bool activo,
     required bool estadoAnterior,
   }) async {
+    final serviceProvider = context.read<ServiceProvider>();
     final costoApi = _normalizarCosto(costo);
 
     if (id != null) {
-      final serviceId = int.parse(id);
-
-      await _serviceService.updateService(
-        id: serviceId,
+      await serviceProvider.updateService(
+        id: int.parse(id),
         serviceName: nombre,
         cost: costoApi,
-        state: estadoAnterior,
+        state: activo,
+        previousState: estadoAnterior,
       );
-
-      if (activo != estadoAnterior) {
-        await _serviceService.setState(serviceId, activo);
-      }
     } else {
-      await _serviceService.createService(
+      await serviceProvider.createService(
         serviceName: nombre,
         cost: costoApi,
         state: activo,
       );
     }
-
-    await _cargarServicios();
   }
 
   void _abrirModalServicio({
@@ -176,6 +104,8 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     ).currentRole;
 
     final bool esAdmin = rol == 'Administrador';
+    final serviceProvider = context.watch<ServiceProvider>();
+    final servicios = serviceProvider.services;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -189,7 +119,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
         actions: const [UserBadge()],
       ),
       body: RefreshIndicator(
-        onRefresh: _cargarServicios,
+        onRefresh: serviceProvider.fetchServices,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
@@ -211,29 +141,34 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
 
               const SizedBox(height: 16),
 
-              _buildTituloCatalogo(),
+              _buildTituloCatalogo(servicios.length),
 
               const SizedBox(height: 12),
 
-              if (_cargando)
+              if (serviceProvider.isLoading)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 40),
                   child: Center(child: CircularProgressIndicator()),
                 )
-              else if (_error != null)
-                _buildError()
-              else if (_obtenerServiciosFiltrados().isEmpty)
+              else if (serviceProvider.errorMessage != null)
+                _buildError(serviceProvider.errorMessage!)
+              else if (servicios.isEmpty)
                 _buildSinResultados()
               else
-                for (final servicio in _obtenerServiciosFiltrados())
-                  _buildServicioCard(servicio: servicio, esAdmin: esAdmin),
+                for (final servicio in servicios)
+                  _buildServicioCard(
+                    servicio: servicio,
+                    esAdmin: esAdmin,
+                  ),
             ],
           ),
         ),
       ),
       floatingActionButton: esAdmin
           ? FloatingActionButton(
-              onPressed: _cargando ? null : () => _abrirModalServicio(),
+              onPressed: serviceProvider.isLoading
+                  ? null
+                  : () => _abrirModalServicio(),
               backgroundColor: Colors.blue[700],
               shape: const CircleBorder(),
               child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -297,7 +232,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (valor) {
-          setState(() {});
+          context.read<ServiceProvider>().setSearchTerm(valor);
         },
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
@@ -311,6 +246,8 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
   }
 
   Widget _buildFiltros() {
+    final serviceProvider = context.watch<ServiceProvider>();
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -320,9 +257,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 onTap: () {
-                  setState(() {
-                    _filtroSeleccionado = filtro;
-                  });
+                  serviceProvider.setFilter(filtro);
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
@@ -331,12 +266,12 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _filtroSeleccionado == filtro
+                    color: serviceProvider.selectedFilter == filtro
                         ? Colors.blue[700]
                         : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: _filtroSeleccionado == filtro
+                      color: serviceProvider.selectedFilter == filtro
                           ? Colors.blue[700]!
                           : Colors.grey[300]!,
                     ),
@@ -346,7 +281,7 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: _filtroSeleccionado == filtro
+                      color: serviceProvider.selectedFilter == filtro
                           ? Colors.white
                           : Colors.grey[700],
                     ),
@@ -360,6 +295,8 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
   }
 
   Widget _buildMetricas() {
+    final serviceProvider = context.watch<ServiceProvider>();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -370,21 +307,29 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildMetricaItem(Colors.amber[700]!, 'Total:', ' $_totalServicios'),
+          _buildMetricaItem(
+            Colors.amber[700]!,
+            'Total:',
+            ' ${serviceProvider.totalServices}',
+          ),
           _buildSeparadorVertical(),
-          _buildMetricaItem(Colors.green[600]!, 'Activos:', ' $_totalActivos'),
+          _buildMetricaItem(
+            Colors.green[600]!,
+            'Activos:',
+            ' ${serviceProvider.totalActive}',
+          ),
           _buildSeparadorVertical(),
           _buildMetricaItem(
             Colors.red[600]!,
             'Inactivos:',
-            ' $_totalInactivos',
+            ' ${serviceProvider.totalInactive}',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTituloCatalogo() {
+  Widget _buildTituloCatalogo(int cantidad) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -398,14 +343,14 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
           ),
         ),
         Text(
-          '${_obtenerServiciosFiltrados().length} mostrados',
+          '$cantidad mostrados',
           style: TextStyle(fontSize: 12, color: Colors.grey[500]),
         ),
       ],
     );
   }
 
-  Widget _buildError() {
+  Widget _buildError(String mensaje) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 35, horizontal: 12),
       child: Column(
@@ -413,13 +358,15 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
           Icon(Icons.cloud_off_outlined, size: 45, color: Colors.red[300]),
           const SizedBox(height: 12),
           Text(
-            _error!,
+            mensaje,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey[700], fontSize: 13),
           ),
           const SizedBox(height: 14),
           ElevatedButton.icon(
-            onPressed: _cargarServicios,
+            onPressed: () {
+              context.read<ServiceProvider>().fetchServices();
+            },
             icon: const Icon(Icons.refresh),
             label: const Text('Reintentar'),
           ),
@@ -450,17 +397,27 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
     return Container(height: 14, width: 1, color: Colors.grey[300]);
   }
 
-  Widget _buildMetricaItem(Color puntoColor, String etiqueta, String valor) {
+  Widget _buildMetricaItem(
+    Color puntoColor,
+    String etiqueta,
+    String valor,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 7,
           height: 7,
-          decoration: BoxDecoration(color: puntoColor, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: puntoColor,
+            shape: BoxShape.circle,
+          ),
         ),
         const SizedBox(width: 4),
-        Text(etiqueta, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+        Text(
+          etiqueta,
+          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+        ),
         Text(
           valor,
           style: const TextStyle(
@@ -486,11 +443,11 @@ class _ServiciosScreenState extends State<ServiciosScreen> {
       borderRadius: BorderRadius.circular(16),
       onTap: esAdmin
           ? () => _abrirModalServicio(
-              id: id,
-              nombre: nombre,
-              costo: costo,
-              activo: activo,
-            )
+                id: id,
+                nombre: nombre,
+                costo: costo,
+                activo: activo,
+              )
           : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),

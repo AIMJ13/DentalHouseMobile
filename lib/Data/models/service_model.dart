@@ -13,10 +13,10 @@ class ServiceModel {
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
-      serviceId: (json['serviceId'] as num).toInt(),
-      serviceName: json['serviceName'] as String,
-      cost: json['cost'].toString(),
-      state: json['state'] as bool,
+      serviceId: (json['serviceId'] as num?)?.toInt() ?? 0,
+      serviceName: json['serviceName']?.toString() ?? '',
+      cost: json['cost']?.toString() ?? '0',
+      state: json['state'] as bool? ?? false,
     );
   }
 

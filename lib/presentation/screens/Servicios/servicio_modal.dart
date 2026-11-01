@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors/app_exceptions.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/custom_bottom_modal.dart';
 import '../../widgets/custom_text_field.dart';
@@ -11,7 +12,7 @@ class ServicioModal extends StatefulWidget {
   final bool activo;
 
   final Future<void> Function(String nombre, String costo, bool activo)?
-  onGuardar;
+      onGuardar;
 
   const ServicioModal({
     super.key,
@@ -94,12 +95,12 @@ class _ServicioModalState extends State<ServicioModal> {
   Future<void> _guardarServicio() async {
     if (_guardando) return;
 
-    final nombre = _nombreController.text.trim();
+    final nombre = _nombreController.text;
     var costo = _costoController.text.trim();
 
-    if (nombre.isEmpty || costo.isEmpty) {
+    if (costo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completá todos los campos.')),
+        const SnackBar(content: Text('Completá el costo del servicio.')),
       );
       return;
     }
@@ -121,11 +122,13 @@ class _ServicioModalState extends State<ServicioModal> {
     } catch (e) {
       if (!mounted) return;
 
+      final mensaje = e is AppException
+          ? e.message
+          : 'No se pudo guardar el servicio. Verificá la conexión e intentá nuevamente.';
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No se pudo guardar el servicio. Verificá la conexión e intentá nuevamente.',
-          ),
+        SnackBar(
+          content: Text(mensaje),
           backgroundColor: Colors.red,
         ),
       );

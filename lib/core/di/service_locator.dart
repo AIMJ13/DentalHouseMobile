@@ -1,7 +1,6 @@
 
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../presentation/providers/user_provider.dart';
 import '../networks/api_client.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -15,6 +14,7 @@ import '../../services/user_service.dart';
 import '../../services/service_service.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/providers/log_provider.dart';
+import '../../presentation/providers/service_provider.dart';
 
 final sl = GetIt.instance;
 
@@ -60,5 +60,8 @@ Future<void> setupServiceLocator() async {
   );
   sl.registerFactory<UserProvider>(
     () => UserProvider(sl<UserService>()),
+  );
+    sl.registerFactory<ServiceProvider>(
+    () => ServiceProvider(sl<ServiceService>()),
   );
 }

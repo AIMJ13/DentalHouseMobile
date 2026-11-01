@@ -1,3 +1,4 @@
+import '../core/errors/app_exceptions.dart';
 import '../data/models/service_model.dart';
 import '../data/repositories/service_repository.dart';
 
@@ -6,7 +7,23 @@ class ServiceService {
 
   ServiceService(this._repository);
 
-  Future<List<ServiceModel>> getServices() {
+  String _validarNombre(String serviceName) {
+    final nombre = serviceName.trim();
+
+    final cantidadLetras = RegExp(
+      r'[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]',
+    ).allMatches(nombre).length;
+
+    if (cantidadLetras < 5) {
+      throw const ValidationException(
+        'El nombre del servicio debe contener al menos 5 letras.',
+      );
+    }
+
+    return nombre;
+  }
+
+  Future<List<ServiceModel>> getAll() {
     return _repository.getServices();
   }
 
@@ -18,10 +35,12 @@ class ServiceService {
     required String serviceName,
     required String cost,
     required bool state,
-  }) {
-    return _repository.createService(
-      serviceName: serviceName,
-      cost: cost,
+  }) async {
+    final nombreValidado = _validarNombre(serviceName);
+
+    await _repository.createService(
+      serviceName: nombreValidado,
+      cost: cost.trim(),
       state: state,
     );
   }
@@ -31,11 +50,13 @@ class ServiceService {
     required String serviceName,
     required String cost,
     required bool state,
-  }) {
-    return _repository.updateService(
+  }) async {
+    final nombreValidado = _validarNombre(serviceName);
+
+    await _repository.updateService(
       id: id,
-      serviceName: serviceName,
-      cost: cost,
+      serviceName: nombreValidado,
+      cost: cost.trim(),
       state: state,
     );
   }
