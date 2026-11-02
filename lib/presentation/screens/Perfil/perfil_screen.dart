@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../../data/dashboard_data.dart';
+import '../../../data/models/user_model.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/dental_logo.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_view.dart';
 import '../../widgets/user_badge.dart';
 import 'usuario_modal.dart';
 
@@ -22,8 +24,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
   String _filtroRol = 'Todos';
   final List<String> _filtros = ['Todos', 'Doctores', 'Recepcionistas', 'Administradores'];
 
-  late final TextEditingController _emailController;
-  late final TextEditingController _telefonoController;
   final TextEditingController _claveActualController = TextEditingController();
   final TextEditingController _claveNuevaController = TextEditingController();
   final TextEditingController _claveConfirmarController = TextEditingController();
@@ -34,50 +34,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
   bool _ocultarClaveConfirmar = true;
   bool _cambioClaveExpandido = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _emailController = TextEditingController(text: perfilUsuarioActual['email'] as String);
-    _telefonoController = TextEditingController(text: perfilUsuarioActual['telefono'] as String);
-  }
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _telefonoController.dispose();
+   
     _claveActualController.dispose();
     _claveNuevaController.dispose();
     _claveConfirmarController.dispose();
     _busquedaUsuarioController.dispose();
     super.dispose();
-  }
-
-  void _guardarContacto() {
-    final nuevoEmail = _emailController.text.trim();
-    final nuevoTelefono = _telefonoController.text.trim();
-
-    if (nuevoEmail.isEmpty || nuevoTelefono.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos de contacto'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
-    setState(() {
-      perfilUsuarioActual['email'] = nuevoEmail;
-      perfilUsuarioActual['telefono'] = nuevoTelefono;
-      for (var u in listaUsuarios) {
-        if (u['id'] == perfilUsuarioActual['id']) {
-          u['email'] = nuevoEmail;
-          u['telefono'] = nuevoTelefono;
-          break;
-        }
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Datos de contacto actualizados correctamente'), backgroundColor: Colors.green),
-    );
   }
 
   Future<void> _cambiarClave() async {
@@ -103,41 +68,34 @@ class _PerfilScreenState extends State<PerfilScreen> {
       const SnackBar(content: Text('Contraseña actualizada con éxito'), backgroundColor: Colors.green),
     );
   }
-  List<Map<String, dynamic>> _obtenerUsuariosFiltrados() {
-    final query = _busquedaUsuarioController.text.trim().toLowerCase();
-    List<Map<String, dynamic>> resultado = [];
 
-    for (var usr in listaUsuarios) {
-      final rol = usr['rol'] as String;
-      if (_filtroRol == 'Doctores' && rol != 'Doctor') continue;
-      if (_filtroRol == 'Recepcionistas' && rol != 'Recepcionista') continue;
-      if (_filtroRol == 'Administradores' && rol != 'Administrador') continue;
+ 
 
-      final nombre = (usr['nombre'] as String).toLowerCase();
-      final usuario = (usr['usuario'] as String).toLowerCase();
-      final email = (usr['email'] as String).toLowerCase();
+  void _mostrarModalUsuario(UserModel u) {
+    final Map<String, dynamic> datosModal = {
+      'id': u.id.toString(),
+      'nombre': u.userName,
+      'usuario': u.userName,
+      'rol': u.rol,
+      'email': u.email,
+      'telefono': u.phone ?? '',
+      'activo': u.state,
+    };
 
-      final coincide = query.isEmpty || nombre.contains(query) || usuario.contains(query) || email.contains(query);
-      if (!coincide) continue;
-      resultado.add(usr);
-    }
-    return resultado;
-  }
-
-  void _abrirModalUsuario(Map<String, dynamic> usr) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return UsuarioModal(
-          usuario: usr,
-          onGuardar: (nuevoActivo) {
-            setState(() {
-              usr['activo'] = nuevoActivo;
-            });
+          usuario: datosModal,
+          onGuardar: (nuevoActivo) async {
+            final ok = await context.read<UserProvider>().setUserState(u.id, nuevoActivo);
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(nuevoActivo ? 'Usuario reactivado con éxito' : 'Usuario desactivado'),
-                backgroundColor: nuevoActivo ? Colors.green[600] : Colors.red[600],
+                content: Text(ok
+                    ? (nuevoActivo ? 'Usuario reactivado con éxito' : 'Usuario desactivado')
+                    : (context.read<UserProvider>().errorMessage ?? 'No se pudo cambiar el estado')),
+                backgroundColor: ok ? (nuevoActivo ? Colors.green[600] : Colors.red[600]) : Colors.red,
               ),
             );
           },
@@ -286,7 +244,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => setState(() => _mostrarGestionUsuarios = true),
+                    onPressed: () {
+                       setState(() => _mostrarGestionUsuarios = true);
+                       context.read<UserProvider>().fetchUsers();
+                    },
                     icon: const Icon(Icons.people_outline, size: 18, color: Colors.white),
                     label: const Text(
                       'Gestión de Usuarios',
@@ -304,22 +265,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('Actualizar Datos de Contacto', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
-          child: Column(
-            children: [
-              CustomTextField(label: 'Correo Electrónico', hintText: 'admin@dentalhouse.com', controller: _emailController, prefixIcon: const Icon(Icons.email_outlined, size: 18, color: Colors.grey)),
-              const SizedBox(height: 12),
-              CustomTextField(label: 'Teléfono Personal', hintText: '+505 8888-1111', controller: _telefonoController, prefixIcon: const Icon(Icons.phone_outlined, size: 18, color: Colors.grey)),
-              const SizedBox(height: 16),
-              CustomButton(text: 'Guardar Contacto', onPressed: _guardarContacto, color: Colors.blue[700]),
-            ],
-          ),
-        ),
+        
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
@@ -385,7 +331,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   Widget _buildVistaGestionUsuarios() {
-    final usuarios = _obtenerUsuariosFiltrados();
+    final provider = context.watch<UserProvider>();
+    final usuarios = provider.users;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,7 +341,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[300]!)),
           child: TextField(
             controller: _busquedaUsuarioController,
-            onChanged: (val) => setState(() {}),
+            onChanged: (val) => context.read<UserProvider>().setSearchTerm(val),
             decoration: InputDecoration(
               prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
               hintText: 'Buscar usuario por nombre, email o rol...',
@@ -413,7 +360,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: InkWell(
-                    onTap: () => setState(() => _filtroRol = filtro),
+                      onTap: () {
+                      setState(() => _filtroRol = filtro);
+                      context.read<UserProvider>().setRoleFilter(filtro);
+                    },
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -438,19 +388,36 @@ class _PerfilScreenState extends State<PerfilScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        for (var usr in usuarios) _buildUsuarioCard(usr),
+        if (provider.isLoading)
+          const SizedBox(height: 240, child: LoadingView(message: 'Cargando usuarios...'))
+        else if (provider.hasError)
+          SizedBox(
+            height: 240,
+            child: ErrorView(
+              message: provider.errorMessage ?? 'Error al cargar usuarios',
+              onRetry: () => provider.fetchUsers(),
+            ),
+          )
+        else if (usuarios.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: Text('No hay usuarios para mostrar')),
+          )
+        else
+          for (var u in usuarios) _buildUsuarioCardReal(u),
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildUsuarioCard(Map<String, dynamic> usr) {
-    final bool activo = usr['activo'] as bool;
-    final String rol = usr['rol'] as String;
-    final String nombre = usr['nombre'] as String;
-    final String usuario = usr['usuario'] as String;
-    final String email = usr['email'] as String;
-    final String telefono = usr['telefono'] as String;
+  Widget _buildUsuarioCardReal(UserModel u) {
+    final bool activo = u.state;
+    final String rol = u.rol.isEmpty ? 'Sin rol' : u.rol;
+    final String nombre = u.userName;
+    final String email = u.email;
+    final String telefono = (u.phone == null || u.phone!.trim().isEmpty)
+        ? 'Sin teléfono registrado'
+        : u.phone!;
 
     Color rolColor = Colors.blue[700]!;
     Color rolFondo = Colors.blue[50]!;
@@ -465,7 +432,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () => _abrirModalUsuario(usr),
+      onTap: () => _mostrarModalUsuario(u),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
@@ -501,7 +468,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: rolFondo,
-                  child: Text(nombre.isNotEmpty ? nombre.substring(0, 1) : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: rolColor, fontSize: 16)),
+                  child: Text(nombre.isNotEmpty ? nombre.substring(0, 1).toUpperCase() : 'U', style: TextStyle(fontWeight: FontWeight.bold, color: rolColor, fontSize: 16)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -510,7 +477,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     children: [
                       Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
                       const SizedBox(height: 2),
-                      Text('@$usuario  •  $email', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      Text(email, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
                       const SizedBox(height: 2),
                       Row(
                         children: [
@@ -528,5 +495,5 @@ class _PerfilScreenState extends State<PerfilScreen> {
         ),
       ),
     );
-  }
+  } 
 }
