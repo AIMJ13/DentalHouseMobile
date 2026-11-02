@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
+import '../../../data/models/patient_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/log_provider.dart' show ViewStatus;
+import '../../providers/patient_provider.dart';
+import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
-import '../../widgets/menu_mas_modal.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_view.dart';
+import '../../widgets/status_badge.dart';
 import '../../widgets/user_badge.dart';
-import '../../../routes.dart';
 import 'paciente_modal.dart';
 
 class PacientesScreen extends StatefulWidget {
@@ -16,115 +22,17 @@ class PacientesScreen extends StatefulWidget {
 class _PacientesScreenState extends State<PacientesScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  void _onBottomNavTapped(BuildContext context, int index) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
-
-    if (rol == 'Doctor') {
-      if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.doctorHome);
-        return;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final provider = context.read<PatientProvider>();
+        provider.clearSearch();
+        _searchController.clear();
+        provider.fetchPatients();
       }
-      if (index == 1) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 2) {
-        return;
-      }
-      if (index == 3) {
-        mostrarMenuMas(context);
-        return;
-      }
-      return;
-    }
-
-    if (rol == 'Recepcionista') {
-      if (index == 0) {
-        Navigator.pushReplacementNamed(context, Routes.citas);
-        return;
-      }
-      if (index == 1) {
-        return;
-      }
-      if (index == 2) {
-        Navigator.pushReplacementNamed(context, Routes.especialidades);
-        return;
-      }
-      if (index == 3) {
-        Navigator.pushReplacementNamed(context, Routes.doctores);
-        return;
-      }
-      if (index == 4) {
-        Navigator.pushReplacementNamed(context, Routes.servicios);
-        return;
-      }
-      return;
-    }
-
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.home);
-      return;
-    }
-    if (index == 1) {
-      Navigator.pushReplacementNamed(context, Routes.servicios);
-      return;
-    }
-    if (index == 2) {
-      Navigator.pushReplacementNamed(context, Routes.ventas);
-      return;
-    }
-    if (index == 3) {
-      Navigator.pushReplacementNamed(context, Routes.citas);
-      return;
-    }
-    if (index == 4) {
-      mostrarMenuMas(context);
-      return;
-    }
-  }
-
-  List<BottomNavigationBarItem> _obtenerItemsNavegacion(String rol) {
-    if (rol == 'Doctor') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-      ];
-    }
-    if (rol == 'Recepcionista') {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pacientes'),
-        BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Especialidad'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Doctor'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      ];
-    }
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Resumen'),
-      BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Servicios'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-      BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Citas'),
-      BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
-    ];
-  }
-
-  List<Map<String, dynamic>> _obtenerPacientesFiltrados() {
-    final query = _searchController.text.toLowerCase().trim();
-    List<Map<String, dynamic>> filtrados = [];
-    for (var pac in listaPacientes) {
-      final nombreCompleto = '${pac['nombre']} ${pac['apellido']}'.toLowerCase();
-      final id = (pac['id'] as String).toLowerCase();
-      final telefono = (pac['telefono'] as String).toLowerCase();
-      final coincide = query.isEmpty ||
-          nombreCompleto.contains(query) ||
-          id.contains(query) ||
-          telefono.contains(query);
-      if (!coincide) continue;
-      filtrados.add(pac);
-    }
-    return filtrados;
+    });
   }
 
   @override
@@ -135,27 +43,15 @@ class _PacientesScreenState extends State<PacientesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String rol = perfilUsuarioActual['rol'] as String? ?? 'Administrador';
+    final patientProvider = context.watch<PatientProvider>();
+    final rol = context.watch<AuthProvider>().currentRole;
 
-    int navIndex = 4;
-    if (rol == 'Recepcionista') {
-      navIndex = 1;
-    } else if (rol == 'Doctor') {
-      navIndex = 2;
-    }
-
-    int total = listaPacientes.length;
-    int activos = 0;
-    int inactivos = 0;
-    for (var pac in listaPacientes) {
-      if (pac['activo'] == true) {
-        activos++;
-      } else {
-        inactivos++;
-      }
-    }
-
-    final pacientesFiltrados = _obtenerPacientesFiltrados();
+    final total = patientProvider.totalCount;
+    final activos = patientProvider.activeCount;
+    final inactivos = patientProvider.inactiveCount;
+    final pacientes = patientProvider.patients;
+    final isLoading = patientProvider.isLoading && patientProvider.totalCount == 0;
+    final isError = patientProvider.viewStatus == ViewStatus.error && patientProvider.totalCount == 0;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -170,119 +66,147 @@ class _PacientesScreenState extends State<PacientesScreen> {
           UserBadge(),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.people_alt_outlined, color: Colors.blue[700], size: 28),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Gestión de Pacientes',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Administra la información clínica y de contacto de los pacientes.',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (val) {
-                  setState(() {});
-                },
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
-                  hintText: 'Buscar paciente por nombre...',
-                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+      body: RefreshIndicator(
+        onRefresh: patientProvider.fetchPatients,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' $total'),
-                  _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.green[600]!, 'Activos:', ' $activos'),
-                  _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' $inactivos'),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.people_alt_outlined, color: Colors.blue[700], size: 28),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Gestión de Pacientes',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Administra la información clínica y de contacto de los pacientes.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'DIRECTORIO DE PACIENTES',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                    letterSpacing: 0.5,
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) {
+                    setState(() {});
+                    patientProvider.setSearchTerm(val);
+                  },
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                    hintText: 'Buscar paciente por nombre...',
+                    hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                              patientProvider.clearSearch();
+                            },
+                          )
+                        : null,
                   ),
                 ),
-                Text(
-                  '${pacientesFiltrados.length} mostrados',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (pacientesFiltrados.isEmpty)
+              ),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(32),
-                alignment: Alignment.center,
-                child: Column(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-                    const SizedBox(height: 8),
-                    Text(
-                      'No se encontraron pacientes',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    ),
+                    _buildMetricaItem(Colors.amber[700]!, 'Total:', ' $total'),
+                    _buildSeparadorVertical(),
+                    _buildMetricaItem(Colors.green[600]!, 'Activos:', ' $activos'),
+                    _buildSeparadorVertical(),
+                    _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' $inactivos'),
                   ],
                 ),
               ),
-            if (pacientesFiltrados.isNotEmpty)
-              for (var pac in pacientesFiltrados)
-                _buildPacienteCard(pac),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'DIRECTORIO DE PACIENTES',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Text(
+                    '${pacientes.length} mostrados',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: LoadingView(message: 'Cargando pacientes desde el servidor...'),
+                )
+              else if (isError)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: ErrorView(
+                    message: patientProvider.errorMessage ?? 'Error al conectar con la API de pacientes',
+                    onRetry: () => patientProvider.fetchPatients(),
+                  ),
+                )
+              else if (pacientes.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No se encontraron pacientes',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                for (var pac in pacientes)
+                  _buildPacienteCard(pac),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -291,22 +215,12 @@ class _PacientesScreenState extends State<PacientesScreen> {
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: navIndex,
-          onTap: (index) => _onBottomNavTapped(context, index),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue[700],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: _obtenerItemsNavegacion(rol),
-        ),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: (rol == 'Recepcionista')
+            ? 1
+            : (rol == 'Doctor')
+                ? 2
+                : 4,
       ),
     );
   }
@@ -362,52 +276,23 @@ class _PacientesScreenState extends State<PacientesScreen> {
     );
   }
 
-  Widget _buildBadgeEstado(bool activo) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: activo ? Colors.green[50] : Colors.red[50],
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: activo ? Colors.green[600] : Colors.red[600],
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            activo ? 'Activo' : 'Inactivo',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: activo ? Colors.green[700] : Colors.red[700],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBadgesHeader(String id, bool activo) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildBadgeId(id),
-        _buildBadgeEstado(activo),
+        StatusBadge(
+          text: activo ? 'Activo' : 'Inactivo',
+          type: activo ? StatusType.success : StatusType.danger,
+        ),
       ],
     );
   }
 
-  Widget _buildAvatarPaciente(bool activo, {double tamano = 44, double iconoTamano = 24}) {
+  Widget _buildAvatarPaciente(bool activo) {
     return Container(
-      width: tamano,
-      height: tamano,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         color: activo ? Colors.blue[50] : Colors.red[50],
         shape: BoxShape.circle,
@@ -416,20 +301,19 @@ class _PacientesScreenState extends State<PacientesScreen> {
         child: Icon(
           Icons.person_outline,
           color: activo ? Colors.blue[600] : Colors.red[400],
-          size: iconoTamano,
+          size: 24,
         ),
       ),
     );
   }
 
-  Widget _buildPacienteCard(Map<String, dynamic> paciente) {
-    final id = paciente['id'] as String;
-    final nombre = paciente['nombre'] as String;
-    final apellido = paciente['apellido'] as String;
-    final telefono = paciente['telefono'] as String;
-    final direccion = paciente['direccion'] as String;
-    final fechaNacimiento = paciente['fechaNacimiento'] as String;
-    final activo = paciente['activo'] as bool;
+  Widget _buildPacienteCard(PatientModel paciente) {
+    final id = paciente.code;
+    final nombreCompleto = paciente.fullName;
+    final telefono = paciente.phone.isNotEmpty ? paciente.phone : 'Sin teléfono';
+    final direccion = paciente.address.isNotEmpty ? paciente.address : 'Sin dirección';
+    final fechaNacimiento = paciente.formattedBirthDate;
+    final activo = paciente.isActive;
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
@@ -457,7 +341,7 @@ class _PacientesScreenState extends State<PacientesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$nombre $apellido',
+                        nombreCompleto,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -494,50 +378,60 @@ class _PacientesScreenState extends State<PacientesScreen> {
     );
   }
 
-  void _abrirModalPaciente({Map<String, dynamic>? paciente}) {
+  void _abrirModalPaciente({PatientModel? paciente}) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return PacienteModal(
-          id: paciente?['id'] as String?,
-          nombre: paciente?['nombre'] as String?,
-          apellido: paciente?['apellido'] as String?,
-          telefono: paciente?['telefono'] as String?,
-          direccion: paciente?['direccion'] as String?,
-          fechaNacimiento: paciente?['fechaNacimiento'] as String?,
-          activo: (paciente?['activo'] as bool?) ?? true,
-          onGuardar: (nombre, apellido, telefono, direccion, fechaNacimiento, activo) {
-            setState(() {
-              if (paciente != null) {
-                final id = paciente['id'];
-                for (var pac in listaPacientes) {
-                  if (pac['id'] == id) {
-                    pac['nombre'] = nombre;
-                    pac['apellido'] = apellido;
-                    pac['telefono'] = telefono;
-                    pac['direccion'] = direccion;
-                    pac['fechaNacimiento'] = fechaNacimiento;
-                    pac['activo'] = activo;
-                    break;
-                  }
-                }
-              } else {
-                final nuevoId = 'PAC-00${listaPacientes.length + 1}';
-                listaPacientes.insert(0, {
-                  'id': nuevoId,
-                  'nombre': nombre,
-                  'apellido': apellido,
-                  'telefono': telefono,
-                  'direccion': direccion,
-                  'fechaNacimiento': fechaNacimiento,
-                  'activo': activo,
-                });
-              }
-            });
+          paciente: paciente,
+          onGuardar: (nombre, apellido, telefono, direccion, fechaNacimiento, activo) async {
+            final provider = context.read<PatientProvider>();
+            bool exito;
+            if (paciente != null) {
+              exito = await provider.updatePatient(
+                id: paciente.id,
+                firstName: nombre,
+                lastName: apellido,
+                phone: telefono,
+                address: direccion,
+                birthDate: fechaNacimiento,
+                state: activo,
+                previousState: paciente.isActive,
+              );
+            } else {
+              exito = await provider.createPatient(
+                firstName: nombre,
+                lastName: apellido,
+                phone: telefono,
+                address: direccion,
+                birthDate: fechaNacimiento,
+                state: activo,
+              );
+            }
+
+            if (!mounted) return;
+            if (exito) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    paciente != null
+                        ? 'Paciente actualizado exitosamente'
+                        : 'Paciente registrado exitosamente',
+                  ),
+                  backgroundColor: Colors.green[700],
+                ),
+              );
+            } else if (provider.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(provider.errorMessage!),
+                  backgroundColor: Colors.red[700],
+                ),
+              );
+            }
           },
         );
       },
     );
   }
 }
-

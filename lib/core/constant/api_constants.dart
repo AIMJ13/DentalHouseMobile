@@ -13,6 +13,7 @@ class ApiConstants {
   static const String profileEndpoint = '/Auth/profile';
   static const String usersEndpoint = '/Users';
   static const String logsEndpoint = '/Logs';
+  static const String patientsEndpoint = '/Patient';
   static const String salesEndpoint = '/Sales';
   static const String changePasswordEndpoint = '/Auth/change-password';
 
