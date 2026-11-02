@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../data/models/patient_model.dart';
 import '../../widgets/custom_bottom_modal.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/estado_toggle.dart';
 
 class PacienteModal extends StatefulWidget {
-  final String? id;
-  final String? nombre;
-  final String? apellido;
-  final String? telefono;
-  final String? direccion;
-  final String? fechaNacimiento;
-  final bool activo;
+  final PatientModel? paciente;
   final void Function(
     String nombre,
     String apellido,
@@ -22,13 +17,7 @@ class PacienteModal extends StatefulWidget {
 
   const PacienteModal({
     super.key,
-    this.id,
-    this.nombre,
-    this.apellido,
-    this.telefono,
-    this.direccion,
-    this.fechaNacimiento,
-    this.activo = true,
+    this.paciente,
     this.onGuardar,
   });
 
@@ -44,15 +33,19 @@ class _PacienteModalState extends State<PacienteModal> {
   late final TextEditingController _fechaNacimientoController;
   late bool _esActivo;
 
+  bool get _esEdicion => widget.paciente != null;
+
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(text: widget.nombre ?? '');
-    _apellidoController = TextEditingController(text: widget.apellido ?? '');
-    _telefonoController = TextEditingController(text: widget.telefono ?? '');
-    _direccionController = TextEditingController(text: widget.direccion ?? '');
-    _fechaNacimientoController = TextEditingController(text: widget.fechaNacimiento ?? '');
-    _esActivo = widget.activo;
+    _nombreController = TextEditingController(text: widget.paciente?.firstName ?? '');
+    _apellidoController = TextEditingController(text: widget.paciente?.lastName ?? '');
+    _telefonoController = TextEditingController(text: widget.paciente?.phone ?? '');
+    _direccionController = TextEditingController(text: widget.paciente?.address ?? '');
+    _fechaNacimientoController = TextEditingController(
+      text: widget.paciente != null ? widget.paciente!.birthDate.split(' ')[0] : '',
+    );
+    _esActivo = widget.paciente?.isActive ?? true;
   }
 
   @override
@@ -66,54 +59,62 @@ class _PacienteModalState extends State<PacienteModal> {
   }
 
   Future<void> _seleccionarFecha(BuildContext context) async {
-    final fechaActual = DateTime.now();
-    final fechaSeleccionada = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: DateTime(1995, 1, 1),
       firstDate: DateTime(1920),
-      lastDate: fechaActual,
+      lastDate: DateTime.now(),
     );
 
-    if (fechaSeleccionada != null) {
-      final dia = fechaSeleccionada.day.toString().padLeft(2, '0');
-      final mes = fechaSeleccionada.month.toString().padLeft(2, '0');
-      final anio = fechaSeleccionada.year.toString();
+    if (picked != null) {
+      final dia = picked.day.toString().padLeft(2, '0');
+      final mes = picked.month.toString().padLeft(2, '0');
+      final anio = picked.year.toString();
       setState(() {
-        _fechaNacimientoController.text = '$dia/$mes/$anio';
+        _fechaNacimientoController.text = '$anio-$mes-$dia';
       });
     }
+  }
+
+  void _confirmar() {
+    final nombre = _nombreController.text.trim();
+    final apellido = _apellidoController.text.trim();
+    final telefono = _telefonoController.text.trim();
+    final direccion = _direccionController.text.trim();
+    final fecha = _fechaNacimientoController.text.trim();
+
+    if (nombre.isEmpty || apellido.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El nombre y el apellido son requeridos'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    Navigator.pop(context);
+    widget.onGuardar?.call(
+      nombre,
+      apellido,
+      telefono,
+      direccion,
+      fecha.isNotEmpty ? fecha : '1995-01-01',
+      _esActivo,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomBottomModal(
-      icono: widget.id == null ? Icons.person_add_alt_1_outlined : Icons.edit_outlined,
-      titulo: widget.id == null ? 'Nuevo Paciente' : 'Editar Paciente',
-      subtitulo: widget.id == null
-          ? 'Registra los datos personales y de contacto del paciente.'
-          : 'Modifica la información y estado del paciente.',
-      textoConfirmar: widget.id == null ? 'Guardar' : 'Actualizar Paciente',
-      onConfirmar: () {
-        final nombre = _nombreController.text.trim();
-        final apellido = _apellidoController.text.trim();
-        final telefono = _telefonoController.text.trim();
-        final direccion = _direccionController.text.trim();
-        final fechaNacimiento = _fechaNacimientoController.text.trim();
-
-        if (nombre.isEmpty || apellido.isEmpty) return;
-
-        Navigator.pop(context);
-        if (widget.onGuardar != null) {
-          widget.onGuardar!(
-            nombre,
-            apellido,
-            telefono,
-            direccion,
-            fechaNacimiento,
-            _esActivo,
-          );
-        }
-      },
+      icono: _esEdicion ? Icons.edit_outlined : Icons.person_add_alt_1_outlined,
+      titulo: _esEdicion ? 'Editar Paciente' : 'Nuevo Paciente',
+      badgeTexto: _esEdicion ? widget.paciente!.code : null,
+      subtitulo: _esEdicion
+          ? 'Modifica la información y estado del paciente.'
+          : 'Registra los datos personales y de contacto del paciente.',
+      textoConfirmar: _esEdicion ? 'Actualizar Paciente' : 'Guardar',
+      onConfirmar: _confirmar,
       contenido: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -144,7 +145,7 @@ class _PacienteModalState extends State<PacienteModal> {
           const SizedBox(height: 12),
           CustomTextField(
             label: 'Fecha de nacimiento',
-            hintText: 'dd/mm/aaaa',
+            hintText: 'aaaa-mm-dd',
             controller: _fechaNacimientoController,
             keyboardType: TextInputType.datetime,
             suffixIcon: IconButton(
@@ -154,7 +155,7 @@ class _PacienteModalState extends State<PacienteModal> {
           ),
           const SizedBox(height: 12),
           Text(
-            widget.id == null ? 'Estado inicial' : 'Estado',
+            _esEdicion ? 'Estado' : 'Estado inicial',
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
           ),
           const SizedBox(height: 6),
