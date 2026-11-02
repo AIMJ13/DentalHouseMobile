@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'core/di/service_locator.dart';
+import 'presentation/providers/appointment_provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/log_provider.dart';
 import 'presentation/providers/user_provider.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => sl<LogProvider>()),
         ChangeNotifierProvider(create: (_) => sl<UserProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ServiceProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<AppointmentProvider>()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

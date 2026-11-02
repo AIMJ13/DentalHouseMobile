@@ -8,6 +8,8 @@ import '../../data/repositories/log_repository.dart';
 import '../../data/repositories/token_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../data/repositories/service_repository.dart';
+import '../../data/repositories/appointment_repository.dart';
+import '../../services/appointment_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/log_service.dart';
 import '../../services/user_service.dart';
@@ -15,6 +17,7 @@ import '../../services/service_service.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/providers/log_provider.dart';
 import '../../presentation/providers/service_provider.dart';
+import '../../presentation/providers/appointment_provider.dart';
 
 final sl = GetIt.instance;
 
@@ -63,5 +66,14 @@ Future<void> setupServiceLocator() async {
   );
     sl.registerFactory<ServiceProvider>(
     () => ServiceProvider(sl<ServiceService>()),
+  );
+    sl.registerLazySingleton<AppointmentRepository>(
+    () => AppointmentRepository(sl<ApiClient>()),
+  );
+  sl.registerLazySingleton<AppointmentService>(
+    () => AppointmentService(sl<AppointmentRepository>()),
+  );
+  sl.registerFactory<AppointmentProvider>(
+    () => AppointmentProvider(sl<AppointmentService>()),
   );
 }
