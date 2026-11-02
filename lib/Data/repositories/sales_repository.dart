@@ -1,4 +1,4 @@
-
+import '../../core/constant/api_constants.dart';
 import '../../core/networks/api_client.dart';
 
 class SalesRepository {
@@ -11,7 +11,7 @@ class SalesRepository {
     int pageSize = 100,
   }) async {
     final response = await _apiClient.get(
-      '/Sales',
+      ApiConstants.salesEndpoint,
       query: {
         'pageNumber': pageNumber,
         'pageSize': pageSize,
@@ -33,5 +33,17 @@ class SalesRepository {
     }
 
     return result;
+  }
+
+  Future<Map<String, dynamic>> getSaleById(int id) async {
+    final response = await _apiClient.get('${ApiConstants.salesEndpoint}/$id');
+
+    if (response is! Map) {
+      throw const FormatException(
+        'La respuesta de la venta no tiene el formato esperado.',
+      );
+    }
+
+    return Map<String, dynamic>.from(response);
   }
 }
