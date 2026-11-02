@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../Data/models/sale_model.dart';
+import '../../../data/models/sale_model.dart';
 
 class VentaDetalleModal extends StatelessWidget {
   final SaleModel sale;

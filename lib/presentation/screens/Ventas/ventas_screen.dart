@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../Data/models/sale_model.dart';
+import '../../../data/models/sale_model.dart';
 import '../../providers/sales_provider.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';

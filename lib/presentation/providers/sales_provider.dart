@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/errors/app_exceptions.dart';
-import '../../Data/models/sale_model.dart';
+import '../../data/models/sale_model.dart';
 import '../../services/sales_service.dart';
 import 'log_provider.dart' show ViewStatus;
 
