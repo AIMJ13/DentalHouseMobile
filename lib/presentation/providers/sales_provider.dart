@@ -14,6 +14,9 @@ class SalesProvider extends ChangeNotifier {
   ViewStatus _viewStatus = ViewStatus.initial;
   String? _errorMessage;
 
+  String _searchQuery = '';
+  String? _filtroFecha;
+
   ViewStatus get viewStatus => _viewStatus;
   bool get isLoading => _viewStatus == ViewStatus.loading;
   String? get errorMessage => _errorMessage;
@@ -22,6 +25,50 @@ class SalesProvider extends ChangeNotifier {
 
   List<Map<String, dynamic>> get sales =>
       _sales.map((item) => item.toJson()).toList();
+
+  String get searchQuery => _searchQuery;
+  String? get filtroFecha => _filtroFecha;
+
+  List<SaleModel> get filteredSales {
+    final query = _searchQuery.toLowerCase().trim();
+
+    return _sales.where((sale) {
+      final patient = sale.patientName.toLowerCase();
+      final doctor = sale.doctorName.toLowerCase();
+      final appointment = (sale.appointmentCode ?? '').toLowerCase();
+      final code = sale.code.toLowerCase();
+
+      final matchesQuery = query.isEmpty ||
+          patient.contains(query) ||
+          doctor.contains(query) ||
+          appointment.contains(query) ||
+          code.contains(query);
+
+      if (!matchesQuery) return false;
+
+      if (_filtroFecha != null && _filtroFecha!.isNotEmpty) {
+        if (sale.formattedDate != _filtroFecha) return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setFiltroFecha(String? fecha) {
+    _filtroFecha = fecha;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchQuery = '';
+    _filtroFecha = null;
+    notifyListeners();
+  }
 
   int get totalSales => _sales.length;
 
@@ -37,6 +84,16 @@ class SalesProvider extends ChangeNotifier {
         0,
         (total, sale) => total + sale.servicesCount,
       );
+
+  int get hoyCount {
+    final now = DateTime.now();
+    final dia = now.day.toString().padLeft(2, '0');
+    final mes = now.month.toString().padLeft(2, '0');
+    final anio = now.year.toString();
+    final hoyStr = '$dia/$mes/$anio';
+
+    return _sales.where((sale) => sale.formattedDate == hoyStr).length;
+  }
 
   double get monthlyRevenue {
     final now = DateTime.now();
