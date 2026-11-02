@@ -17,6 +17,7 @@ class UserProvider extends ChangeNotifier {
 
   ViewStatus get viewStatus => _viewStatus;
   bool get isLoading => _viewStatus == ViewStatus.loading;
+  bool get hasError => _viewStatus == ViewStatus.error;
   String? get errorMessage => _errorMessage;
   String get roleFilter => _roleFilter;
 
@@ -59,19 +60,23 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<bool> setUserState(int id, bool state) async {
+    String? error;
     try {
       await _service.setState(id, state);
-      await fetchUsers();
-      return true;
     } on AppException catch (e) {
-      _errorMessage = e.message;
-      notifyListeners();
-      return false;
+      error = e.message;
     } catch (_) {
-      _errorMessage = 'No se pudo cambiar el estado del usuario';
+      error = 'No se pudo cambiar el estado del usuario';
+    }
+
+    await fetchUsers();
+
+    if (error != null) {
+      _errorMessage = error;
       notifyListeners();
       return false;
     }
+    return true;
   }
 
   void setSearchTerm(String term) {
@@ -83,8 +88,8 @@ class UserProvider extends ChangeNotifier {
     _roleFilter = filtro;
     notifyListeners();
   }
-  
-    Future<String?> changePassword(String actual, String nueva, String confirmar) async {
+
+  Future<String?> changePassword(String actual, String nueva, String confirmar) async {
     try {
       await _service.changePassword(actual, nueva, confirmar);
       return null;
@@ -92,6 +97,16 @@ class UserProvider extends ChangeNotifier {
       return e.message;
     } catch (_) {
       return 'No se pudo cambiar la contraseña';
+    }
+  }
+  Future<String?> resetPassword(int id, String nueva) async {
+    try {
+      await _service.resetPassword(id, nueva);
+      return null;
+    } on AppException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'No se pudo restablecer la contraseña';
     }
   }
 }
