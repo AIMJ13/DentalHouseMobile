@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/custom_bottom_modal.dart';
 import '../../widgets/estado_toggle.dart';
@@ -30,7 +32,7 @@ class _UsuarioModalState extends State<UsuarioModal> {
 
   void _mostrarDialogoResetClave(BuildContext context) {
     final String nombre = widget.usuario['nombre'] as String? ?? 'Usuario';
-    final TextEditingController tempController = TextEditingController(text: 'Dental2026#');
+    final TextEditingController tempController = TextEditingController();
 
     showDialog(
       context: context,
@@ -71,6 +73,7 @@ class _UsuarioModalState extends State<UsuarioModal> {
                 controller: tempController,
                 decoration: InputDecoration(
                   labelText: 'Contraseña Temporal',
+                  hintText: 'Mínimo 6 caracteres',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
@@ -88,12 +91,16 @@ class _UsuarioModalState extends State<UsuarioModal> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              onPressed: () {
-                Navigator.pop(dialogContext);
+              onPressed: () async {
+                final String nueva = tempController.text;
+                final int id = int.tryParse(widget.usuario['id'] as String? ?? '') ?? 0;
+                final error = await context.read<UserProvider>().resetPassword(id, nueva);
+                if (!context.mounted) return;
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Contraseña temporal restablecida para $nombre'),
-                    backgroundColor: Colors.blue[700],
+                    content: Text(error ?? 'Contraseña restablecida para $nombre'),
+                    backgroundColor: error == null ? Colors.blue[700] : Colors.red,
                   ),
                 );
               },
@@ -102,7 +109,7 @@ class _UsuarioModalState extends State<UsuarioModal> {
           ],
         );
       },
-    ).then((_) => tempController.dispose());
+    );
   }
 
   @override
@@ -112,8 +119,9 @@ class _UsuarioModalState extends State<UsuarioModal> {
     final String usuario = widget.usuario['usuario'] as String? ?? '';
     final String rol = widget.usuario['rol'] as String? ?? '';
     final String email = widget.usuario['email'] as String? ?? '';
-    final String telefono = widget.usuario['telefono'] as String? ?? '';
-
+    final String telefonoRaw = widget.usuario['telefono'] as String? ?? '';
+    final String telefono = telefonoRaw.trim().isEmpty ? 'Sin teléfono registrado' : telefonoRaw;
+    
     Color rolColor = Colors.blue[700]!;
     Color rolFondo = Colors.blue[50]!;
     if (rol == 'Doctor') {

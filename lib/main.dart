@@ -5,15 +5,16 @@ import 'core/di/service_locator.dart';
 import 'presentation/providers/appointment_provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/log_provider.dart';
-import 'presentation/providers/user_provider.dart';
+import 'presentation/providers/patient_provider.dart';
 import 'presentation/providers/service_provider.dart';
+import 'presentation/providers/user_provider.dart';
+import 'presentation/providers/sales_provider.dart';
 import 'presentation/screens/Citas/citas_screen.dart';
 import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
 import 'presentation/screens/Home/home_screen.dart';
 import 'presentation/screens/Login/login_screen.dart';
 import 'presentation/widgets/loading_view.dart';
 import 'routes.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,9 +34,11 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => sl<AuthProvider>()..checkAuthStatus()),
         ChangeNotifierProvider(create: (_) => sl<LogProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<PatientProvider>()),
         ChangeNotifierProvider(create: (_) => sl<UserProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ServiceProvider>()),
         ChangeNotifierProvider(create: (_) => sl<AppointmentProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<SalesProvider>()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
