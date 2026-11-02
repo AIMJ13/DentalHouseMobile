@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../data/models/sale_model.dart';
 
 class VentaDetalleModal extends StatelessWidget {
-  final Map<String, dynamic> venta;
+  final SaleModel sale;
 
   const VentaDetalleModal({
     super.key,
-    required this.venta,
+    required this.sale,
   });
 
   @override
   Widget build(BuildContext context) {
-    final servicios = (venta['servicios'] as List<dynamic>?) ?? [];
-    final codigo = venta['codigo'] ?? venta['id'] ?? 'VTA-000';
-
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -43,7 +41,7 @@ class VentaDetalleModal extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Detalle de venta $codigo',
+                      'Detalle de venta ${sale.code}',
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
@@ -70,13 +68,18 @@ class VentaDetalleModal extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildFilaInfo('Paciente:', venta['paciente'] ?? 'No especificado'),
+              _buildFilaInfo('Paciente:', sale.patientName),
               const SizedBox(height: 12),
-              _buildFilaInfo('Doctor:', venta['doctor'] ?? 'No especificado'),
+              _buildFilaInfo('Doctor:', sale.doctorName),
               const SizedBox(height: 12),
-              _buildFilaInfo('Cita:', venta['cita'] ?? 'Sin cita asociada'),
+              _buildFilaInfo(
+                'Cita:',
+                sale.appointmentCode != null && sale.appointmentCode!.isNotEmpty
+                    ? sale.appointmentCode!
+                    : 'Sin cita asociada',
+              ),
               const SizedBox(height: 12),
-              _buildFilaInfo('Fecha:', venta['fecha'] ?? ''),
+              _buildFilaInfo('Fecha:', sale.formattedDate),
               const SizedBox(height: 14),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -90,7 +93,7 @@ class VentaDetalleModal extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    venta['total'] ?? 'C\$0.00',
+                    sale.formattedTotal,
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -109,7 +112,7 @@ class VentaDetalleModal extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              if (servicios.isEmpty)
+              if (sale.details.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
@@ -118,13 +121,13 @@ class VentaDetalleModal extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.grey[200]!),
                   ),
-                  child: Text(
-                    venta['servicio'] ?? 'Atención general',
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  child: const Text(
+                    'Atención general',
+                    style: TextStyle(fontSize: 13, color: Colors.black87),
                   ),
                 )
               else
-                for (var srv in servicios)
+                for (var srv in sale.details)
                   Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -138,7 +141,7 @@ class VentaDetalleModal extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '${srv['nombre']} x${srv['cantidad'] ?? 1}',
+                            '${srv.serviceName} x${srv.quantity}',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -147,7 +150,7 @@ class VentaDetalleModal extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          srv['precio'] ?? '',
+                          srv.formattedSubTotal,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
