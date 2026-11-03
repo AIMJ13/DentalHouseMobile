@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../data/models/doctor_model.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/custom_bottom_modal.dart';
 import '../../widgets/custom_select_modal.dart';
@@ -6,25 +7,18 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/estado_toggle.dart';
 
 class DoctorModal extends StatefulWidget {
-  final String? id;
-  final String? nombre;
-  final String? especialidad;
-  final String? telefono;
-  final bool activo;
+  final DoctorModel? doctor;
   final void Function(
     String nombre,
-    String especialidad,
+    String apellido,
     String telefono,
+    int especialidadId,
     bool activo,
   )? onGuardar;
 
   const DoctorModal({
     super.key,
-    this.id,
-    this.nombre,
-    this.especialidad,
-    this.telefono,
-    this.activo = true,
+    this.doctor,
     this.onGuardar,
   });
 
@@ -44,33 +38,43 @@ class _DoctorModalState extends State<DoctorModal> {
   final List<String> _especialidades = [
     'Ortodoncia',
     'Endodoncia',
-    'Odontología',
     'Odontología General',
     'Periodoncia',
   ];
 
+  bool get _esEdicion => widget.doctor != null;
+
+  int _obtenerIdEspecialidad(String nombre) {
+    if (widget.doctor != null && widget.doctor!.specialtyIds.isNotEmpty) {
+      if (widget.doctor!.specialtyDisplay == nombre) {
+        return widget.doctor!.specialtyIds.first;
+      }
+    }
+    switch (nombre) {
+      case 'Ortodoncia':
+        return 1;
+      case 'Endodoncia':
+        return 2;
+      case 'Odontología General':
+        return 3;
+      case 'Periodoncia':
+        return 4;
+      default:
+        return 1;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    String nombreCompleto = widget.nombre ?? '';
-    if (nombreCompleto.startsWith('Dr. ')) {
-      nombreCompleto = nombreCompleto.substring(4);
-    } else if (nombreCompleto.startsWith('Dra. ')) {
-      nombreCompleto = nombreCompleto.substring(5);
-    }
-    final partes = nombreCompleto.trim().split(' ');
-    _nombreController = TextEditingController(
-      text: partes.isNotEmpty ? partes.first : '',
-    );
-    _apellidoController = TextEditingController(
-      text: partes.length > 1 ? partes.sublist(1).join(' ') : '',
-    );
-    _telefonoController = TextEditingController(text: widget.telefono ?? '');
-    _especialidadSeleccionada = widget.especialidad ?? 'Ortodoncia';
+    _nombreController = TextEditingController(text: widget.doctor?.firstName ?? '');
+    _apellidoController = TextEditingController(text: widget.doctor?.lastName ?? '');
+    _telefonoController = TextEditingController(text: widget.doctor?.phone ?? '');
+    _especialidadSeleccionada = widget.doctor?.specialtyDisplay ?? 'Ortodoncia';
     if (!_especialidades.contains(_especialidadSeleccionada)) {
       _especialidades.add(_especialidadSeleccionada);
     }
-    _esActivo = widget.activo;
+    _esActivo = widget.doctor?.isActive ?? true;
   }
 
   @override
@@ -84,25 +88,26 @@ class _DoctorModalState extends State<DoctorModal> {
   @override
   Widget build(BuildContext context) {
     return CustomBottomModal(
-      icono: widget.id == null ? Icons.person_add_alt_1_outlined : Icons.edit_outlined,
-      titulo: widget.id == null ? 'Añadir Nuevo Doctor' : 'Editar Doctor',
-      badgeTexto: widget.id,
-      subtitulo: widget.id == null
+      icono: !_esEdicion ? Icons.person_add_alt_1_outlined : Icons.edit_outlined,
+      titulo: !_esEdicion ? 'Añadir Nuevo Doctor' : 'Editar Doctor',
+      badgeTexto: widget.doctor?.code,
+      subtitulo: !_esEdicion
           ? 'Ingresa los datos del nuevo especialista'
           : 'Modifica la información y estado del médico',
-      textoConfirmar: widget.id == null ? 'Guardar Doctor' : 'Guardar Cambios',
+      textoConfirmar: !_esEdicion ? 'Guardar Doctor' : 'Guardar Cambios',
       onConfirmar: () {
         final nom = _nombreController.text.trim();
         final ape = _apellidoController.text.trim();
         if (nom.isEmpty) return;
 
-        final nombreCompleto = ape.isNotEmpty ? 'Dr. $nom $ape' : 'Dr. $nom';
         Navigator.pop(context);
         if (widget.onGuardar != null) {
+          final specId = _obtenerIdEspecialidad(_especialidadSeleccionada);
           widget.onGuardar!(
-            nombreCompleto,
-            _especialidadSeleccionada,
+            nom,
+            ape,
             _telefonoController.text.trim(),
+            specId,
             _esActivo,
           );
         }
@@ -160,7 +165,7 @@ class _DoctorModalState extends State<DoctorModal> {
           EstadoToggle(
             valor: _esActivo,
             onChanged: (val) {
-              if (widget.id == null) {
+              if (!_esEdicion) {
                 setState(() => _esActivo = val);
                 return;
               }
@@ -187,7 +192,7 @@ class _DoctorModalState extends State<DoctorModal> {
                           border: Border.all(color: Colors.grey[200]!),
                         ),
                         child: Text(
-                          widget.nombre ?? 'Doctor',
+                          widget.doctor?.titleFullName ?? 'Doctor',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),
@@ -225,7 +230,7 @@ class _DoctorModalState extends State<DoctorModal> {
                           border: Border.all(color: Colors.grey[200]!),
                         ),
                         child: Text(
-                          widget.nombre ?? 'Doctor',
+                          widget.doctor?.titleFullName ?? 'Doctor',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/di/service_locator.dart';
 import 'presentation/providers/appointment_provider.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/doctor_provider.dart';
 import 'presentation/providers/log_provider.dart';
 import 'presentation/providers/patient_provider.dart';
 import 'presentation/providers/service_provider.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => sl<AuthProvider>()..checkAuthStatus()),
+        ChangeNotifierProvider(create: (_) => sl<DoctorProvider>()),
         ChangeNotifierProvider(create: (_) => sl<LogProvider>()),
         ChangeNotifierProvider(create: (_) => sl<PatientProvider>()),
         ChangeNotifierProvider(create: (_) => sl<UserProvider>()),
