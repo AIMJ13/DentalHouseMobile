@@ -15,6 +15,7 @@ class ApiConstants {
   static const String logsEndpoint = '/Logs';
   static const String patientsEndpoint = '/Patient';
   static const String salesEndpoint = '/Sales';
+  static const String specialtiesEndpoint = '/Specialty';
   static const String changePasswordEndpoint = '/Auth/change-password';
 
   static const Duration timeoutDuration = Duration(seconds: 30);
