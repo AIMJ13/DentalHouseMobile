@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../data/dashboard_data.dart';
+import '../../../data/models/doctor_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/doctor_provider.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
 import '../../widgets/user_badge.dart';
@@ -16,6 +20,14 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
   final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Especialidad'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DoctorProvider>().fetchDoctors();
+    });
+  }
 
   List<Map<String, dynamic>> _obtenerDoctoresFiltrados() {
     final query = _searchController.text.toLowerCase().trim();
@@ -46,7 +58,15 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool esAdmin = (perfilUsuarioActual['rol'] as String? ?? '') == 'Administrador';
+    final doctorProvider = context.watch<DoctorProvider>();
+    final authProvider = context.watch<AuthProvider>();
+    final rol = authProvider.currentRole;
+    final bool esAdmin = rol == 'Administrador';
+
+    final total = doctorProvider.totalCount;
+    final activos = doctorProvider.activeCount;
+    final inactivos = doctorProvider.inactiveCount;
+    final doctoresFiltrados = _obtenerDoctoresFiltrados();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -61,272 +81,262 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
           UserBadge(),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.person_outline, color: Colors.blue[700], size: 28),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Gestión de Doctores',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        esAdmin
-                            ? 'Administra el personal médico registrado en la clínica.'
-                            : 'Consulta del personal médico disponible en la clínica.',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (val) => setState(() {}),
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
-                  hintText: 'Buscar doctor por nombre, ID o teléfono...',
-                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+      body: RefreshIndicator(
+        onRefresh: doctorProvider.fetchDoctors,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  for (var filtro in _filtros)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _filtroSeleccionado = filtro;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: _filtroSeleccionado == filtro ? Colors.blue[700] : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _filtroSeleccionado == filtro ? Colors.blue[700]! : Colors.grey[300]!,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.person_outline, color: Colors.blue[700], size: 28),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Gestión de Doctores',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          esAdmin
+                              ? 'Administra el personal médico registrado en la clínica.'
+                              : 'Consulta del personal médico disponible en la clínica.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => setState(() {}),
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                    hintText: 'Buscar doctor por nombre, ID o teléfono...',
+                    hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (var filtro in _filtros)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _filtroSeleccionado = filtro;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _filtroSeleccionado == filtro ? Colors.blue[700] : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _filtroSeleccionado == filtro ? Colors.blue[700]! : Colors.grey[300]!,
+                              ),
+                            ),
+                            child: Text(
+                              filtro,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _filtroSeleccionado == filtro ? Colors.white : Colors.grey[700],
+                              ),
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                filtro,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _filtroSeleccionado == filtro ? Colors.white : Colors.grey[700],
-                                ),
-                              ),
-                              if (filtro == 'Especialidad') ...[
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_drop_down,
-                                  size: 16,
-                                  color: _filtroSeleccionado == filtro ? Colors.white : Colors.grey[700],
-                                ),
-                              ],
-                            ],
-                          ),
                         ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTarjetaMetrica(
+                      titulo: 'Total Doctores',
+                      valor: total.toString(),
+                      icono: Icons.people_outline,
+                      colorIcono: Colors.blue[700]!,
+                      colorFondo: Colors.blue[50]!,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildTarjetaMetrica(
+                      titulo: 'Activos',
+                      valor: activos.toString(),
+                      icono: Icons.check_circle_outline,
+                      colorIcono: Colors.green[700]!,
+                      colorFondo: Colors.green[50]!,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildTarjetaMetrica(
+                      titulo: 'Inactivos',
+                      valor: inactivos.toString(),
+                      icono: Icons.cancel_outlined,
+                      colorIcono: Colors.red[700]!,
+                      colorFondo: Colors.red[50]!,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Lista de Doctores (${doctoresFiltrados.length})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  if (esAdmin)
+                    TextButton.icon(
+                      onPressed: () => _abrirModalDoctor(),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Nuevo Doctor'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.blue[700],
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       ),
                     ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildMetricaItem(Colors.amber[700]!, 'Total:', ' ${metricasDoctores['total']}'),
-                  _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.green[600]!, 'Activos:', ' ${metricasDoctores['activos']}'),
-                  _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.red[600]!, 'Inactivos:', ' ${metricasDoctores['inactivos']}'),
-                  _buildSeparadorVertical(),
-                  _buildMetricaItem(Colors.blue[600]!, 'Espec.:', ' ${metricasDoctores['especialidades']}'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'DIRECTORIO DE MÉDICOS',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                Text(
-                  '${_obtenerDoctoresFiltrados().length} mostrados',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            for (var doc in _obtenerDoctoresFiltrados())
-              _buildDoctorCard(
-                id: doc['id'] as String,
-                nombre: doc['nombre'] as String,
-                especialidad: doc['especialidad'] as String,
-                telefono: doc['telefono'] as String,
-                activo: doc['activo'] as bool,
-                esAdmin: esAdmin,
-              ),
-          ],
-        ),
-      ),
-      floatingActionButton: esAdmin
-          ? FloatingActionButton(
-              onPressed: () => _abrirModalDoctor(),
-              backgroundColor: Colors.blue[700],
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            )
-          : null,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: (perfilUsuarioActual['rol'] == 'Recepcionista') ? 3 : 4,
-      ),
-    );
-  }
-
-  Widget _buildSeparadorVertical() {
-    return Container(
-      height: 14,
-      width: 1,
-      color: Colors.grey[300],
-    );
-  }
-
-  Widget _buildMetricaItem(Color puntoColor, String etiqueta, String valor) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: puntoColor,
-            shape: BoxShape.circle,
+              const SizedBox(height: 12),
+              for (var doc in doctoresFiltrados) _buildTarjetaDoctor(doc, esAdmin),
+              const SizedBox(height: 80),
+            ],
           ),
         ),
-        const SizedBox(width: 4),
-        Text(
-          etiqueta,
-          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-        ),
-        Text(
-          valor,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-      ],
+      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 2),
     );
   }
 
-  Widget _buildDoctorCard({
-    required String id,
-    required String nombre,
-    required String especialidad,
-    required String telefono,
-    required bool activo,
-    required bool esAdmin,
+  Widget _buildTarjetaMetrica({
+    required String titulo,
+    required String valor,
+    required IconData icono,
+    required Color colorIcono,
+    required Color colorFondo,
   }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: esAdmin
-          ? () => _abrirModalDoctor(
-                id: id,
-                nombre: nombre,
-                especialidad: especialidad,
-                telefono: telefono,
-                activo: activo,
-              )
-          : null,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: colorFondo,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icono, color: colorIcono, size: 16),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            valor,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            titulo,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTarjetaDoctor(Map<String, dynamic> doc, bool esAdmin) {
+    final id = doc['id'] as String;
+    final nombre = doc['nombre'] as String;
+    final especialidad = doc['especialidad'] as String;
+    final telefono = doc['telefono'] as String;
+    final activo = doc['activo'] as bool;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: activo ? Colors.teal[50] : Colors.grey[100],
+                    color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     id,
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: activo ? Colors.teal[700] : Colors.grey[700],
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
                     ),
                   ),
                 ),
+                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: activo ? Colors.green[50] : Colors.red[50],
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         width: 6,
@@ -424,49 +434,12 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     );
   }
 
-  void _abrirModalDoctor({
-    String? id,
-    String? nombre,
-    String? especialidad,
-    String? telefono,
-    bool activo = true,
-  }) {
+  void _abrirModalDoctor({DoctorModel? doctor}) {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return DoctorModal(
-          id: id,
-          nombre: nombre,
-          especialidad: especialidad,
-          telefono: telefono,
-          activo: activo,
-          onGuardar: (nuevoNombre, nuevaEspecialidad, nuevoTelefono, nuevoActivo) {
-            setState(() {
-              if (id != null) {
-                for (var doc in listaDoctores) {
-                  if (doc['id'] == id) {
-                    doc['nombre'] = nuevoNombre;
-                    doc['especialidad'] = nuevaEspecialidad;
-                    doc['telefono'] = nuevoTelefono;
-                    doc['activo'] = nuevoActivo;
-                    break;
-                  }
-                }
-              } else {
-                final nuevoId = 'DOC-00${listaDoctores.length + 1}';
-                listaDoctores.insert(0, {
-                  'id': nuevoId,
-                  'nombre': nuevoNombre,
-                  'especialidad': nuevaEspecialidad,
-                  'telefono': nuevoTelefono,
-                  'activo': nuevoActivo,
-                });
-              }
-            });
-          },
-        );
+        return DoctorModal(doctor: doctor);
       },
     );
   }
 }
-
