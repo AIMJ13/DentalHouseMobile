@@ -19,7 +19,7 @@ class DoctoresScreen extends StatefulWidget {
 class _DoctoresScreenState extends State<DoctoresScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSeleccionado = 'Todos';
-  final List<String> _filtros = ['Todos', 'Activos', 'Inactivos', 'Especialidad'];
+  final List<String> _filtros = ['Todos', 'Activos', 'Inactivos'];
 
   @override
   void initState() {
@@ -129,7 +129,9 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                 ),
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (val) => setState(() {}),
+                  onChanged: (val) {
+                    context.read<DoctorProvider>().setSearchTerm(val);
+                  },
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                     hintText: 'Buscar doctor por nombre, ID o teléfono...',
@@ -152,6 +154,7 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
                             setState(() {
                               _filtroSeleccionado = filtro;
                             });
+                            context.read<DoctorProvider>().setFilter(filtro);
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
