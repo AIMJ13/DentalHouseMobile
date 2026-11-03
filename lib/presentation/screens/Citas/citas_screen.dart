@@ -5,6 +5,10 @@ import '../../../data/dashboard_data.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
 import '../../widgets/user_badge.dart';
+import '../../../data/models/appointment_model.dart';
+import '../../providers/appointment_provider.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_view.dart';
 import 'cita_modal.dart';
 
 class CitasScreen extends StatefulWidget {
@@ -28,6 +32,13 @@ class _CitasScreenState extends State<CitasScreen> {
     'Cancelada',
     'No asistió',
   ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppointmentProvider>().fetchCitas();
+    });
+  }
 
   @override
   void dispose() {
@@ -35,10 +46,25 @@ class _CitasScreenState extends State<CitasScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> _obtenerCitasFiltradas() {
+  Map<String, dynamic> _citaComoMapa(AppointmentModel c) {
+    return {
+      'id': c.id.toString(),
+      'codigo': c.codigo,
+      'paciente': c.paciente,
+      'pacienteId': c.pacienteId.toString(),
+      'motivo': c.motivo,
+      'doctor': c.doctor,
+      'fecha': c.fechaTexto,
+      'hora': c.horaTexto,
+      'estado': c.estado,
+    };
+  }
+
+  List<Map<String, dynamic>> _obtenerCitasFiltradas(List<Map<String, dynamic>> citas) {
+
     final query = _searchController.text.toLowerCase().trim();
 
-    return listaCitas.where((cita) {
+    return citas.where((cita) {
       final paciente = (cita['paciente'] as String? ?? '').toLowerCase();
       final doctor = (cita['doctor'] as String? ?? '').toLowerCase();
       final motivo = (cita['motivo'] as String? ?? '').toLowerCase();
@@ -66,23 +92,6 @@ class _CitasScreenState extends State<CitasScreen> {
     }).toList();
   }
 
-  Map<String, int> _calcularMetricas() {
-    int programadas = 0, completadas = 0, canceladas = 0, noAsistio = 0;
-    for (var cita in listaCitas) {
-      final estado = cita['estado'] as String? ?? '';
-      if (estado == 'Programada') programadas++;
-      if (estado == 'Completada') completadas++;
-      if (estado == 'Cancelada') canceladas++;
-      if (estado == 'No asistió') noAsistio++;
-    }
-    return {
-      'total': listaCitas.length,
-      'programadas': programadas,
-      'completadas': completadas,
-      'canceladas': canceladas,
-      'noAsistio': noAsistio,
-    };
-  }
 
   Future<void> _seleccionarFechaFiltro() async {
     final picked = await showDatePicker(
@@ -182,12 +191,21 @@ class _CitasScreenState extends State<CitasScreen> {
   Widget build(BuildContext context) {
     final String rol = Provider.of<AuthProvider>(context, listen: false).currentRole;
     final bool esAdmin = rol == 'Administrador';
-    final metricas = _calcularMetricas();
-    final citasMostradas = _obtenerCitasFiltradas();
+    final provider = context.watch<AppointmentProvider>();
+    final citasApi = provider.citas.map(_citaComoMapa).toList();
+    final citasMostradas = _obtenerCitasFiltradas(citasApi);
+
+    final Map<String, int> metricas = {
+      'total': provider.total,
+      'programadas': provider.contarPorEstado('Programada'),
+      'completadas': provider.contarPorEstado('Completada'),
+      'canceladas': provider.contarPorEstado('Cancelada'),
+      'noAsistio': provider.contarPorEstado('No asistió'),
+    };
 
     final List<String> doctoresFiltro = [
       'Todos los doctores',
-      ...listaDoctores.map((d) => d['nombre'] as String).toSet(),
+      ...provider.doctores,
     ];
 
     return Scaffold(
@@ -376,7 +394,18 @@ class _CitasScreenState extends State<CitasScreen> {
             ),
             const SizedBox(height: 12),
 
-            if (citasMostradas.isEmpty)
+            if (provider.isLoading)
+              const SizedBox(height: 240, child: LoadingView(message: 'Cargando citas...'))
+            else if (provider.hasError)
+              SizedBox(
+                height: 240,
+                child: ErrorView(
+                  message: provider.errorMessage ?? 'Error al cargar las citas',
+                  onRetry: () => provider.fetchCitas(),
+                ),
+              )
+
+            else if (citasMostradas.isEmpty)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
