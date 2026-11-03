@@ -6,6 +6,7 @@ import '../../data/repositories/log_repository.dart';
 import '../../data/repositories/patient_repository.dart';
 import '../../data/repositories/sales_repository.dart';
 import '../../data/repositories/service_repository.dart';
+import '../../data/repositories/specialty_repository.dart';
 import '../../data/repositories/token_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../services/auth_service.dart';
@@ -13,12 +14,14 @@ import '../../services/log_service.dart';
 import '../../services/patient_service.dart';
 import '../../services/sales_service.dart';
 import '../../services/service_service.dart';
+import '../../services/specialty_service.dart';
 import '../../services/user_service.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/providers/log_provider.dart';
 import '../../presentation/providers/patient_provider.dart';
 import '../../presentation/providers/sales_provider.dart';
 import '../../presentation/providers/service_provider.dart';
+import '../../presentation/providers/specialty_provider.dart';
 import '../../presentation/providers/user_provider.dart';
 
 final sl = GetIt.instance;
@@ -37,6 +40,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<PatientRepository>(() => PatientRepository(sl<ApiClient>()));
   sl.registerLazySingleton<ServiceRepository>(() => ServiceRepository(sl<ApiClient>()));
   sl.registerLazySingleton<SalesRepository>(() => SalesRepository(sl<ApiClient>()));
+  sl.registerLazySingleton<SpecialtyRepository>(() => SpecialtyRepository(sl<ApiClient>()));
 
   sl.registerLazySingleton<AuthService>(() => AuthService(sl<AuthRepository>()));
   sl.registerLazySingleton<UserService>(() => UserService(sl<UserRepository>()));
@@ -44,6 +48,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<PatientService>(() => PatientService(sl<PatientRepository>()));
   sl.registerLazySingleton<ServiceService>(() => ServiceService(sl<ServiceRepository>()));
   sl.registerLazySingleton<SalesService>(() => SalesService(sl<SalesRepository>()));
+  sl.registerLazySingleton<SpecialtyService>(() => SpecialtyService(sl<SpecialtyRepository>()));
 
   sl.registerFactory<AuthProvider>(() => AuthProvider(sl<AuthService>(), sl<TokenRepository>()));
   sl.registerFactory<LogProvider>(() => LogProvider(sl<LogService>()));
@@ -51,4 +56,5 @@ Future<void> setupServiceLocator() async {
   sl.registerFactory<UserProvider>(() => UserProvider(sl<UserService>()));
   sl.registerFactory<ServiceProvider>(() => ServiceProvider(sl<ServiceService>()));
   sl.registerFactory<SalesProvider>(() => SalesProvider(sl<SalesService>()));
+  sl.registerFactory<SpecialtyProvider>(() => SpecialtyProvider(sl<SpecialtyService>()));
 }

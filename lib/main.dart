@@ -8,6 +8,7 @@ import 'presentation/providers/patient_provider.dart';
 import 'presentation/providers/service_provider.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/sales_provider.dart';
+import 'presentation/providers/specialty_provider.dart';
 import 'presentation/screens/Citas/citas_screen.dart';
 import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
 import 'presentation/screens/Home/home_screen.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => sl<UserProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ServiceProvider>()),
         ChangeNotifierProvider(create: (_) => sl<SalesProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<SpecialtyProvider>()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
