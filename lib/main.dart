@@ -1,69 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'Data/dashboard_data.dart';
-import 'Screen/DoctorHome/doctor_home_screen.dart';
-import 'Screen/Home/home_screen.dart';
-import 'Screen/Login/login_screen.dart';
-import 'Screen/RecepcionCitas/recepcion_citas_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+import 'core/di/service_locator.dart';
+import 'presentation/providers/appointment_provider.dart';
+import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/log_provider.dart';
+import 'presentation/providers/patient_provider.dart';
+import 'presentation/providers/service_provider.dart';
+import 'presentation/providers/user_provider.dart';
+import 'presentation/providers/sales_provider.dart';
+import 'presentation/screens/Citas/citas_screen.dart';
+import 'presentation/screens/DoctorHome/doctor_home_screen.dart';
+import 'presentation/screens/Home/home_screen.dart';
+import 'presentation/screens/Login/login_screen.dart';
+import 'presentation/widgets/loading_view.dart';
 import 'routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final prefs = await SharedPreferences.getInstance();
-  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-  final String rol = prefs.getString('rol') ?? 'Administrador';
-  final String usuario = prefs.getString('usuario') ?? '';
-
-  if (isLoggedIn) {
-    perfilUsuarioActual['rol'] = rol;
-    for (var u in listaUsuarios) {
-      if ((u['usuario'] as String).toLowerCase() == usuario.toLowerCase() ||
-          (u['rol'] as String).toLowerCase() == rol.toLowerCase()) {
-        perfilUsuarioActual['id'] = u['id'];
-        perfilUsuarioActual['nombre'] = u['nombre'];
-        perfilUsuarioActual['usuario'] = u['usuario'];
-        perfilUsuarioActual['rol'] = u['rol'];
-        perfilUsuarioActual['email'] = u['email'];
-        perfilUsuarioActual['telefono'] = u['telefono'];
-        perfilUsuarioActual['avatarLetra'] = (u['nombre'] as String).substring(0, 1);
-        break;
-      }
-    }
-  }
-
-  runApp(MyApp(isLoggedIn: isLoggedIn, rol: rol));
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {}
+  await setupServiceLocator();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-  final String rol;
-
-  const MyApp({
-    super.key,
-    this.isLoggedIn = false,
-    this.rol = 'Administrador',
-  });
-
-  Widget _determinarPantallaInicial() {
-    if (!isLoggedIn) return const LoginScreen();
-    if (rol == 'Doctor') return const DoctorHomeScreen();
-    if (rol == 'Recepcionista') return const RecepcionCitasScreen();
-    return const HomeScreen();
-  }
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'DentalHouse',
-      theme: ThemeData(
-        fontFamily: 'Outfit',
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => sl<AuthProvider>()..checkAuthStatus()),
+        ChangeNotifierProvider(create: (_) => sl<LogProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<PatientProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<UserProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<ServiceProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<AppointmentProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<SalesProvider>()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'DentalHouse',
+        theme: ThemeData(
+          fontFamily: 'Outfit',
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        home: Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            if (auth.authStatus == AuthStatus.unknown || (auth.isLoading && !auth.isAuthenticated)) {
+              return const Scaffold(
+                backgroundColor: Colors.white,
+                body: LoadingView(message: 'Comprobando sesión...'),
+              );
+            }
+            if (auth.authStatus == AuthStatus.unauthenticated || !auth.isAuthenticated) {
+              return const LoginScreen();
+            }
+            final rol = auth.currentRole;
+            if (rol == 'Doctor') {
+              return const DoctorHomeScreen();
+            }
+            if (rol == 'Recepcionista') {
+              return const CitasScreen();
+            }
+            return const HomeScreen();
+          },
+        ),
+        routes: Routes.routes,
       ),
-      home: _determinarPantallaInicial(),
-      routes: Routes.routes,
     );
   }
 }
