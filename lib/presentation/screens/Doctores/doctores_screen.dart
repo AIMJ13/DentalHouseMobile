@@ -433,7 +433,52 @@ class _DoctoresScreenState extends State<DoctoresScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return DoctorModal(doctor: doctor);
+        return DoctorModal(
+          doctor: doctor,
+          onGuardar: (nombre, apellido, telefono, especialidadId, activo) async {
+            final provider = context.read<DoctorProvider>();
+            bool exito;
+            if (doctor != null) {
+              exito = await provider.updateDoctor(
+                id: doctor.id,
+                firstName: nombre,
+                lastName: apellido,
+                phone: telefono,
+                specialtyId: especialidadId,
+                state: activo,
+              );
+            } else {
+              exito = await provider.createDoctor(
+                firstName: nombre,
+                lastName: apellido,
+                phone: telefono,
+                specialtyId: especialidadId,
+                state: activo,
+              );
+            }
+
+            if (!mounted) return;
+            if (exito) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    doctor != null
+                        ? 'Doctor actualizado exitosamente'
+                        : 'Doctor registrado exitosamente',
+                  ),
+                  backgroundColor: Colors.green[700],
+                ),
+              );
+            } else if (provider.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(provider.errorMessage!),
+                  backgroundColor: Colors.red[700],
+                ),
+              );
+            }
+          },
+        );
       },
     );
   }
