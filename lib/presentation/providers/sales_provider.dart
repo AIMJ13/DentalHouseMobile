@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/errors/app_exceptions.dart';
+import '../../data/models/sale_model.dart';
 import '../../services/sales_service.dart';
 import 'log_provider.dart' show ViewStatus;
 
@@ -8,54 +9,104 @@ class SalesProvider extends ChangeNotifier {
 
   SalesProvider(this._service);
 
-  List<Map<String, dynamic>> _sales = [];
+  List<SaleModel> _sales = [];
 
   ViewStatus _viewStatus = ViewStatus.initial;
   String? _errorMessage;
+
+  String _searchQuery = '';
+  String? _filtroFecha;
 
   ViewStatus get viewStatus => _viewStatus;
   bool get isLoading => _viewStatus == ViewStatus.loading;
   String? get errorMessage => _errorMessage;
 
-  List<Map<String, dynamic>> get sales => _sales;
+  List<SaleModel> get saleModels => _sales;
 
-  int _toInt(dynamic value) {
-    if (value is num) return value.toInt();
-    return int.tryParse(value?.toString() ?? '') ?? 0;
+  List<Map<String, dynamic>> get sales =>
+      _sales.map((item) => item.toJson()).toList();
+
+  String get searchQuery => _searchQuery;
+  String? get filtroFecha => _filtroFecha;
+
+  List<SaleModel> get filteredSales {
+    final query = _searchQuery.toLowerCase().trim();
+
+    return _sales.where((sale) {
+      final patient = sale.patientName.toLowerCase();
+      final doctor = sale.doctorName.toLowerCase();
+      final appointment = (sale.appointmentCode ?? '').toLowerCase();
+      final code = sale.code.toLowerCase();
+
+      final matchesQuery = query.isEmpty ||
+          patient.contains(query) ||
+          doctor.contains(query) ||
+          appointment.contains(query) ||
+          code.contains(query);
+
+      if (!matchesQuery) return false;
+
+      if (_filtroFecha != null && _filtroFecha!.isNotEmpty) {
+        if (sale.formattedDate != _filtroFecha) return false;
+      }
+
+      return true;
+    }).toList();
   }
 
-  double _toDouble(dynamic value) {
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '') ?? 0;
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setFiltroFecha(String? fecha) {
+    _filtroFecha = fecha;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchQuery = '';
+    _filtroFecha = null;
+    notifyListeners();
   }
 
   int get totalSales => _sales.length;
 
   double get totalRevenue => _sales.fold(
-        0,
-        (total, sale) => total + _toDouble(sale['totalAmount']),
+        0.0,
+        (total, sale) => total + sale.totalAmount,
       );
 
   double get averageSale =>
-      totalSales == 0 ? 0 : totalRevenue / totalSales;
+      totalSales == 0 ? 0.0 : totalRevenue / totalSales;
 
   int get totalServicesSold => _sales.fold(
         0,
-        (total, sale) => total + _toInt(sale['servicesCount']),
+        (total, sale) => total + sale.servicesCount,
       );
+
+  int get hoyCount {
+    final now = DateTime.now();
+    final dia = now.day.toString().padLeft(2, '0');
+    final mes = now.month.toString().padLeft(2, '0');
+    final anio = now.year.toString();
+    final hoyStr = '$dia/$mes/$anio';
+
+    return _sales.where((sale) => sale.formattedDate == hoyStr).length;
+  }
 
   double get monthlyRevenue {
     final now = DateTime.now();
 
     return _sales.where((sale) {
-      final date = _parseSaleDate(sale['saleDate']);
+      final date = _parseSaleDate(sale.saleDate);
 
       return date != null &&
           date.month == now.month &&
           date.year == now.year;
     }).fold(
-      0,
-      (total, sale) => total + _toDouble(sale['totalAmount']),
+      0.0,
+      (total, sale) => total + sale.totalAmount,
     );
   }
 
@@ -65,10 +116,9 @@ class SalesProvider extends ChangeNotifier {
     final totals = <String, double>{};
 
     for (final sale in _sales) {
-      final name = sale['doctorName']?.toString() ?? 'Sin nombre';
+      final name = sale.doctorName.isNotEmpty ? sale.doctorName : 'Sin nombre';
 
-      totals[name] =
-          (totals[name] ?? 0) + _toDouble(sale['totalAmount']);
+      totals[name] = (totals[name] ?? 0.0) + sale.totalAmount;
     }
 
     final entries = totals.entries.toList()
@@ -77,7 +127,7 @@ class SalesProvider extends ChangeNotifier {
     return {
       'name': entries.first.key,
       'amount': entries.first.value,
-      'percentage': totalRevenue == 0
+      'percentage': totalRevenue == 0.0
           ? 0.0
           : entries.first.value / totalRevenue * 100,
     };
@@ -88,21 +138,11 @@ class SalesProvider extends ChangeNotifier {
     final quantities = <String, int>{};
 
     for (final sale in _sales) {
-      final details = sale['details'];
+      for (final detail in sale.details) {
+        final name = detail.serviceName.isNotEmpty ? detail.serviceName : 'Sin nombre';
 
-      if (details is! List) continue;
-
-      for (final detail in details) {
-        if (detail is! Map) continue;
-
-        final name =
-            detail['serviceName']?.toString() ?? 'Sin nombre';
-
-        totals[name] =
-            (totals[name] ?? 0) + _toDouble(detail['subTotal']);
-
-        quantities[name] =
-            (quantities[name] ?? 0) + _toInt(detail['quantity']);
+        totals[name] = (totals[name] ?? 0.0) + detail.subTotal;
+        quantities[name] = (quantities[name] ?? 0) + detail.quantity;
       }
     }
 
@@ -120,31 +160,9 @@ class SalesProvider extends ChangeNotifier {
     };
   }
 
-  DateTime? _parseSaleDate(dynamic value) {
-    if (value == null) return null;
-
-    final text = value.toString();
-
-    final parsed = DateTime.tryParse(text);
-    if (parsed != null) return parsed;
-
-    final parts = text.split(' ').first.split('/');
-
-    if (parts.length != 3) return null;
-
-    final month = int.tryParse(parts[0]);
-    final day = int.tryParse(parts[1]);
-    final year = int.tryParse(parts[2]);
-
-    if (month == null || day == null || year == null) {
-      return null;
-    }
-
-    return DateTime.tryParse(
-      '${year.toString().padLeft(4, '0')}-'
-      '${month.toString().padLeft(2, '0')}-'
-      '${day.toString().padLeft(2, '0')}',
-    );
+  DateTime? _parseSaleDate(String text) {
+    if (text.isEmpty) return null;
+    return DateTime.tryParse(text);
   }
 
   Future<void> fetchSales() async {

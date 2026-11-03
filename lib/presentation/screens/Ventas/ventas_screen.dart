@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../data/dashboard_data.dart';
+import 'package:provider/provider.dart';
+import '../../../data/models/sale_model.dart';
+import '../../providers/sales_provider.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/dental_logo.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_view.dart';
 import '../../widgets/user_badge.dart';
 import 'venta_detalle_modal.dart';
 
@@ -14,67 +18,21 @@ class VentasScreen extends StatefulWidget {
 
 class _VentasScreenState extends State<VentasScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String? _filtroFecha;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<SalesProvider>().fetchSales();
+      }
+    });
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  List<Map<String, dynamic>> _obtenerVentasFiltradas() {
-    final query = _searchController.text.toLowerCase().trim();
-
-    return listaVentas.where((venta) {
-      final paciente = (venta['paciente'] as String? ?? '').toLowerCase();
-      final doctor = (venta['doctor'] as String? ?? '').toLowerCase();
-      final cita = (venta['cita'] as String? ?? '').toLowerCase();
-      final codigo = (venta['codigo'] as String? ?? venta['id'] as String? ?? '').toLowerCase();
-
-      final coincideBusqueda = query.isEmpty ||
-          paciente.contains(query) ||
-          doctor.contains(query) ||
-          cita.contains(query) ||
-          codigo.contains(query);
-
-      if (!coincideBusqueda) return false;
-
-      if (_filtroFecha != null && _filtroFecha!.isNotEmpty) {
-        if ((venta['fecha'] as String? ?? '') != _filtroFecha) return false;
-      }
-
-      return true;
-    }).toList();
-  }
-
-  Map<String, String> _calcularMetricas() {
-    final int total = listaVentas.length;
-
-    final now = DateTime.now();
-    final dia = now.day.toString().padLeft(2, '0');
-    final mes = now.month.toString().padLeft(2, '0');
-    final anio = now.year.toString();
-    final hoyStr = '$dia/$mes/$anio';
-
-    int hoyCount = 0;
-    double sumaGeneral = 0.0;
-
-    for (var v in listaVentas) {
-      if ((v['fecha'] as String? ?? '') == hoyStr) {
-        hoyCount++;
-      }
-      final double valor = (v['totalNumero'] as num?)?.toDouble() ?? 0.0;
-      sumaGeneral += valor;
-    }
-
-    final double promedio = total > 0 ? (sumaGeneral / total) : 0.0;
-
-    return {
-      'total': '$total',
-      'hoy': '$hoyCount',
-      'general': 'C\$${sumaGeneral.toStringAsFixed(0)}',
-      'promedio': 'C\$${promedio.toStringAsFixed(2)}',
-    };
   }
 
   Future<void> _seleccionarFechaFiltro() async {
@@ -84,11 +42,11 @@ class _VentasScreenState extends State<VentasScreen> {
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       final dia = picked.day.toString().padLeft(2, '0');
       final mes = picked.month.toString().padLeft(2, '0');
       final anio = picked.year.toString();
-      setState(() => _filtroFecha = '$dia/$mes/$anio');
+      context.read<SalesProvider>().setFiltroFecha('$dia/$mes/$anio');
     }
   }
 
@@ -97,29 +55,26 @@ class _VentasScreenState extends State<VentasScreen> {
     final dia = now.day.toString().padLeft(2, '0');
     final mes = now.month.toString().padLeft(2, '0');
     final anio = now.year.toString();
-    setState(() => _filtroFecha = '$dia/$mes/$anio');
+    context.read<SalesProvider>().setFiltroFecha('$dia/$mes/$anio');
   }
 
   void _limpiarFiltros() {
-    setState(() {
-      _searchController.clear();
-      _filtroFecha = null;
-    });
+    _searchController.clear();
+    context.read<SalesProvider>().clearFilters();
   }
 
-  void _abrirDetalleVenta(Map<String, dynamic> venta) {
+  void _abrirDetalleVenta(SaleModel venta) {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return VentaDetalleModal(venta: venta);
+        return VentaDetalleModal(sale: venta);
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtradas = _obtenerVentasFiltradas();
-    final metricas = _calcularMetricas();
+    final provider = context.watch<SalesProvider>();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -134,7 +89,31 @@ class _VentasScreenState extends State<VentasScreen> {
           UserBadge(),
         ],
       ),
-      body: SingleChildScrollView(
+      body: _buildBody(provider),
+      bottomNavigationBar: const CustomBottomNav(
+        currentIndex: 2,
+      ),
+    );
+  }
+
+  Widget _buildBody(SalesProvider provider) {
+    if (provider.isLoading && provider.saleModels.isEmpty) {
+      return const LoadingView(message: 'Cargando ventas...');
+    }
+
+    if (provider.errorMessage != null && provider.saleModels.isEmpty) {
+      return ErrorView(
+        message: provider.errorMessage!,
+        onRetry: () => provider.fetchSales(),
+      );
+    }
+
+    final filtradas = provider.filteredSales;
+
+    return RefreshIndicator(
+      onRefresh: () => provider.fetchSales(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +164,7 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                onChanged: (_) => setState(() {}),
+                onChanged: (val) => provider.setSearchQuery(val),
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                   hintText: 'Buscar venta por paciente, doctor...',
@@ -219,17 +198,17 @@ class _VentasScreenState extends State<VentasScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              _filtroFecha ?? 'dd/mm/aaaa',
+                              provider.filtroFecha ?? 'dd/mm/aaaa',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: _filtroFecha != null ? Colors.black87 : Colors.grey[500],
+                                color: provider.filtroFecha != null ? Colors.black87 : Colors.grey[500],
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (_filtroFecha != null)
+                          if (provider.filtroFecha != null)
                             InkWell(
-                              onTap: () => setState(() => _filtroFecha = null),
+                              onTap: () => provider.setFiltroFecha(null),
                               child: const Icon(Icons.close, size: 14, color: Colors.grey),
                             ),
                         ],
@@ -293,13 +272,13 @@ class _VentasScreenState extends State<VentasScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildMetricaItem(Colors.amber[700]!, 'Total:', ' ${metricas['total']}'),
+                    _buildMetricaItem(Colors.amber[700]!, 'Total:', ' ${provider.totalSales}'),
                     _buildSeparadorVertical(),
-                    _buildMetricaItem(Colors.green[600]!, 'Hoy:', ' ${metricas['hoy']}'),
+                    _buildMetricaItem(Colors.green[600]!, 'Hoy:', ' ${provider.hoyCount}'),
                     _buildSeparadorVertical(),
-                    _buildMetricaItem(Colors.blue[600]!, 'General:', ' ${metricas['general']}'),
+                    _buildMetricaItem(Colors.blue[600]!, 'General:', ' C\$${provider.totalRevenue.toStringAsFixed(0)}'),
                     _buildSeparadorVertical(),
-                    _buildMetricaItem(Colors.purple[400]!, 'Prom:', ' ${metricas['promedio']}'),
+                    _buildMetricaItem(Colors.purple[400]!, 'Prom:', ' C\$${provider.averageSale.toStringAsFixed(2)}'),
                   ],
                 ),
               ),
@@ -356,9 +335,6 @@ class _VentasScreenState extends State<VentasScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(
-        currentIndex: 2,
-      ),
     );
   }
 
@@ -400,7 +376,7 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
-  Widget _buildVentaCard(Map<String, dynamic> venta) {
+  Widget _buildVentaCard(SaleModel venta) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () => _abrirDetalleVenta(venta),
@@ -425,7 +401,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    venta['codigo'] ?? venta['id'] ?? '',
+                    venta.code,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -443,7 +419,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      venta['fecha'] ?? '',
+                      venta.formattedDate,
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey[600],
@@ -479,7 +455,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              venta['paciente'] ?? '',
+                              venta.patientName,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -489,7 +465,7 @@ class _VentasScreenState extends State<VentasScreen> {
                             ),
                           ),
                           Text(
-                            venta['total'] ?? '',
+                            venta.formattedTotal,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -503,7 +479,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         children: [
                           Flexible(
                             child: Text(
-                              venta['doctor'] ?? '',
+                              venta.doctorName,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -511,7 +487,7 @@ class _VentasScreenState extends State<VentasScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (venta['cita'] != null && venta['cita'].toString().isNotEmpty) ...[
+                          if (venta.appointmentCode != null && venta.appointmentCode!.isNotEmpty) ...[
                             Text(
                               ' • ',
                               style: TextStyle(color: Colors.grey[400]),
@@ -523,7 +499,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'Cita: ${venta['cita']}',
+                                'Cita: ${venta.appointmentCode}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
